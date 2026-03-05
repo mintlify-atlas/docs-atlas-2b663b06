@@ -60,10 +60,13 @@ The fastest way to grant permissions is by assigning a predefined role that matc
   <Step title="Select Role">
     Choose from the dropdown:
     - Administrador
-    - Supervisor
-    - Operador
     - Preparador
-    - Consulta
+    - Gerente de Sucursal
+    - Director de Operaciones
+    - Gerente de Calidad
+    - Mostrador
+    - Cajera
+    - Director de Compras
   </Step>
   
   <Step title="Review Permissions">
@@ -119,7 +122,7 @@ For custom permission needs, you can configure each module's permissions individ
 | Reportes | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Configuración | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-### Supervisor - Quality Oversight
+### Gerente de Calidad - Quality Oversight
 
 | Module | Ver | Crear | Editar | Eliminar | Exportar |
 |--------|-----|-------|--------|----------|----------|
@@ -131,7 +134,7 @@ For custom permission needs, you can configure each module's permissions individ
 | Reportes | ✅ | ✅ | ✅ | ❌ | ✅ |
 | Configuración | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-### Operador - Production & QC
+### Gerente de Sucursal - Branch Operations
 
 | Module | Ver | Crear | Editar | Eliminar | Exportar |
 |--------|-----|-------|--------|----------|----------|
@@ -155,7 +158,43 @@ For custom permission needs, you can configure each module's permissions individ
 | Reportes | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Configuración | ❌ | ❌ | ❌ | ❌ | ❌ |
 
-### Consulta - View Only
+### Director de Operaciones - Operations Director
+
+| Module | Ver | Crear | Editar | Eliminar | Exportar |
+|--------|-----|-------|--------|----------|----------|
+| Panel Principal | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Catálogo | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Control Calidad | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Bitácora | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Laboratorio I+D | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Reportes | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Configuración | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+### Cajera - Cashier
+
+| Module | Ver | Crear | Editar | Eliminar | Exportar |
+|--------|-----|-------|--------|----------|----------|
+| Panel Principal | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Catálogo | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Control Calidad | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Bitácora | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Laboratorio I+D | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Reportes | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Configuración | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+### Director de Compras - Purchasing Director
+
+| Module | Ver | Crear | Editar | Eliminar | Exportar |
+|--------|-----|-------|--------|----------|----------|
+| Panel Principal | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Catálogo | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Control Calidad | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Bitácora | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Laboratorio I+D | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Reportes | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Configuración | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+### Mostrador - Counter Staff
 
 | Module | Ver | Crear | Editar | Eliminar | Exportar |
 |--------|-----|-------|--------|----------|----------|
@@ -203,8 +242,8 @@ RLS policies are enforced at the database level in Supabase, providing an additi
     - ❌ Cannot perform quality control (separate role)
   </Step>
   
-  <Step title="Operador - María">
-    **Permissions: Operador role**
+  <Step title="Gerente de Sucursal - María">
+    **Permissions: Gerente de Sucursal role**
     
     - ✅ Sees batch registered by Juan in bitácora
     - ✅ Takes samples and performs quality measurements
@@ -212,8 +251,8 @@ RLS policies are enforced at the database level in Supabase, providing an additi
     - ✅ Marks batch as conforming/non-conforming
   </Step>
   
-  <Step title="Supervisor - Carlos">
-    **Permissions: Supervisor role**
+  <Step title="Gerente de Calidad - Carlos">
+    **Permissions: Gerente de Calidad role**
     
     - ✅ Reviews all records in Reports
     - ✅ Analyzes trends and control charts
@@ -304,19 +343,19 @@ END $$;
 ### Common Permission Patterns
 
 **Production Floor Staff**:
-- Role: Operador or Preparador
+- Role: Preparador or Gerente de Sucursal
 - Focus: Bitácora and Quality Control
 - No export or delete capabilities
 
 **Quality Management**:
-- Role: Supervisor
+- Role: Gerente de Calidad
 - Focus: Reports and Quality Control
 - Can export but not delete
 
-**Executive/Management**:
-- Role: Consulta
+**Counter and Sales Staff**:
+- Role: Mostrador or Cajera
 - Focus: Dashboard and Reports
-- Read-only access for oversight
+- Read-only access for customer service
 
 ## Troubleshooting
 

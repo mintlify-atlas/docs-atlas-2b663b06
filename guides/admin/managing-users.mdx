@@ -21,54 +21,79 @@ As an administrator, you can manage all user accounts in Quality Hub GINEZ, incl
 
 ## User Roles
 
-Quality Hub GINEZ has **5 predefined roles** with specific permissions:
+Quality Hub GINEZ has **8 predefined roles** with specific permissions based on access levels (AC=Complete, AP=Partial, AR=Restricted):
 
 ### 1. Administrador (Administrator)
-**Full system access** - Gerentes, System Administrators, IT
+**Full system access** - System Administrators, IT, General Managers
 
-- ✅ Full access to all modules
+- ✅ Full access to all modules (AC level)
 - ✅ Can create, edit, and delete all records
 - ✅ Can manage users and permissions
 - ✅ Can export data from all modules
-- ✅ Access to audit logs and configuration
+- ✅ Access to all filters including branch (sucursal) filter
+- ✅ Access to audit logs and all configuration tabs
 
-### 2. Supervisor
-**Quality supervision and reporting** - Quality Supervisors, Department Heads, Analysts
-
-- ✅ View all modules and reports
-- ✅ Create and edit quality control records
-- ✅ Create and edit reports
-- ✅ Export data from most modules
-- ❌ Cannot access Configuration
-- ❌ Cannot delete records
-
-### 3. Operador (Operator)
-**Production logging and quality control** - Production Operators, Quality Personnel
-
-- ✅ View dashboard and catalog
-- ✅ Create and edit bitácora entries
-- ✅ Create quality control records
-- ✅ View reports
-- ❌ Cannot export data
-- ❌ Cannot access Lab I+D or Configuration
-
-### 4. Preparador (Preparer)
+### 2. Preparador (Preparer)
 **Product preparation and batch logging** - Product Preparers, Mixing Personnel, Formulation Technicians
 
-- ✅ View catalog for formulas and specifications
-- ✅ Create and edit bitácora entries
-- ✅ Can edit their own records
-- ❌ No access to quality control (separate role)
-- ❌ Cannot view reports or analysis
-- ❌ No export capabilities
+- ✅ View and download catalog (AC level)
+- ✅ Create and edit bitácora entries (AC level)
+- ✅ View quality control (AP level - partial, view only)
+- ✅ View quality control reports (AP level)
+- ❌ No access to commercial analysis reports
+- ❌ No branch (sucursal) filter access
+- ❌ Cannot delete any records
 
-### 5. Consulta (View-Only)
-**Read-only access** - Visitors, External Auditors, Sales Personnel
+### 3. Gerente de Calidad (Quality Manager)
+**Quality control and development** - Quality Managers, R&D Directors, Laboratory Managers
 
-- ✅ View dashboard and reports
-- ✅ View catalog
-- ❌ Cannot create, edit, or delete any records
-- ❌ No access to bitácora, quality control, or configuration
+- ✅ View and download catalog
+- ✅ **Full quality control access** (AC level - can edit and delete)
+- ✅ Access to branch filter in Quality Control module
+- ✅ Can manage quality parameters across all branches
+- ❌ No access to bitácora module (AR level)
+- ❌ Cannot view commercial analysis reports
+
+### 4. Gerente de Sucursal (Branch Manager)
+**Branch-level management and oversight** - Branch Managers, Regional Supervisors
+
+- ✅ View and download catalog
+- ✅ View quality control (AP level - view only)
+- ✅ View quality control reports
+- ❌ No access to bitácora module (AR level)
+- ❌ No branch filter (sees only their data)
+- ❌ Cannot edit or delete quality records
+
+### 5. Director de Operaciones (Operations Director)
+**Operations oversight and quality monitoring** - Operations Directors, Production Managers
+
+- ✅ View and download catalog
+- ✅ View quality control (AP level - view only)
+- ✅ View quality control reports
+- ❌ No access to bitácora module (AR level)
+- ❌ Cannot edit or delete quality records
+
+### 6. Mostrador (Counter Staff)
+**Catalog access only** - Counter Personnel, Front Desk Staff
+
+- ✅ View and download catalog only
+- ✅ Access to profile settings
+- ❌ No access to any other modules (AR level for all except catalog)
+
+### 7. Cajera (Cashier)
+**Catalog access only** - Cashier Personnel
+
+- ✅ View and download catalog only
+- ✅ Access to profile settings
+- ❌ No access to any other modules (AR level for all except catalog)
+
+### 8. Director de Compras (Purchasing Director)
+**Catalog and limited reporting** - Purchasing Directors, Procurement Managers
+
+- ✅ View and download catalog
+- ✅ View reports (commercial analysis tab)
+- ✅ Access to profile settings
+- ❌ No access to bitácora or quality control modules
 
 ## Managing User Accounts
 
@@ -183,7 +208,7 @@ Deleting a user removes their profile and access, but **preserves historical rec
 
 ## Workflow Example
 
-### Scenario: Onboarding a New Production Operator
+### Scenario: Onboarding a New Preparer
 
 <Steps>
   <Step title="User Self-Registration">
@@ -198,8 +223,8 @@ Deleting a user removes their profile and access, but **preserves historical rec
     Confirm with HR or manager that this is a legitimate new employee
   </Step>
   
-  <Step title="Assign Operator Role">
-    - Set role to "Operador"
+  <Step title="Assign Preparer Role">
+    - Set role to "Preparador"
     - Assign to their work branch (e.g., "Tlalnepantla")
     - Set their area (e.g., "Producción")
   </Step>
