@@ -1,0 +1,176 @@
+{
+  "projectType": "saas",
+  "projectName": "Quality Hub GINEZ",
+  "projectDescription": "Comprehensive quality management and production control system for GINEZ manufacturing operations",
+  "theme": "linden",
+  "primaryColor": "#7c7c7c",
+  "lightColor": "#070707",
+  "darkColor": "#c4c4c4",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Modules",
+            "pages": [
+              "modules/production-logbook",
+              "modules/quality-control",
+              "modules/product-catalog",
+              "modules/reports-analytics"
+            ]
+          },
+          {
+            "group": "Quality Management",
+            "pages": [
+              "quality/control-charts",
+              "quality/conformity-classification",
+              "quality/standards-specifications",
+              "quality/ncr-management"
+            ]
+          },
+          {
+            "group": "User Management",
+            "pages": [
+              "user-management/roles-permissions",
+              "user-management/authentication",
+              "user-management/profile-settings"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/environment-variables",
+              "configuration/supabase-setup",
+              "configuration/google-sheets-integration",
+              "configuration/multi-location"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Architecture",
+        "groups": [
+          {
+            "group": "System Design",
+            "pages": [
+              "architecture/overview",
+              "architecture/tech-stack",
+              "architecture/data-model",
+              "architecture/security"
+            ]
+          },
+          {
+            "group": "Frontend",
+            "pages": [
+              "architecture/frontend/app-structure",
+              "architecture/frontend/components",
+              "architecture/frontend/state-management"
+            ]
+          },
+          {
+            "group": "Backend",
+            "pages": [
+              "architecture/backend/supabase",
+              "architecture/backend/row-level-security",
+              "architecture/backend/data-validation"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "User Guides",
+            "pages": [
+              "guides/user/creating-production-batches",
+              "guides/user/recording-measurements",
+              "guides/user/viewing-reports",
+              "guides/user/managing-profile"
+            ]
+          },
+          {
+            "group": "Administrator Guides",
+            "pages": [
+              "guides/admin/managing-users",
+              "guides/admin/configuring-permissions",
+              "guides/admin/audit-logs",
+              "guides/admin/system-maintenance"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "guides/development/local-setup",
+              "guides/development/database-migrations",
+              "guides/development/adding-products",
+              "guides/development/customization"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "Product Standards",
+            "pages": [
+              "reference/product-catalog",
+              "reference/solids-standards",
+              "reference/ph-standards",
+              "reference/appearance-standards"
+            ]
+          },
+          {
+            "group": "Data Structures",
+            "pages": [
+              "reference/database-schema",
+              "reference/type-definitions",
+              "reference/validation-rules"
+            ]
+          },
+          {
+            "group": "Constants & Configuration",
+            "pages": [
+              "reference/locations",
+              "reference/product-categories",
+              "reference/parameter-applicability"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Control Charts & Statistical Process Control",
+    "Real-time Quality Conformity Classification",
+    "Multi-location Production Tracking",
+    "Role-based Access Control (5 roles)",
+    "Interactive Analytics Dashboard",
+    "Automated Batch Number Generation",
+    "Google Sheets Product Catalog Integration",
+    "Non-Conformance Report (NCR) Management"
+  ],
+  "publicApiSurface": [
+    "/bitacora - Production logbook module",
+    "/calidad - Quality control dashboard",
+    "/catalogo - Product catalog",
+    "/reportes - Reports and analytics",
+    "/configuracion - User and system configuration",
+    "PRODUCT_STANDARDS - Solids specification constants",
+    "PH_STANDARDS - pH specification constants",
+    "APPEARANCE_STANDARDS - Visual quality standards",
+    "PARAMETER_APPLICABILITY - Product parameter rules",
+    "classifyConformity() - Quality classification logic",
+    "generateBatchNumber() - Batch ID generation"
+  ]
+}
