@@ -1,0 +1,399 @@
+---
+title: Managing Your Profile
+description: How to update your personal information, password, and profile settings in Quality Hub GINEZ
+---
+
+## Overview
+
+Your user profile controls how you appear in the system and affects data filtering in some modules. You can update personal information, change your password, and manage your avatar.
+
+## Accessing Profile Settings
+
+<Steps>
+
+### Navigate to Configuration
+
+1. Click on **Configuración** in the main navigation menu
+2. The system opens to the **Mi Perfil** (My Profile) tab by default
+3. Your profile card displays at the top with your avatar and basic information
+
+</Steps>
+
+## Profile Overview Card
+
+The profile header displays:
+
+- **Avatar**: Profile picture (or initials if no picture uploaded)
+- **Full Name**: As registered in the system
+- **Email**: Your login email address
+- **Role Badge**: Your assigned role (e.g., Preparador, Admin, Gerente de Calidad)
+- **Branch Badge**: Your assigned branch (if applicable)
+- **Admin Badge**: Red "Administrador" badge if you have admin privileges
+
+<Note>
+Your role and admin status can only be changed by system administrators. These settings control which modules and features you can access.
+</Note>
+
+## Updating Your Profile Information
+
+<Steps>
+
+### Open Edit Dialog
+
+1. On the **Mi Perfil** tab, click the **Editar** (Edit) button
+2. A dialog window opens with your current information pre-filled
+
+### Edit Your Details
+
+The edit form includes these fields:
+
+**Nombre Completo** (Full Name)
+- Your display name throughout the system
+- Appears on batch records as "Preparador"
+- Shows in reports and audit logs
+
+**Puesto** (Position)
+- Your job title
+- Display-only, not used for permissions
+
+**Sucursal** (Branch)
+- Dropdown selection of available branches
+- Affects data filtering in some modules
+- Branch managers have this field locked to their assigned branch
+
+**Área** (Department/Area)
+- Your department or work area
+- Used for organizational categorization
+
+**Email**
+- Your login email address
+- Changing this requires email verification
+
+<Warning>
+**Email Changes**: If you update your email address, the system sends a confirmation email to the new address. You must click the verification link to complete the change. Until verified, you must log in using your **old** email.
+</Warning>
+
+**Contraseña** (Password) - Admin Only
+- Leave blank to keep current password
+- Enter new password to change it
+- Must be at least 6 characters
+
+<Note>
+**Password Field**: Only administrators can change passwords through this interface. Regular users should use the "Forgot Password" link on the login page to reset passwords.
+</Note>
+
+### Save Changes
+
+1. Review all fields for accuracy
+2. Click **Guardar** (Save)
+3. The system processes the update
+4. You'll see a confirmation message
+5. The page reloads to display updated information
+
+</Steps>
+
+## Managing Your Avatar
+
+<Steps>
+
+### Upload Profile Picture
+
+1. On your profile page, hover over your current avatar
+2. An **upload button** (camera icon) appears
+3. Click to open the file selector
+4. Choose an image file (JPG, PNG, or GIF)
+5. The system uploads and displays your new avatar
+
+<Note>
+**Image Requirements:**
+- Recommended size: 200x200 pixels or larger
+- Square aspect ratio works best
+- Maximum file size: 2MB
+- Formats: JPG, PNG, GIF
+</Note>
+
+### Remove Profile Picture
+
+1. Hover over your avatar
+2. Click the **remove button** (X icon)
+3. The system removes your picture
+4. Your initials display instead
+
+</Steps>
+
+## Understanding Profile Fields
+
+### Information Personal (Personal Information) Card
+
+This card displays read-only view of your core details:
+
+- **Nombre Completo**: Your full name as it appears on records
+- **Correo Electrónico**: Login email address
+- **Sucursal**: Assigned branch location
+
+These fields populate automatically when you register batches in the Bitácora module.
+
+### Rol y Permisos (Role and Permissions) Card
+
+This card shows your access level:
+
+**Rol Actual** (Current Role)
+- Your assigned system role
+- Determines module access
+- Set by administrators
+
+**Available Roles:**
+
+- **Administrador** (Admin): Full system access
+- **Preparador**: Can create batches and view own data
+- **Gerente de Sucursal** (Branch Manager): Can view branch data and reports
+- **Gerente de Calidad** (Quality Manager): Can view all quality data and reports
+- **Coordinador**: Full report access
+- **Director de Operaciones** (Operations Director): Limited access
+- **Mostrador** (Counter): No production access
+- **Cajera** (Cashier): No production access
+- **Vendedor** (Sales): No production access
+- **Director de Compras** (Purchasing Director): No production access
+
+**Nivel de Acceso** (Access Level)
+- **Administrador del Sistema**: Full access to all modules including user management
+- **Usuario Estándar**: Access based on role assignment
+
+<Note>
+**Permission Summary**: Your permissions are automatically assigned based on role. You cannot change your own permissions - contact an administrator if you need different access.
+</Note>
+
+## Password Management
+
+### For Admin Users
+
+<Steps>
+
+1. Click **Editar** on your profile
+2. Locate the **Contraseña** field
+3. Enter your new password
+4. Leave blank if you don't want to change it
+5. Click **Guardar**
+6. You'll receive a confirmation message
+7. Use the new password on next login
+
+</Steps>
+
+### For Regular Users
+
+<Steps>
+
+1. Log out of Quality Hub GINEZ
+2. On the login page, click **"¿Olvidaste tu contraseña?"** (Forgot password?)
+3. Enter your registered email address
+4. Click **Send Recovery Email**
+5. Check your inbox for the password reset link
+6. Click the link and enter your new password
+7. Log in with the new password
+
+</Steps>
+
+<Warning>
+**Reset Email Not Arriving?**
+- Check your spam/junk folder
+- Verify you entered the correct email address
+- Wait 5-10 minutes for email delivery
+- Contact your system administrator if still not received
+</Warning>
+
+## Email Verification Process
+
+When you change your email address:
+
+<Steps>
+
+1. **Submit**: You update your email in profile settings and click Save
+2. **Verification Sent**: System sends a verification email to the NEW address
+3. **Confirm**: Click the verification link in the email
+4. **Activated**: Your new email is now active
+5. **Login**: Use the NEW email for future logins
+
+</Steps>
+
+<Note>
+**During Verification Period**: You must continue using your OLD email address to log in until you click the verification link.
+</Note>
+
+## Data Privacy
+
+### What Information Is Stored
+
+Your profile contains:
+
+- Full name
+- Email address
+- Department/area
+- Position/title
+- Branch assignment
+- Role and permissions
+- Avatar image (if uploaded)
+- Creation and update timestamps
+
+### Who Can See Your Profile
+
+**All Users Can See:**
+- Your name (on batches you created)
+- Your branch (on batch records)
+
+**Administrators Can See:**
+- All profile fields
+- Your complete user record
+- Your activity in audit logs
+
+**You Can See:**
+- Your complete profile
+- Your own batch records
+- Your own activity logs
+
+### Profile Deletion
+
+Only administrators can delete user profiles. When deleted:
+
+- Your login access is revoked
+- Your profile information is removed
+- **Historical batch records are preserved** for traceability
+- Batch records show your name as it was at time of creation
+
+<Note>
+**Data Retention**: Even if your profile is deleted, production records you created remain in the system for quality traceability and regulatory compliance.
+</Note>
+
+## Common Profile Tasks
+
+### Update Your Branch Assignment
+
+If you transfer to a different branch:
+
+<Steps>
+
+1. Contact your system administrator
+2. Request branch reassignment
+3. Admin updates your **Sucursal** field
+4. Your data filtering automatically updates
+5. Future batches are associated with new branch
+
+</Steps>
+
+<Note>
+Batch records you created at the previous branch remain associated with that branch for historical accuracy.
+</Note>
+
+### Correct a Misspelled Name
+
+<Steps>
+
+1. Click **Editar** on your profile
+2. Update **Nombre Completo** field
+3. Click **Guardar**
+4. Future batches use the corrected name
+5. Historical batches retain the original name
+
+</Steps>
+
+### Request Additional Permissions
+
+If you need access to restricted modules:
+
+<Steps>
+
+1. Note which specific features you need access to
+2. Contact your administrator or quality manager
+3. Provide business justification
+4. Admin reviews and updates your role if approved
+5. Log out and log back in for changes to take effect
+
+</Steps>
+
+## Troubleshooting
+
+### Can't Edit Profile Fields
+
+**Cause**: Some fields are locked based on your role.
+
+**Solution**: Contact an administrator to request changes to locked fields.
+
+### Avatar Won't Upload
+
+**Causes:**
+- File too large (>2MB)
+- Unsupported format
+- Network issues
+
+**Solutions:**
+- Resize image to 500x500px or smaller
+- Convert to JPG or PNG
+- Try again with stable internet connection
+
+### Email Verification Link Expired
+
+**Cause**: Verification links expire after 24 hours.
+
+**Solution**:
+1. Return to profile settings
+2. Re-save your email change
+3. Check for new verification email
+4. Click link within 24 hours
+
+### Changes Not Appearing After Save
+
+**Cause**: Browser cache showing old data.
+
+**Solution**:
+- Hard refresh: Press Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)
+- Or log out and log back in
+
+## Admin-Only Features
+
+If you have administrator privileges, you'll see additional tabs:
+
+### Usuarios (Users) Tab
+
+Manage all system users:
+- View all registered users
+- Edit user roles and permissions
+- Assign branches
+- Delete user accounts
+
+See the Administrator Guide for detailed user management procedures.
+
+### Auditoría (Audit) Tab
+
+View activity logs:
+- Document downloads
+- System access logs
+- Filter by user, date, or action type
+
+See the Administrator Guide for audit log procedures.
+
+## Best Practices
+
+### Keep Information Current
+
+- Update your profile when you change positions
+- Verify your branch assignment is correct
+- Maintain an accurate email for system notifications
+
+### Profile Picture Guidelines
+
+- Use a professional photo
+- Ensure good lighting and clear visibility
+- Square crop works best
+- Avoid logos or graphics
+
+### Password Security
+
+- Use a strong password (mix of letters, numbers, symbols)
+- Don't share your password with colleagues
+- Change password if you suspect it's compromised
+- Don't use the same password across multiple systems
+
+## Next Steps
+
+- [Creating Production Batches](/guides/user/creating-production-batches) - Start recording batches with your profile
+- [Viewing Reports](/guides/user/viewing-reports) - See how your data appears in reports
+- [Admin User Management](/guides/admin/user-management) - If you're an administrator

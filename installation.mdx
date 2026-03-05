@@ -1,0 +1,601 @@
+---
+title: Installation Guide
+description: Complete setup instructions for deploying Quality Hub GINEZ with Next.js 14 and Supabase
+---
+
+Quality Hub GINEZ is a Next.js 14 application that uses Supabase for authentication, database, and real-time features. This guide walks you through setting up a complete instance from scratch.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+<CardGroup cols={2}>
+  <Card title="Node.js 18+" icon="node-js">
+    Download from [nodejs.org](https://nodejs.org/)
+  </Card>
+  <Card title="Supabase Account" icon="database">
+    Sign up at [supabase.com](https://supabase.com/)
+  </Card>
+  <Card title="Google Sheets" icon="sheet">
+    For product catalog data (optional)
+  </Card>
+  <Card title="Google Drive" icon="folder">
+    For technical documents storage (optional)
+  </Card>
+</CardGroup>
+
+## Installation Steps
+
+<Steps>
+
+<Step title="Clone and install dependencies">
+Get the source code and install all required packages:
+
+<CodeGroup>
+```bash npm
+# Clone the repository
+git clone <repository-url>
+cd quality-hub-ginez
+
+# Install dependencies
+npm install
+```
+
+```bash yarn
+# Clone the repository
+git clone <repository-url>
+cd quality-hub-ginez
+
+# Install dependencies
+yarn install
+```
+
+```bash pnpm
+# Clone the repository
+git clone <repository-url>
+cd quality-hub-ginez
+
+# Install dependencies
+pnpm install
+```
+</CodeGroup>
+
+The project uses the following key dependencies:
+- **Next.js 14** - React framework with App Router
+- **@supabase/supabase-js** - Supabase client library
+- **@supabase/ssr** - Server-side rendering support
+- **Tailwind CSS** - Utility-first CSS framework
+- **shadcn/ui** - High-quality React components
+- **Recharts** - Charting library for analytics
+</Step>
+
+<Step title="Create Supabase project">
+1. Go to [supabase.com/dashboard](https://supabase.com/dashboard)
+2. Click **New Project**
+3. Choose your organization
+4. Enter project details:
+   - **Name**: `quality-hub-ginez`
+   - **Database Password**: Generate a strong password
+   - **Region**: Choose closest to your users
+5. Wait for the project to initialize (2-3 minutes)
+
+<Note>
+Save your database password in a secure location. You'll need it for direct database access.
+</Note>
+</Step>
+
+<Step title="Configure environment variables">
+Create a `.env.local` file in the project root:
+
+```bash
+cp .env.example .env.local
+```
+
+Then update the file with your actual values:
+
+```bash .env.local
+# --- Google Sheets (Product Catalog CSV URLs) ---
+SHEET_MP_CSV_URL="https://docs.google.com/spreadsheets/d/e/YOUR_ID/pub?gid=SHEET_ID_MP&single=true&output=csv"
+SHEET_PT_CSV_URL="https://docs.google.com/spreadsheets/d/e/YOUR_ID/pub?gid=SHEET_ID_PT&single=true&output=csv"
+
+# --- Next.js Configuration ---
+NEXT_PUBLIC_BASE_PATH=""
+
+# --- Supabase Configuration ---
+# Get these from: https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key-here"
+
+# --- Supabase Service Role (Server-side only, NEVER expose in frontend) ---
+# SUPABASE_SERVICE_ROLE_KEY="your-service-role-key-here"
+```
+
+<Warning>
+**Never commit `.env.local` to version control.** The `.gitignore` file should already exclude it, but always verify before pushing code.
+</Warning>
+
+### Finding your Supabase credentials
+
+1. Go to your Supabase project dashboard
+2. Navigate to **Settings** → **API**
+3. Copy the following:
+   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
+   - **anon/public key** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - **service_role key** → `SUPABASE_SERVICE_ROLE_KEY` (optional, for server-side operations)
+
+### Setting up Google Sheets (Optional)
+
+If you want to use Google Sheets for your product catalog:
+
+1. Create a Google Sheet with your product data
+2. Go to **File** → **Share** → **Publish to web**
+3. Select the specific sheet and choose **CSV** format
+4. Copy the published URL to your `.env.local` file
+</Step>
+
+<Step title="Set up the database schema">
+Run the database migrations to create all required tables and functions.
+
+### Core Tables
+
+Execute these SQL commands in the Supabase SQL Editor:
+
+```sql
+-- Create profiles table
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT,
+  full_name TEXT,
+  nombre TEXT,
+  area TEXT,
+  puesto TEXT,
+  role TEXT DEFAULT 'preparador',
+  sucursal TEXT,
+  is_admin BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create production logbook table
+CREATE TABLE bitacora_produccion (
+  id BIGSERIAL PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  lote_producto TEXT NOT NULL,
+  codigo_producto TEXT NOT NULL,
+  sucursal TEXT NOT NULL,
+  familia_producto TEXT,
+  categoria_producto TEXT,
+  fecha_fabricacion DATE NOT NULL,
+  tamano_lote NUMERIC,
+  ph NUMERIC,
+  solidos_medicion_1 NUMERIC,
+  temp_med1 NUMERIC,
+  solidos_medicion_2 NUMERIC,
+  temp_med2 NUMERIC,
+  viscosidad_seg NUMERIC,
+  temperatura NUMERIC,
+  apariencia TEXT,
+  color TEXT,
+  aroma TEXT,
+  contaminacion_microbiologica TEXT,
+  observaciones TEXT,
+  nombre_preparador TEXT,
+  user_id UUID REFERENCES auth.users(id),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Row Level Security
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bitacora_produccion ENABLE ROW LEVEL SECURITY;
+```
+
+### Row Level Security Policies
+
+```sql
+-- Profiles: Users can view and update their own profile
+CREATE POLICY "Users can view own profile"
+ON profiles FOR SELECT
+USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile"
+ON profiles FOR UPDATE
+USING (auth.uid() = id);
+
+-- Bitacora: Users can view their own records
+CREATE POLICY "Users can view own records"
+ON bitacora_produccion FOR SELECT
+USING (auth.uid() = user_id);
+
+-- Bitacora: Admins can view all records
+CREATE POLICY "Admins can view all records"
+ON bitacora_produccion FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+
+-- Bitacora: Users can insert their own records
+CREATE POLICY "Users can insert own records"
+ON bitacora_produccion FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+-- Bitacora: Users can update their own records
+CREATE POLICY "Users can update own records"
+ON bitacora_produccion FOR UPDATE
+USING (auth.uid() = user_id);
+
+-- Bitacora: Admins can update all records
+CREATE POLICY "Admins can update all records"
+ON bitacora_produccion FOR UPDATE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+
+-- Bitacora: Only admins can delete
+CREATE POLICY "Admins can delete records"
+ON bitacora_produccion FOR DELETE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+```
+
+<Note>
+These RLS policies ensure that regular users can only access their own data, while administrators have full access to all records.
+</Note>
+</Step>
+
+<Step title="Set up user roles and permissions (Advanced)">
+Quality Hub GINEZ includes a sophisticated role-based access control system. Run the role restructure migration:
+
+```sql
+-- This creates the role system with AC/AP/AR access levels
+-- Located in: supabase/migrations/20260206_roles_restructure.sql
+```
+
+The system supports these roles:
+- `admin` - Full system access
+- `preparador` - Production staff
+- `gerente_sucursal` - Branch manager
+- `director_operaciones` - Operations director
+- `gerente_calidad` - Quality & development manager
+- `mostrador` - Counter staff
+- `cajera` - Cashier
+- `director_compras` - Purchasing director
+
+Each role has specific access levels (AC/AP/AR) for each module with granular permissions:
+- `can_view`, `can_download`, `can_create`, `can_edit`, `can_delete`, `can_export`
+- `available_filters` - Allowed filter options
+- `visible_tabs` - Accessible tabs/sections
+
+<Accordion title="View complete role configuration">
+The role system defines permissions for these modules:
+- **catalogo** - Product catalog
+- **bitacora** - Production logbook
+- **control_calidad** - Quality control
+- **reportes** - Reports and analytics
+- **configuracion** - System configuration
+
+Example permission for Preparador role:
+```json
+{
+  "module_key": "bitacora",
+  "access_level": "AC",
+  "can_view": true,
+  "can_create": true,
+  "can_edit": true,
+  "can_delete": false,
+  "available_filters": ["fecha", "categoria", "producto"],
+  "visible_tabs": ["all"]
+}
+```
+</Accordion>
+</Step>
+
+<Step title="Create your first admin user">
+After setting up the database:
+
+1. Sign up for an account through the app's login page
+2. Note the user's email address
+3. In Supabase SQL Editor, run:
+
+```sql
+-- Make a user an administrator
+UPDATE profiles
+SET is_admin = true, role = 'admin'
+WHERE email = 'admin@yourcompany.com';
+```
+
+<Warning>
+Always create at least one admin user before deploying to production. Without an admin, you won't be able to manage other users through the UI.
+</Warning>
+</Step>
+
+<Step title="Run the development server">
+Start the local development server:
+
+<CodeGroup>
+```bash npm
+npm run dev
+```
+
+```bash yarn
+yarn dev
+```
+
+```bash pnpm
+pnpm dev
+```
+</CodeGroup>
+
+Open [http://localhost:3000](http://localhost:3000) in your browser. You should see the login page.
+
+<Note>
+The development server includes hot module replacement (HMR), so your changes will be reflected immediately without refreshing the page.
+</Note>
+</Step>
+
+<Step title="Build and deploy for production">
+When you're ready to deploy:
+
+<CodeGroup>
+```bash npm
+npm run build
+npm start
+```
+
+```bash yarn
+yarn build
+yarn start
+```
+
+```bash pnpm
+pnpm build
+pnpm start
+```
+</CodeGroup>
+
+### Deployment Options
+
+<Tabs>
+  <Tab title="Vercel (Recommended)">
+    Quality Hub GINEZ is optimized for Vercel deployment:
+
+    1. Push your code to GitHub
+    2. Import the project in [Vercel](https://vercel.com)
+    3. Add environment variables from `.env.local`
+    4. Deploy
+
+    Vercel automatically detects Next.js and configures build settings.
+  </Tab>
+  
+  <Tab title="Docker">
+    Create a `Dockerfile`:
+
+    ```dockerfile
+    FROM node:18-alpine AS base
+    
+    # Dependencies
+    FROM base AS deps
+    RUN apk add --no-cache libc6-compat
+    WORKDIR /app
+    COPY package*.json ./
+    RUN npm ci
+    
+    # Builder
+    FROM base AS builder
+    WORKDIR /app
+    COPY --from=deps /app/node_modules ./node_modules
+    COPY . .
+    RUN npm run build
+    
+    # Runner
+    FROM base AS runner
+    WORKDIR /app
+    ENV NODE_ENV production
+    
+    RUN addgroup --system --gid 1001 nodejs
+    RUN adduser --system --uid 1001 nextjs
+    
+    COPY --from=builder /app/public ./public
+    COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+    COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+    
+    USER nextjs
+    EXPOSE 3000
+    ENV PORT 3000
+    
+    CMD ["node", "server.js"]
+    ```
+
+    Build and run:
+    ```bash
+    docker build -t quality-hub-ginez .
+    docker run -p 3000:3000 --env-file .env.local quality-hub-ginez
+    ```
+  </Tab>
+  
+  <Tab title="Self-hosted">
+    For self-hosted deployment on your own infrastructure:
+
+    1. Build the production bundle: `npm run build`
+    2. Copy the `.next`, `public`, and `node_modules` directories to your server
+    3. Set environment variables on the server
+    4. Run: `npm start` or use a process manager like PM2
+    5. Configure a reverse proxy (nginx/Apache) for HTTPS
+
+    Example PM2 configuration:
+    ```json
+    {
+      "apps": [{
+        "name": "quality-hub",
+        "script": "npm",
+        "args": "start",
+        "env": {
+          "NODE_ENV": "production",
+          "PORT": 3000
+        }
+      }]
+    }
+    ```
+  </Tab>
+</Tabs>
+</Step>
+
+</Steps>
+
+## Post-Installation Configuration
+
+### Configure Authentication
+
+In your Supabase project:
+
+1. Go to **Authentication** → **URL Configuration**
+2. Add your production domain to **Site URL**
+3. Add redirect URLs for OAuth (if using social login)
+4. Configure email templates under **Email Templates**
+
+### Set up Storage (Optional)
+
+If you plan to store documents in Supabase Storage:
+
+1. Go to **Storage** in Supabase dashboard
+2. Create a bucket named `documents`
+3. Set up storage policies for access control
+
+### Performance Optimization
+
+<AccordionGroup>
+  <Accordion title="Enable caching for Google Sheets data">
+    The product catalog fetches from Google Sheets on every page load. For better performance:
+
+    ```typescript
+    // Add revalidation in your data fetching function
+    export const revalidate = 3600 // Cache for 1 hour
+    ```
+  </Accordion>
+
+  <Accordion title="Optimize database queries">
+    Add indexes for frequently queried columns:
+
+    ```sql
+    CREATE INDEX idx_bitacora_user_id ON bitacora_produccion(user_id);
+    CREATE INDEX idx_bitacora_fecha ON bitacora_produccion(fecha_fabricacion);
+    CREATE INDEX idx_bitacora_sucursal ON bitacora_produccion(sucursal);
+    CREATE INDEX idx_profiles_role ON profiles(role);
+    ```
+  </Accordion>
+
+  <Accordion title="Enable connection pooling">
+    For high-traffic deployments, enable Supabase connection pooling:
+
+    1. Go to **Database** → **Connection Pooling**
+    2. Enable pooling mode
+    3. Use the pooled connection string for server-side operations
+  </Accordion>
+</AccordionGroup>
+
+## Verification Checklist
+
+After installation, verify everything works:
+
+<Steps>
+  <Step title="✓ Authentication">
+    - [ ] Users can sign up
+    - [ ] Users can sign in
+    - [ ] Session persists across page refreshes
+    - [ ] Password reset emails are delivered
+  </Step>
+
+  <Step title="✓ Database Access">
+    - [ ] Users can create production records
+    - [ ] Users can only see their own records (non-admin)
+    - [ ] Admins can see all records
+    - [ ] RLS policies are enforced correctly
+  </Step>
+
+  <Step title="✓ Modules">
+    - [ ] Bitácora form loads and submits successfully
+    - [ ] Control de Calidad displays records with filters
+    - [ ] Reportes shows charts and KPIs
+    - [ ] Configuración allows profile editing
+  </Step>
+
+  <Step title="✓ Permissions">
+    - [ ] Role-based access restrictions work
+    - [ ] Restricted roles cannot access forbidden modules
+    - [ ] Permission levels (AC/AP/AR) are enforced
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Error: Invalid Supabase URL or key">
+    **Solution**: Verify your environment variables are correctly set:
+    
+    ```bash
+    # Check if variables are loaded
+    console.log(process.env.NEXT_PUBLIC_SUPABASE_URL)
+    ```
+
+    Make sure `.env.local` is in the project root and contains valid values.
+  </Accordion>
+
+  <Accordion title="RLS policy blocks all access">
+    **Solution**: Check that your policies reference the correct columns and that `auth.uid()` returns the expected user ID.
+
+    Debug with:
+    ```sql
+    SELECT auth.uid(); -- Should return your user's UUID
+    ```
+  </Accordion>
+
+  <Accordion title="Google Sheets data not loading">
+    **Solution**: Ensure your sheets are:
+    1. Published to the web (File → Share → Publish to web)
+    2. Set to CSV format in the publish dialog
+    3. The URL ends with `&single=true&output=csv`
+  </Accordion>
+
+  <Accordion title="Build fails with TypeScript errors">
+    **Solution**: Run type checking to see specific errors:
+    
+    ```bash
+    npx tsc --noEmit
+    ```
+
+    Fix any type errors before building for production.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+    Learn how to use the system as an end user
+  </Card>
+  <Card title="Architecture Overview" icon="sitemap">
+    Understand the three-layer system architecture
+  </Card>
+  <Card title="Role Configuration" icon="users-cog">
+    Customize roles and permissions for your organization
+  </Card>
+  <Card title="API Integration" icon="plug">
+    Connect external systems via Supabase RPC functions
+  </Card>
+</CardGroup>
+
+<Note>
+Need help? Check the project README at `/workspace/source/README.md` for detailed architecture information and implementation notes.
+</Note>

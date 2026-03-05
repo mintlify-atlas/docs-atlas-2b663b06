@@ -1,0 +1,385 @@
+---
+title: 'NCR Management'
+description: 'Non-Conformity Report (NCR) management and quality incident handling in GINEZ'
+---
+
+# NCR Management
+
+**Non-Conformity Report (NCR)** management is the process of documenting, investigating, and resolving quality issues when products fail to meet established standards.
+
+## What is an NCR?
+
+An NCR (Non-Conformity Report) is a formal document that records:
+
+- **What**: Product details and batch information
+- **Where**: Location/branch where non-conformity was detected
+- **When**: Date and time of detection
+- **Why**: Failed parameters and measurements
+- **How**: Root cause analysis and corrective actions
+
+<Note>
+NCRs are critical quality records required for ISO compliance and regulatory audits. All No Conforme products must be documented.
+</Note>
+
+## When to Create an NCR
+
+An NCR must be created when:
+
+### 1. No Conforme Classification
+
+Any product receiving `'no-conforme'` status from the conformity analysis:
+
+```typescript
+if (overallStatus === 'no-conforme') {
+  // NCR required
+  // Product cannot be released without resolution
+}
+```
+
+**Triggers**:
+- Sólidos measurements outside yellow tolerance limits
+- pH outside specified min-max range
+- Appearance does not match standard
+
+### 2. Critical Quality Parameters
+
+Even if overall status is Semi-Conforme, NCRs may be required for:
+
+- Repeated Semi-Conforme results (trend analysis)
+- Critical safety parameters (pH for personal care products)
+- Customer complaints
+- Process deviations
+
+### 3. Other Quality Events
+
+- Contamination incidents
+- Equipment malfunction affecting product quality
+- Raw material deviations
+- Packaging defects
+
+<Warning>
+Failing to document No Conforme products with an NCR is a serious quality system violation and can result in regulatory non-compliance.
+</Warning>
+
+## NCR Information Requirements
+
+Based on the enriched record structure from `analysis-utils.ts`, NCRs should capture:
+
+### Product Identification
+
+```typescript
+{
+  lote_producto: string,           // Batch/lot number
+  codigo_producto: string,          // Product code (e.g., "LIMLIM")
+  familia_producto: string,         // Product family/category
+  fecha_fabricacion: string,        // Manufacturing date
+  tamano_lote: number,              // Batch size
+  sucursal: string                  // Branch location
+}
+```
+
+### Quality Measurements
+
+```typescript
+{
+  ph: number | null,                // pH measurement
+  solidos_medicion_1: number | null, // First solids measurement
+  solidos_medicion_2: number | null, // Second solids measurement
+  solidos_promedio: number | null,   // Average solids
+  apariencia: string                 // Recorded appearance
+}
+```
+
+### Analysis Results
+
+```typescript
+{
+  analysis: {
+    overallStatus: 'no-conforme',
+    failedParams: ['solidos', 'ph'], // Which parameters failed
+    phStatus: 'no-conforme',
+    solidsStatus: 'no-conforme',
+    appearanceStatus: 'conforme',
+    isConform: false
+  }
+}
+```
+
+### Additional Required Fields
+
+- **Inspector name**: `nombre_preparador` (from record)
+- **Detection date**: Timestamp of analysis
+- **Deviation description**: Specific details of non-conformity
+- **Root cause**: Identified cause of the issue
+- **Corrective action**: Immediate action taken
+- **Preventive action**: Long-term solution to prevent recurrence
+- **Disposition**: What happened to the non-conforming product
+
+## Disposition Options
+
+### 1. Rework
+
+**When**: Product can be brought into specification through reprocessing
+
+**Example**: Sólidos content too low → add concentrated ingredients → re-test
+
+```typescript
+// After rework, product must be re-analyzed
+const reworkedRecord = analyzeRecord(reworkedProduct)
+if (reworkedRecord.analysis.overallStatus === 'conforme') {
+  // Close NCR, release product
+}
+```
+
+### 2. Downgrade
+
+**When**: Product doesn't meet premium specs but is safe and functional
+
+**Example**: Premium detergent with appearance defect → downgrade to economy line
+
+### 3. Use As-Is (with Approval)
+
+**When**: Product technically non-conforming but acceptable for specific use case
+
+**Requirements**:
+- Quality manager approval
+- Customer acceptance (if applicable)
+- Risk assessment documentation
+
+<Warning>
+Use as-is is only permitted for non-critical parameters. Personal care products and safety-critical items cannot be released as-is.
+</Warning>
+
+### 4. Scrap/Disposal
+
+**When**: Product cannot be salvaged and must be disposed of
+
+**Example**: Severe contamination, critical parameter failures, expired materials
+
+### 5. Return to Supplier
+
+**When**: Non-conformity is due to raw material issues
+
+**Action**: Document issue, return material, file supplier NCR
+
+## NCR Workflow
+
+### 1. Detection
+
+```typescript
+const enrichedRecord = analyzeRecord(productionRecord)
+if (enrichedRecord.analysis.overallStatus === 'no-conforme') {
+  // Trigger NCR workflow
+  initiateNCR(enrichedRecord)
+}
+```
+
+### 2. Containment
+
+- Quarantine affected batch
+- Mark inventory as "HOLD"
+- Prevent shipment/use
+
+### 3. Investigation
+
+- Review production records
+- Interview preparadores (operators)
+- Inspect equipment
+- Test raw materials
+- Identify root cause
+
+### 4. Corrective Action
+
+- Implement immediate fix
+- Determine disposition
+- Process product accordingly
+
+### 5. Preventive Action
+
+- Update procedures if needed
+- Retrain operators
+- Adjust process parameters
+- Calibrate equipment
+
+### 6. Verification
+
+- Verify corrective action effectiveness
+- Monitor subsequent batches
+- Confirm issue resolved
+
+### 7. Closure
+
+- Document all actions taken
+- Obtain quality manager approval
+- Update metrics and trend analysis
+- Archive NCR records
+
+## Failed Parameters Reference
+
+The `failedParams` array identifies specific quality issues:
+
+```typescript
+type FailedParam = 'ph' | 'solidos' | 'apariencia' | 'color' | 'aroma'
+```
+
+### Sólidos Failures
+
+**Indication**: `failedParams.includes('solidos')`
+
+**Possible Causes**:
+- Incorrect formulation
+- Raw material concentration variance
+- Measurement error
+- Incomplete mixing
+
+**Investigation**:
+- Verify refractometer calibration
+- Check raw material certificates
+- Review mixing time and temperature
+- Inspect batch records
+
+### pH Failures
+
+**Indication**: `failedParams.includes('ph')`
+
+**Possible Causes**:
+- Acid/base imbalance
+- Raw material pH variance
+- pH meter calibration drift
+- Contamination
+
+**Investigation**:
+- Calibrate pH meter with fresh buffers
+- Re-test product sample
+- Check neutralizing agent addition
+- Review water quality
+
+### Apariencia (Appearance) Failures
+
+**Indication**: `failedParams.includes('apariencia')`
+
+**Possible Causes**:
+- Phase separation
+- Contamination
+- Incomplete dissolution
+- Raw material quality
+
+**Investigation**:
+- Visual inspection for particulates
+- Check mixing process
+- Verify raw material lot numbers
+- Test solubilizer/emulsifier function
+
+## Conformity Status and NCR Severity
+
+| Status | NCR Required | Severity | Response Time |
+|--------|--------------|----------|---------------|
+| **Conforme** | No | N/A | N/A |
+| **Semi-Conforme** | Optional* | Low | 48 hours |
+| **No Conforme** | Yes | Medium-High | Immediate |
+
+*Semi-Conforme may require NCR if:
+- Multiple consecutive batches Semi-Conforme
+- Trending toward No Conforme
+- Critical parameter (pH for personal care)
+
+## Metrics and Trend Analysis
+
+Track NCR metrics to identify systemic issues:
+
+### Key Metrics
+
+- **NCR Rate**: Number of NCRs per total batches produced
+- **Cost of Quality**: Financial impact of non-conformances
+- **Resolution Time**: Average time from detection to closure
+- **Recurrence Rate**: Percentage of repeated NCRs for same issue
+- **Parameter Distribution**: Which parameters fail most often
+
+### Trend Analysis
+
+```typescript
+// Identify most common failure modes
+const failureStats = ncrs.reduce((acc, ncr) => {
+  ncr.analysis.failedParams.forEach(param => {
+    acc[param] = (acc[param] || 0) + 1
+  })
+  return acc
+}, {})
+
+// Identify problematic products
+const productFailures = ncrs.reduce((acc, ncr) => {
+  acc[ncr.codigo_producto] = (acc[ncr.codigo_producto] || 0) + 1
+  return acc
+}, {})
+```
+
+## Best Practices
+
+### 1. Immediate Documentation
+
+Document NCRs as soon as non-conformity is detected. Don't wait until end of shift.
+
+### 2. Thorough Investigation
+
+Don't assume cause without investigation. Equipment calibration issues often masquerade as product issues.
+
+### 3. Root Cause Analysis
+
+Use 5 Whys or Fishbone diagrams to identify true root cause, not just symptoms.
+
+### 4. Objective Evidence
+
+Include photos, measurements, and test results. Subjective descriptions are insufficient.
+
+### 5. Training
+
+Ensure all preparadores understand:
+- How to identify non-conforming products
+- When to escalate issues
+- Proper documentation procedures
+
+### 6. Follow-up
+
+Verify corrective actions are effective through subsequent batch monitoring.
+
+## Integration with Analysis System
+
+The `analyzeRecord` function automatically identifies NCR candidates:
+
+```typescript
+export const analyzeRecord = (record: any): EnrichedRecord => {
+  // ... analysis logic ...
+  
+  return {
+    ...record,
+    analysis: {
+      isConform,
+      failedParams,
+      phStatus,
+      solidsStatus,
+      appearanceStatus,
+      overallStatus
+    }
+  }
+}
+
+// Use in NCR workflow
+const analyzed = analyzeRecord(productionRecord)
+if (analyzed.analysis.overallStatus === 'no-conforme') {
+  createNCR({
+    ...analyzed,
+    ncrNumber: generateNCRNumber(),
+    reportedBy: currentUser,
+    reportedAt: new Date(),
+    status: 'OPEN'
+  })
+}
+```
+
+**Location**: `lib/analysis-utils.ts:34-133`
+
+## Related Topics
+
+- [Conformity Classification](/quality/conformity-classification) - Understanding No Conforme status
+- [Control Charts](/quality/control-charts) - Prevention through statistical process control
+- [Standards & Specifications](/quality/standards-specifications) - Quality standards reference

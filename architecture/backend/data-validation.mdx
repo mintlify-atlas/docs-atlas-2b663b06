@@ -1,0 +1,553 @@
+---
+title: Data Validation
+description: Input validation, business rules, and data integrity in Quality Hub GINEZ
+---
+
+# Data Validation
+
+Quality Hub GINEZ implements multi-layered validation to ensure data integrity, from client-side UX feedback to database-level constraints.
+
+## Validation Layers
+
+```
+User Input
+    ↓
+┌────────────────────────────┐
+│  1. Client-Side Validation   │  ← Zod Schemas (Instant UX)
+└────────────────────────────┘
+    ↓
+┌────────────────────────────┐
+│  2. Input Sanitization       │  ← Remove dangerous characters
+└────────────────────────────┘
+    ↓
+┌────────────────────────────┐
+│  3. Business Logic           │  ← Conformity analysis, rules
+└────────────────────────────┘
+    ↓
+┌────────────────────────────┐
+│  4. Database Constraints     │  ← NOT NULL, CHECK, UNIQUE
+└────────────────────────────┘
+    ↓
+Database
+```
+
+## Layer 1: Client-Side Validation (Zod)
+
+### Why Zod?
+
+- **Type-safe**: Schema types inferred automatically
+- **Runtime validation**: Catches errors at runtime, not just compile time
+- **Composable**: Build complex schemas from simple ones
+- **Error messages**: Clear, customizable error messages
+- **Transform**: Parse and transform data (e.g., string to number)
+
+### Bitacora Form Schema
+
+```typescript
+// lib/validations.ts
+import { z } from "zod"
+import { SUCURSALES } from "@/lib/production-constants"
+
+export const BitacoraSchema = z.object({
+  // Required fields
+  sucursal: z
+    .string()
+    .min(1, "La sucursal es obligatoria")
+    .refine(
+      val => SUCURSALES.includes(val),
+      "Selecciona una sucursal válida"
+    ),
+  
+  codigo_producto: z
+    .string()
+    .min(1, "El código del producto es obligatorio")
+    .max(20, "Código de producto inválido")
+    .regex(
+      /^[A-Z0-9-]+$/,
+      "El código solo puede contener letras mayúsculas, números y guiones"
+    ),
+  
+  nombre_preparador: z
+    .string()
+    .min(1, "El nombre del preparador es obligatorio")
+    .max(200, "El nombre no puede exceder 200 caracteres"),
+  
+  fecha_fabricacion: z
+    .string()
+    .min(1, "La fecha de fabricación es obligatoria")
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de fecha inválido (YYYY-MM-DD)"),
+  
+  tamano_lote: z
+    .string()
+    .min(1, "El tamaño de lote es obligatorio")
+    .refine(
+      val => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
+      "El tamaño de lote debe ser un número positivo"
+    ),
+  
+  // Optional fields with validation
+  ph: z
+    .string()
+    .refine(
+      val => {
+        if (val === "") return true  // Allow empty
+        const num = parseFloat(val)
+        return !isNaN(num) && num >= 0 && num <= 14
+      },
+      "El pH debe estar entre 0 y 14"
+    )
+    .default(""),
+  
+  solidos_medicion_1: z
+    .string()
+    .refine(
+      val => {
+        if (val === "") return true
+        const num = parseFloat(val)
+        return !isNaN(num) && num >= 0 && num <= 55
+      },
+      "El % de sólidos debe estar entre 0 y 55"
+    )
+    .default(""),
+  
+  solidos_medicion_2: z
+    .string()
+    .refine(
+      val => {
+        if (val === "") return true
+        const num = parseFloat(val)
+        return !isNaN(num) && num >= 0 && num <= 55
+      },
+      "El % de sólidos debe estar entre 0 y 55"
+    )
+    .default(""),
+  
+  apariencia: z
+    .string()
+    .min(1, "La apariencia es obligatoria"),
+  
+  color: z.enum(["CONFORME", "NO CONFORME"], {
+    errorMap: () => ({ message: "Selecciona conformidad del color" }),
+  }),
+  
+  aroma: z.enum(["CONFORME", "NO CONFORME"], {
+    errorMap: () => ({ message: "Selecciona conformidad del aroma" }),
+  }),
+  
+  observaciones: z
+    .string()
+    .max(1000, "Las observaciones no pueden exceder 1000 caracteres")
+    .default(""),
+})
+
+export type BitacoraInput = z.infer<typeof BitacoraSchema>
+```
+
+### Validation Helper Function
+
+```typescript
+export function validateForm<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown
+): { success: true; data: T } | { success: false; errors: Record<string, string> } {
+  const result = schema.safeParse(data)
+
+  if (result.success) {
+    return { success: true, data: result.data }
+  }
+
+  // Convert Zod errors to flat object
+  const errors: Record<string, string> = {}
+  for (const issue of result.error.issues) {
+    const path = issue.path.join(".")
+    if (!errors[path]) {
+      errors[path] = issue.message
+    }
+  }
+
+  return { success: false, errors }
+}
+```
+
+### Using Validation in Forms
+
+```typescript
+function BitacoraForm() {
+  const [formData, setFormData] = useState({ /* ... */ })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  
+  const handleSubmit = async () => {
+    // Validate with Zod
+    const result = validateForm(BitacoraSchema, formData)
+    
+    if (!result.success) {
+      setErrors(result.errors)
+      toast.error(getFirstError(result.errors))
+      return
+    }
+    
+    // Data is valid, proceed with submission
+    const { error } = await supabase
+      .from('bitacora_produccion')
+      .insert(result.data)
+    
+    if (error) {
+      toast.error('Error al guardar')
+    } else {
+      toast.success('Guardado exitosamente')
+    }
+  }
+  
+  return (
+    <form>
+      <Input
+        value={formData.codigo_producto}
+        onChange={...}
+        error={errors.codigo_producto}  // Show error
+      />
+    </form>
+  )
+}
+```
+
+## Layer 2: Input Sanitization
+
+### Sanitization Functions
+
+```typescript
+// lib/sanitize.ts
+
+/**
+ * Sanitize user input to prevent injection attacks
+ */
+export function sanitizeInput(input: string): string {
+  return input
+    .trim()                        // Remove whitespace
+    .replace(/[<>"']/g, '')        // Remove HTML/SQL injection chars
+    .substring(0, 1000)            // Limit length
+}
+
+/**
+ * Sanitize numeric input
+ */
+export function sanitizeNumber(input: string): number | null {
+  const num = parseFloat(input)
+  if (isNaN(num) || !isFinite(num)) return null
+  return num
+}
+
+/**
+ * Sanitize date input
+ */
+export function sanitizeDate(input: string): string | null {
+  const date = new Date(input)
+  if (isNaN(date.getTime())) return null
+  return date.toISOString().split('T')[0]  // YYYY-MM-DD
+}
+
+/**
+ * Escape SQL LIKE patterns
+ */
+export function escapeLikePattern(pattern: string): string {
+  return pattern
+    .replace(/\\/g, '\\\\')
+    .replace(/%/g, '\\%')
+    .replace(/_/g, '\\_')
+}
+```
+
+### Applying Sanitization
+
+```typescript
+const handleSubmit = async (formData: FormData) => {
+  // Sanitize before validation
+  const sanitized = {
+    codigo_producto: sanitizeInput(formData.codigo_producto),
+    nombre_preparador: sanitizeInput(formData.nombre_preparador),
+    tamano_lote: sanitizeNumber(formData.tamano_lote),
+    // ...
+  }
+  
+  // Then validate with Zod
+  const result = validateForm(BitacoraSchema, sanitized)
+}
+```
+
+## Layer 3: Business Logic Validation
+
+### Conformity Analysis
+
+Business rules for product quality:
+
+```typescript
+// lib/analysis-utils.ts
+
+export function analyzeRecord(record: ProductionRecord): AnalysisResult {
+  const stdSolids = PRODUCT_STANDARDS[record.codigo_producto]
+  const stdPH = PH_STANDARDS[record.codigo_producto]
+  
+  // Calculate average solids
+  let avgSolids: number | null = null
+  if (record.solidos_medicion_1 !== null && record.solidos_medicion_2 !== null) {
+    avgSolids = (record.solidos_medicion_1 + record.solidos_medicion_2) / 2
+  }
+  
+  // Apply control chart logic
+  let solidsStatus: ConformityLevel = 'na'
+  if (avgSolids !== null && stdSolids) {
+    const specMin = stdSolids.min  // Red line (lower spec)
+    const specMax = stdSolids.max  // Red line (upper spec)
+    const warnMin = specMin * 0.95 // Yellow line (lower tolerance)
+    const warnMax = specMax * 1.05 // Yellow line (upper tolerance)
+    
+    if (avgSolids >= specMin && avgSolids <= specMax) {
+      solidsStatus = 'conforme'  // Between red lines
+    } else if (
+      (avgSolids >= warnMin && avgSolids < specMin) ||
+      (avgSolids > specMax && avgSolids <= warnMax)
+    ) {
+      solidsStatus = 'semi-conforme'  // Between red and yellow lines
+    } else {
+      solidsStatus = 'no-conforme'  // Outside yellow lines
+    }
+  }
+  
+  // Analyze pH
+  let phStatus: ConformityLevel = 'na'
+  if (record.ph !== null && stdPH) {
+    if (record.ph >= stdPH.min && record.ph <= stdPH.max) {
+      phStatus = 'conforme'
+    } else {
+      phStatus = 'no-conforme'
+    }
+  }
+  
+  // Overall status (worst of all parameters)
+  const overallStatus = getWorstStatus([solidsStatus, phStatus])
+  
+  return {
+    solidsStatus,
+    phStatus,
+    overallStatus,
+    isConform: overallStatus === 'conforme',
+    failedParams: []
+  }
+}
+```
+
+### Custom Business Rules
+
+```typescript
+// Validate batch size is reasonable for product
+export function validateBatchSize(
+  productCode: string,
+  batchSize: number
+): boolean {
+  const limits = BATCH_SIZE_LIMITS[productCode]
+  if (!limits) return true  // No limits defined
+  
+  return batchSize >= limits.min && batchSize <= limits.max
+}
+
+// Validate date is not in future
+export function validateFabricationDate(date: string): boolean {
+  const fabricationDate = new Date(date)
+  const today = new Date()
+  today.setHours(23, 59, 59, 999)  // End of today
+  
+  return fabricationDate <= today
+}
+
+// Validate product applicability for branch
+export function validateProductForBranch(
+  productCode: string,
+  branch: string
+): boolean {
+  const branchProducts = BRANCH_PRODUCT_MATRIX[branch]
+  return branchProducts ? branchProducts.includes(productCode) : false
+}
+```
+
+## Layer 4: Database Constraints
+
+### NOT NULL Constraints
+
+```sql
+ALTER TABLE bitacora_produccion
+  ALTER COLUMN lote_producto SET NOT NULL,
+  ALTER COLUMN codigo_producto SET NOT NULL,
+  ALTER COLUMN sucursal SET NOT NULL,
+  ALTER COLUMN fecha_fabricacion SET NOT NULL,
+  ALTER COLUMN user_id SET NOT NULL;
+```
+
+### CHECK Constraints
+
+```sql
+-- Ensure batch size is positive
+ALTER TABLE bitacora_produccion
+  ADD CONSTRAINT chk_tamano_lote_positive
+  CHECK (tamano_lote > 0);
+
+-- Ensure pH is in valid range
+ALTER TABLE bitacora_produccion
+  ADD CONSTRAINT chk_ph_range
+  CHECK (ph IS NULL OR (ph >= 0 AND ph <= 14));
+
+-- Ensure solids percentage is valid
+ALTER TABLE bitacora_produccion
+  ADD CONSTRAINT chk_solidos_range
+  CHECK (
+    (solidos_medicion_1 IS NULL OR (solidos_medicion_1 >= 0 AND solidos_medicion_1 <= 55))
+    AND
+    (solidos_medicion_2 IS NULL OR (solidos_medicion_2 >= 0 AND solidos_medicion_2 <= 55))
+  );
+
+-- Ensure fabrication date is not in future
+ALTER TABLE bitacora_produccion
+  ADD CONSTRAINT chk_fecha_not_future
+  CHECK (fecha_fabricacion <= CURRENT_DATE);
+```
+
+### UNIQUE Constraints
+
+```sql
+-- Prevent duplicate batch numbers (business rule)
+ALTER TABLE bitacora_produccion
+  ADD CONSTRAINT uq_lote_producto UNIQUE (lote_producto);
+```
+
+### Foreign Key Constraints
+
+```sql
+-- Ensure user_id references valid user
+ALTER TABLE bitacora_produccion
+  ADD CONSTRAINT fk_user
+  FOREIGN KEY (user_id)
+  REFERENCES auth.users(id)
+  ON DELETE RESTRICT;  -- Prevent deleting user if they have records
+```
+
+### Domain Constraints with ENUM Types
+
+```sql
+-- Create custom type for conformity
+CREATE TYPE conformity_status AS ENUM ('CONFORME', 'NO CONFORME');
+
+ALTER TABLE bitacora_produccion
+  ALTER COLUMN color TYPE conformity_status USING color::conformity_status,
+  ALTER COLUMN aroma TYPE conformity_status USING aroma::conformity_status;
+```
+
+## Error Handling
+
+### Client-Side Error Display
+
+```typescript
+function FormField({ name, error }: { name: string; error?: string }) {
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={name}>{name}</Label>
+      <Input
+        id={name}
+        className={cn(error && "border-red-500")}
+      />
+      {error && (
+        <p className="text-sm text-red-500 flex items-center gap-1">
+          <AlertCircle className="h-4 w-4" />
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
+```
+
+### Database Error Handling
+
+```typescript
+const { data, error } = await supabase
+  .from('bitacora_produccion')
+  .insert(record)
+
+if (error) {
+  // Map database errors to user-friendly messages
+  if (error.code === '23505') {
+    // Unique violation
+    toast.error('Este número de lote ya existe')
+  } else if (error.code === '23514') {
+    // Check constraint violation
+    toast.error('Los valores ingresados no cumplen con las restricciones')
+  } else if (error.code === '23503') {
+    // Foreign key violation
+    toast.error('Referencia inválida')
+  } else if (error.code === '42501') {
+    // Insufficient privilege (RLS)
+    toast.error('No tienes permiso para realizar esta acción')
+  } else {
+    // Generic error
+    console.error('Database error:', error)
+    toast.error('Error al guardar los datos')
+  }
+}
+```
+
+## Validation Best Practices
+
+1. **Validate early**: Client-side validation for instant UX feedback
+2. **Never trust the client**: Always validate on server/database
+3. **Sanitize inputs**: Remove dangerous characters before validation
+4. **Use schema validation**: Zod provides type safety and runtime checks
+5. **Provide clear errors**: Tell users what's wrong and how to fix it
+6. **Fail gracefully**: Handle validation errors without crashing
+7. **Log validation failures**: Track suspicious patterns
+8. **Test edge cases**: Empty strings, null, undefined, very large numbers
+9. **Document validation rules**: Make business rules explicit
+10. **Keep constraints in sync**: Client validation should match database constraints
+
+## Testing Validation
+
+```typescript
+import { describe, it, expect } from 'vitest'
+import { BitacoraSchema, validateForm } from '@/lib/validations'
+
+describe('Bitacora Validation', () => {
+  it('accepts valid data', () => {
+    const data = {
+      sucursal: 'PACHUCA 1',
+      codigo_producto: 'LIMLIM',
+      nombre_preparador: 'Juan Pérez',
+      fecha_fabricacion: '2024-03-05',
+      tamano_lote: '500',
+      ph: '7.5',
+      solidos_medicion_1: '1.5',
+      solidos_medicion_2: '1.6',
+      apariencia: 'CRISTALINO',
+      color: 'CONFORME',
+      aroma: 'CONFORME',
+    }
+    
+    const result = validateForm(BitacoraSchema, data)
+    expect(result.success).toBe(true)
+  })
+  
+  it('rejects invalid pH', () => {
+    const data = { /* ... */, ph: '15' }  // pH > 14
+    const result = validateForm(BitacoraSchema, data)
+    expect(result.success).toBe(false)
+    expect(result.errors.ph).toContain('entre 0 y 14')
+  })
+  
+  it('rejects negative batch size', () => {
+    const data = { /* ... */, tamano_lote: '-100' }
+    const result = validateForm(BitacoraSchema, data)
+    expect(result.success).toBe(false)
+  })
+})
+```
+
+## Next Steps
+
+- [Row Level Security](/architecture/backend/row-level-security)
+- [Supabase Backend](/architecture/backend/supabase)
+- [Security Architecture](/architecture/security)

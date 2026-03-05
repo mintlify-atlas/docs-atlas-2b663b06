@@ -1,0 +1,461 @@
+---
+title: 'Adding Products'
+description: 'Guide to adding new products, locations, and quality standards'
+icon: 'box'
+---
+
+## Overview
+
+This guide explains how to add new products, locations (sucursales), and quality standards to Quality Hub GINEZ. All product configuration is managed in `lib/production-constants.ts`.
+
+## File Location
+
+All product constants are defined in:
+
+```
+source/lib/production-constants.ts
+```
+
+## Adding New Locations (Sucursales)
+
+### 1. Add to SUCURSALES Array
+
+Locate the `SUCURSALES` constant and add your new location:
+
+<CodeGroup>
+
+```typescript SUCURSALES
+export const SUCURSALES = [
+    "ACTOPAN", "AMOZOC", "APIZACO", "ATITALAQUIA", "ATLACOMULCO",
+    "CANCUN 1", "CANCUN 2", "CEIBA", "CELAYA", "CHOLULA",
+    // ... existing locations
+    "ZUMPANGO 1", "ZUMPANGO 2",
+    "CEDIS", "CORPORATIVO",
+    "NUEVA_SUCURSAL"  // Add your new location here
+];
+```
+
+</CodeGroup>
+
+### 2. Add Acronym to SUCURSAL_ACRONYMS
+
+Add a unique acronym for batch code generation:
+
+<CodeGroup>
+
+```typescript SUCURSAL_ACRONYMS
+export const SUCURSAL_ACRONYMS: Record<string, string> = {
+    "AMOZOC": "AMO",
+    "APIZACO": "APZ",
+    "ATITALAQUIA": "ATI",
+    // ... existing acronyms
+    "ZUMPANGO 2": "ZUM2",
+    "CEDIS": "CEDIS",
+    "CORPORATIVO": "CORP",
+    "NUEVA_SUCURSAL": "NUE"  // Add acronym (max 4 chars)
+};
+```
+
+</CodeGroup>
+
+<Note>
+Acronyms are used in batch codes (format: `YYYYMMDD-SUC-PROD-###`). Keep them short (2-4 characters) and unique.
+</Note>
+
+## Adding New Product Categories
+
+### 1. Add to PRODUCT_CATEGORIES
+
+Add your new category with an ID, name, and image:
+
+<CodeGroup>
+
+```typescript PRODUCT_CATEGORIES
+export const PRODUCT_CATEGORIES = [
+    { id: "aro-amb", name: "Aromatizante Ambiental", image: "https://i.imgur.com/86dsPZV.jpeg" },
+    { id: "antibac", name: "Antibacteriales", image: "https://i.imgur.com/RQfPreB.png" },
+    // ... existing categories
+    { id: "nueva-cat", name: "Nueva Categoría", image: "https://i.imgur.com/example.jpeg" }
+];
+```
+
+</CodeGroup>
+
+### 2. Add to CATEGORY_PRODUCTS
+
+Map product codes to your new category:
+
+<CodeGroup>
+
+```typescript CATEGORY_PRODUCTS
+export const CATEGORY_PRODUCTS: Record<string, string[]> = {
+    "Aromatizante Ambiental": ["AROANII", "AROCAN", "AROCAR", ...],
+    "Antibacteriales": ["GELANT", "JABMAK", "LIMSAK", ...],
+    // ... existing mappings
+    "Nueva Categoría": ["PROD001", "PROD002", "PROD003"]
+};
+```
+
+</CodeGroup>
+
+## Adding New Products
+
+### Complete Product Addition Example
+
+Let's add a new product called "LIMFRESA" (Strawberry Cleaner):
+
+#### Step 1: Add to Category Products
+
+<CodeGroup>
+
+```typescript Category Mapping
+export const CATEGORY_PRODUCTS: Record<string, string[]> = {
+    "Limpiador liquido multiusos": [
+        "LIMALA", "LIMBOS", "LIMBRI", "LIMCAN",
+        // ... existing products
+        "LIMVIO",
+        "LIMFRESA"  // Add new product here
+    ],
+    // ... other categories
+};
+```
+
+</CodeGroup>
+
+#### Step 2: Add Solids Standards
+
+Define the % Solids quality standards:
+
+<CodeGroup>
+
+```typescript PRODUCT_STANDARDS
+export const PRODUCT_STANDARDS: Record<string, { min?: number, max?: number }> = {
+    "LIMLIM": { min: 1.4, max: 1.6 },
+    "LIMVIO": { min: 1.3, max: 1.4 },
+    // ... existing standards
+    "LIMFRESA": { min: 1.5, max: 1.8 }  // Add standards
+};
+```
+
+</CodeGroup>
+
+<Info>
+These values represent:
+- **Red lines** (specification limits): min and max values
+- **Yellow lines** (tolerance): ±5% of red lines
+- **Classification**:
+  - Between red lines → CONFORME
+  - Between red and yellow lines → SEMI-CONFORME
+  - Outside yellow lines → NO CONFORME
+</Info>
+
+#### Step 3: Add pH Standards (if applicable)
+
+<CodeGroup>
+
+```typescript PH_STANDARDS
+export const PH_STANDARDS: Record<string, { min: number, max: number }> = {
+    "TRALIM": { min: 7, max: 9 },
+    "TRAMAN": { min: 7, max: 9 },
+    // ... existing pH standards
+    "LIMFRESA": { min: 6, max: 8 }  // Add pH range
+};
+```
+
+</CodeGroup>
+
+#### Step 4: Add Appearance Standard
+
+<CodeGroup>
+
+```typescript APPEARANCE_STANDARDS
+export const APPEARANCE_STANDARDS: Record<string, string> = {
+    "LIMLIM": "CRISTALINO",
+    "LIMVIO": "CRISTALINO",
+    // ... existing appearance standards
+    "LIMFRESA": "CRISTALINO"  // Options: CRISTALINO, OPACO, APERLADO
+};
+```
+
+</CodeGroup>
+
+<Note>
+Standard appearance values:
+- **CRISTALINO**: Clear/transparent
+- **OPACO**: Opaque
+- **APERLADO**: Pearly/pearlescent
+</Note>
+
+#### Step 5: Configure Parameter Applicability
+
+<CodeGroup>
+
+```typescript PARAMETER_APPLICABILITY
+export const PARAMETER_APPLICABILITY: Record<string, { solidos: boolean, ph: boolean }> = {
+    "LIMLIM": { solidos: true, ph: false },
+    "LIMVIO": { solidos: true, ph: false },
+    // ... existing applicability
+    "LIMFRESA": { solidos: true, ph: true }  // Both parameters apply
+};
+```
+
+</CodeGroup>
+
+<Info>
+This determines which quality parameters are measured for each product:
+- `solidos: true` - % Solids measurement is required
+- `ph: true` - pH measurement is required
+- Set to `false` if parameter doesn't apply to the product
+</Info>
+
+## Real-World Examples
+
+### Example 1: Adding a Detergent Product
+
+<CodeGroup>
+
+```typescript Detergent Example
+// 1. Add to category
+"Detergente líquido para ropa": [
+    "AQUA", "COLBLA", "COLGIN",
+    "NEWDET"  // New detergent
+],
+
+// 2. Solids standard (typical detergent range)
+"NEWDET": { min: 9.0, max: 10.5 },
+
+// 3. pH standard (neutral to slightly alkaline)
+"NEWDET": { min: 7, max: 9 },
+
+// 4. Appearance
+"NEWDET": "CRISTALINO",
+
+// 5. Parameters (detergents measure both)
+"NEWDET": { solidos: true, ph: true }
+```
+
+</CodeGroup>
+
+### Example 2: Adding an Air Freshener
+
+<CodeGroup>
+
+```typescript Air Freshener Example
+// 1. Add to category
+"Aromatizante Ambiental": [
+    "AROANII", "AROCAN", "AROCAR",
+    "AROVAN"  // New vanilla air freshener
+],
+
+// 2. No solids standard needed (fragrance products)
+// Skip PRODUCT_STANDARDS entry
+
+// 3. No pH measurement
+// Skip PH_STANDARDS entry
+
+// 4. Appearance
+"AROVAN": "OPACO",
+
+// 5. Parameters (no measurements for fragrances)
+"AROVAN": { solidos: false, ph: false }
+```
+
+</CodeGroup>
+
+### Example 3: Adding a Cream Product
+
+<CodeGroup>
+
+```typescript Cream Example
+// 1. Add to category
+"Crema corporal": [
+    "CREBAB", "CREDEL", "CRELIM",
+    "CRECOC"  // New coconut cream
+],
+
+// 2. Solids standard (creams have higher solids)
+"CRECOC": { min: 18.0, max: 22.0 },
+
+// 3. pH standard (slightly acidic for skin)
+"CRECOC": { min: 6, max: 7 },
+
+// 4. Appearance
+"CRECOC": "OPACO",
+
+// 5. Parameters (both apply)
+"CRECOC": { solidos: true, ph: true }
+```
+
+</CodeGroup>
+
+## Adding Product Groups
+
+Product groups organize categories in the UI. Edit `PRODUCT_GROUPS`:
+
+<CodeGroup>
+
+```typescript PRODUCT_GROUPS
+export const PRODUCT_GROUPS = [
+    {
+        title: "Cuidado del Hogar",
+        color: "text-orange-600 dark:text-orange-400",
+        icon: "🏠",
+        ids: ["aro-amb", "esp-hogar", "lim-mult", "det-trastes", "bs-aro-amb", "bs-lim-mult"]
+    },
+    {
+        title: "Cuidado Personal",
+        color: "text-emerald-600 dark:text-emerald-400",
+        icon: "💆",
+        ids: ["crem-corp", "enj-cap", "jab-manos", "shampoo"]
+    },
+    // Add your new group:
+    {
+        title: "Nueva Línea",
+        color: "text-purple-600 dark:text-purple-400",
+        icon: "✨",
+        ids: ["nueva-cat"]
+    }
+];
+```
+
+</CodeGroup>
+
+## Validation and Testing
+
+After adding products, test the following:
+
+### 1. Bitácora Registration
+
+<CodeGroup>
+
+```bash Test Dev Server
+npm run dev
+```
+
+</CodeGroup>
+
+1. Navigate to `/bitacora`
+2. Select your new product
+3. Verify correct fields appear based on `PARAMETER_APPLICABILITY`
+4. Enter quality measurements
+5. Verify conformity classification works correctly
+
+### 2. Quality Control Charts
+
+1. Go to `/calidad`
+2. Find records for your new product
+3. Verify control chart lines (red/yellow) display correctly
+4. Check conformity status indicators
+
+### 3. Reports
+
+1. Navigate to `/reportes`
+2. Verify product appears in analytics
+3. Check that it's grouped correctly in commercial reports
+
+## Common Patterns by Product Family
+
+### Cleaners (Limpiadores)
+
+```typescript
+// Solids: 1.0 - 2.0 range
+// pH: Usually not measured or neutral
+// Appearance: CRISTALINO or OPACO
+"PRODUCT": { min: 1.5, max: 1.8 },
+"PRODUCT": { solidos: true, ph: false },
+```
+
+### Detergents (Detergentes)
+
+```typescript
+// Solids: 8.0 - 18.0 range (higher concentration)
+// pH: 7-9 (neutral to alkaline)
+// Appearance: CRISTALINO or APERLADO
+"PRODUCT": { min: 9.0, max: 10.5 },
+"PRODUCT": { min: 7, max: 9 },
+"PRODUCT": { solidos: true, ph: true },
+```
+
+### Fabric Softeners (Suavizantes)
+
+```typescript
+// Solids: 1.0 - 2.5 range
+// pH: Usually not measured
+// Appearance: OPACO
+"PRODUCT": { min: 1.5, max: 2.2 },
+"PRODUCT": { solidos: true, ph: false },
+"PRODUCT": "OPACO",
+```
+
+### Personal Care (Cuidado Personal)
+
+```typescript
+// Solids: Varies widely (7-22%)
+// pH: 5-7 (skin-friendly)
+// Appearance: Usually CRISTALINO or APERLADO
+"PRODUCT": { min: 10.5, max: 14.0 },
+"PRODUCT": { min: 5, max: 6 },
+"PRODUCT": { solidos: true, ph: true },
+```
+
+## Troubleshooting
+
+### Product Not Appearing in Bitácora
+
+1. Check `CATEGORY_PRODUCTS` mapping
+2. Verify category name matches exactly
+3. Clear browser cache and restart dev server
+
+### Conformity Status Not Showing
+
+1. Verify `PRODUCT_STANDARDS` has correct min/max values
+2. Check that values are numbers, not strings
+3. Ensure `PARAMETER_APPLICABILITY` is set correctly
+
+### Control Charts Not Displaying
+
+1. Confirm product has standards in `PRODUCT_STANDARDS`
+2. Check that `solidos: true` in `PARAMETER_APPLICABILITY`
+3. Verify there are actual measurements in the database
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Consistent Naming">
+    - Use UPPERCASE for product codes
+    - Keep codes short (5-8 characters)
+    - Use descriptive acronyms
+    - Example: `LIMFRESA` (LIM = Limpiador, FRESA = Strawberry)
+  </Accordion>
+  
+  <Accordion title="Set Realistic Standards">
+    - Base standards on actual production data
+    - Min/max should be achievable 95% of the time
+    - ±5% tolerance is automatically calculated
+    - Review and adjust standards periodically
+  </Accordion>
+  
+  <Accordion title="Document Changes">
+    - Add comments in code explaining new products
+    - Keep a changelog of standards updates
+    - Document why specific ranges were chosen
+  </Accordion>
+  
+  <Accordion title="Test Thoroughly">
+    - Test in development environment first
+    - Create test batches with edge cases
+    - Verify reports and analytics work correctly
+    - Check on mobile devices too
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Customization" icon="palette" href="/guides/development/customization">
+    Learn how to customize the application
+  </Card>
+  <Card title="Database Migrations" icon="database" href="/guides/development/database-migrations">
+    Manage database schema changes
+  </Card>
+</CardGroup>

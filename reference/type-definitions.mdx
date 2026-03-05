@@ -1,0 +1,423 @@
+---
+title: Type Definitions
+description: TypeScript interfaces and type definitions used throughout the application
+icon: code
+---
+
+## Overview
+
+Quality Hub GINEZ is built with TypeScript for type safety. This reference documents all major type definitions.
+
+<Info>
+All type definitions are extracted from `lib/types.ts`
+</Info>
+
+## Raw Materials (Materia Prima)
+
+### RawMaterial Interface
+
+```typescript
+interface RawMaterial {
+  code: string
+  name: string
+  cas: string | null
+  transport_name: string | null
+  functional_category: string
+  chemical_family: string
+  disposition: string
+  provider: string | null
+  provider_code: string | null
+  lead_time_days: number | null
+  
+  // Document links (generated from FILE_IDs)
+  tds_view_url: string | null
+  tds_download_url: string | null
+  sds_view_url: string | null
+  sds_download_url: string | null
+  coa_cedis_view_url: string | null
+  coa_cedis_download_url: string | null
+  coa_branches_view_url: string | null
+  coa_branches_download_url: string | null
+  label_view_url: string | null
+  label_download_url: string | null
+}
+```
+
+**Source**: `lib/types.ts:2-24`
+
+#### Fields
+
+<ResponseField name="code" type="string" required>
+  Unique material code identifier
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Material name
+</ResponseField>
+
+<ResponseField name="cas" type="string | null">
+  CAS Registry Number for chemical identification
+</ResponseField>
+
+<ResponseField name="transport_name" type="string | null">
+  Official transport/shipping name
+</ResponseField>
+
+<ResponseField name="functional_category" type="string" required>
+  Functional category (e.g., "Surfactant", "Preservative")
+</ResponseField>
+
+<ResponseField name="chemical_family" type="string" required>
+  Chemical family classification
+</ResponseField>
+
+<ResponseField name="disposition" type="string" required>
+  Current disposition/status
+</ResponseField>
+
+<ResponseField name="provider" type="string | null">
+  Supplier/provider name
+</ResponseField>
+
+<ResponseField name="provider_code" type="string | null">
+  Provider's internal code for this material
+</ResponseField>
+
+<ResponseField name="lead_time_days" type="number | null">
+  Lead time in days for procurement
+</ResponseField>
+
+## Finished Products (Producto Terminado)
+
+### FinishedProduct Interface
+
+```typescript
+interface FinishedProduct {
+  family: string
+  family_slug: string
+  category: string
+  category_slug: string
+  sku_code: string
+  name: string
+  base_product: string
+  variant: string
+  status: "Activo" | "Inactivo"
+  updated_at: string
+  
+  // Document links
+  tds_view_url: string | null
+  tds_download_url: string | null
+  sds_view_url: string | null
+  sds_download_url: string | null
+  coa_view_url: string | null
+  coa_download_url: string | null
+  label_view_url: string | null
+  label_download_url: string | null
+}
+```
+
+**Source**: `lib/types.ts:27-47`
+
+#### Fields
+
+<ResponseField name="family" type="string" required>
+  Product family name (e.g., "Cuidado del Hogar")
+</ResponseField>
+
+<ResponseField name="family_slug" type="string" required>
+  URL-safe family identifier
+</ResponseField>
+
+<ResponseField name="category" type="string" required>
+  Product category name
+</ResponseField>
+
+<ResponseField name="category_slug" type="string" required>
+  URL-safe category identifier
+</ResponseField>
+
+<ResponseField name="sku_code" type="string" required>
+  Product SKU/code (e.g., "LIMLIM", "TRALIM")
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Full product name
+</ResponseField>
+
+<ResponseField name="base_product" type="string" required>
+  Base product identifier
+</ResponseField>
+
+<ResponseField name="variant" type="string" required>
+  Product variant specification
+</ResponseField>
+
+<ResponseField name="status" type="'Activo' | 'Inactivo'" required>
+  Current product status
+</ResponseField>
+
+<ResponseField name="updated_at" type="string" required>
+  Last update timestamp (ISO format)
+</ResponseField>
+
+### Product Organization
+
+```typescript
+interface FinishedProductsData {
+  families: FamilyGroup[]
+}
+
+interface FamilyGroup {
+  name: string
+  slug: string
+  categories: CategoryGroup[]
+  products?: FinishedProduct[]
+}
+
+interface CategoryGroup {
+  name: string
+  slug: string
+  products: FinishedProduct[]
+}
+```
+
+**Source**: `lib/types.ts:50-65`
+
+## Family and Category Mappings
+
+### FAMILIES Constant
+
+```typescript
+const FAMILIES: Record<string, string[]> = {
+  "Cuidado del Hogar": [
+    "Limpiador Líquido Multiusos",
+    "Detergente líquido para Trates",
+    "Especialidad Cuidado del Hogar",
+    "Aromatizantes Ambientales",
+    "Base de Limpiador Líquido Multiusos",
+    "Base de Aromatizantes Ambientales",
+  ],
+  "Lavandería": [
+    "Detergente Líquido para Ropa",
+    "Suavizantes Líquidos para Telas",
+    "Especialidad Lavandería",
+  ],
+  "Línea Automotriz": ["Automotriz"],
+  "Línea Antibacterial": ["Antibacterial"],
+  "Cuidado Personal": [
+    "Jabón Líquido para Manos",
+    "Shampoo Capilar",
+    "Enjuague Capilar",
+    "Crema Corporal",
+  ],
+}
+```
+
+**Source**: `lib/types.ts:68-90`
+
+This constant maps product families to their constituent categories.
+
+## Validation Schemas
+
+All validation schemas use **Zod** for runtime type checking.
+
+### LoginSchema
+
+```typescript
+const LoginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "El correo es obligatorio")
+    .email("Formato de correo inválido")
+    .max(255, "El correo no puede exceder 255 caracteres"),
+  password: z
+    .string()
+    .min(6, "La contraseña debe tener al menos 6 caracteres")
+    .max(128, "La contraseña no puede exceder 128 caracteres"),
+})
+
+type LoginInput = z.infer<typeof LoginSchema>
+```
+
+**Source**: `lib/validations.ts:8-18`
+
+### RegisterSchema
+
+```typescript
+const RegisterSchema = LoginSchema.extend({
+  full_name: z
+    .string()
+    .min(2, "El nombre debe tener al menos 2 caracteres")
+    .max(100, "El nombre no puede exceder 100 caracteres")
+    .regex(
+      /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/,
+      "El nombre solo puede contener letras y espacios"
+    ),
+  role: z.enum(
+    [
+      "preparador",
+      "gerente_sucursal",
+      "director_operaciones",
+      "gerente_calidad",
+      "mostrador",
+      "cajera",
+      "director_compras",
+    ],
+    { errorMap: () => ({ message: "Selecciona un rol válido" }) }
+  ),
+  sucursal: z
+    .string()
+    .min(1, "La sucursal es obligatoria")
+    .refine(
+      (val) => SUCURSALES.includes(val),
+      "Selecciona una sucursal válida"
+    ),
+})
+
+type RegisterInput = z.infer<typeof RegisterSchema>
+```
+
+**Source**: `lib/validations.ts:20-34`
+
+### BitacoraSchema
+
+```typescript
+const BitacoraSchema = z.object({
+  sucursal: z
+    .string()
+    .min(1, "La sucursal es obligatoria")
+    .refine(
+      (val) => SUCURSALES.includes(val),
+      "Selecciona una sucursal válida"
+    ),
+  nombre_preparador: z
+    .string()
+    .min(1, "El nombre del preparador es obligatorio")
+    .max(200, "El nombre no puede exceder 200 caracteres"),
+  fecha_fabricacion: z
+    .string()
+    .min(1, "La fecha de fabricación es obligatoria")
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de fecha inválido (YYYY-MM-DD)"),
+  codigo_producto: z
+    .string()
+    .min(1, "El código del producto es obligatorio")
+    .max(20, "Código de producto inválido")
+    .regex(
+      /^[A-Z0-9-]+$/,
+      "El código solo puede contener letras mayúsculas, números y guiones"
+    ),
+  tamano_lote: z
+    .string()
+    .min(1, "El tamaño de lote es obligatorio")
+    .refine(
+      (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
+      "El tamaño de lote debe ser un número positivo"
+    ),
+  ph: z
+    .string()
+    .refine(
+      (val) => {
+        if (val === "") return true // Optional when empty
+        const num = parseFloat(val)
+        return !isNaN(num) && num >= 0 && num <= 14
+      },
+      "El pH debe estar entre 0 y 14"
+    )
+    .default(""),
+  solidos_medicion_1: z
+    .string()
+    .refine(
+      (val) => {
+        if (val === "") return true
+        const num = parseFloat(val)
+        return !isNaN(num) && num >= 0 && num <= 55
+      },
+      "El % de sólidos debe estar entre 0 y 55"
+    )
+    .default(""),
+  solidos_medicion_2: z
+    .string()
+    .refine(
+      (val) => {
+        if (val === "") return true
+        const num = parseFloat(val)
+        return !isNaN(num) && num >= 0 && num <= 55
+      },
+      "El % de sólidos debe estar entre 0 y 55"
+    )
+    .default(""),
+  temp_med1: z.string().default(""),
+  temp_med2: z.string().default(""),
+  viscosidad_seg: z.string().default(""),
+  temperatura: z.string().default(""),
+  color: z.enum(["CONFORME", "NO CONFORME"], {
+    errorMap: () => ({ message: "Selecciona conformidad del color" }),
+  }),
+  apariencia: z.string().min(1, "La apariencia es obligatoria"),
+  aroma: z.enum(["CONFORME", "NO CONFORME"], {
+    errorMap: () => ({ message: "Selecciona conformidad del aroma" }),
+  }),
+  contaminacion_microbiologica: z.enum(["SIN PRESENCIA", "CON PRESENCIA"], {
+    errorMap: () => ({
+      message: "Selecciona estado de contaminación",
+    }),
+  }),
+  observaciones: z
+    .string()
+    .max(1000, "Las observaciones no pueden exceder 1000 caracteres")
+    .default(""),
+})
+
+type BitacoraInput = z.infer<typeof BitacoraSchema>
+```
+
+**Source**: `lib/validations.ts:60-115`
+
+## Validation Helpers
+
+### validateForm Function
+
+```typescript
+function validateForm<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown
+): 
+  | { success: true; data: T }
+  | { success: false; errors: Record<string, string> }
+```
+
+**Source**: `lib/validations.ts:133-151`
+
+Validates data against a Zod schema and returns either the parsed data or formatted errors.
+
+### getFirstError Function
+
+```typescript
+function getFirstError(errors: Record<string, string>): string
+```
+
+**Source**: `lib/validations.ts:158-161`
+
+Returns the first error message from a validation result, useful for toast notifications.
+
+## Usage Example
+
+```typescript
+import { BitacoraSchema, validateForm } from '@/lib/validations'
+
+const result = validateForm(BitacoraSchema, formData)
+
+if (result.success) {
+  // Use result.data (type-safe BitacoraInput)
+  await saveToDatabase(result.data)
+} else {
+  // Display result.errors
+  console.error(result.errors)
+}
+```
+
+## Source Files
+
+- **Type Definitions**: `lib/types.ts`
+- **Validation Schemas**: `lib/validations.ts`
+- **Production Constants**: `lib/production-constants.ts`

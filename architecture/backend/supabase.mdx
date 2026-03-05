@@ -1,0 +1,567 @@
+---
+title: Supabase Backend
+description: Supabase configuration and backend architecture for Quality Hub GINEZ
+---
+
+# Supabase Backend
+
+Quality Hub GINEZ uses **Supabase** as a complete Backend-as-a-Service (BaaS) platform, providing PostgreSQL database, authentication, real-time subscriptions, and more.
+
+## Supabase Architecture
+
+```
+┌──────────────────────────────────────────┐
+│              SUPABASE PLATFORM                │
+└──────────────────────────────────────────┘
+          │
+    ┌─────┼─────────────────┐
+    │     │                   │
+┌───┴──┐ ┌┴────────┐ ┌────┴────┐
+│ Auth │ │ Database │ │ Realtime │
+└───────┘ └──────────┘ └──────────┘
+  JWT      PostgreSQL   WebSockets
+  PKCE     + RLS        Subscriptions
+```
+
+## Client Configuration
+
+The Supabase client is configured in `lib/supabase.ts`:
+
+```typescript
+// lib/supabase.ts
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+// Debug logging (development only)
+if (typeof window !== 'undefined') {
+  console.log('--- SUPABASE CLIENT CONFIG ---')
+  console.log('URL:', supabaseUrl)
+  console.log('KEY:', supabaseAnonKey ? `${supabaseAnonKey.substring(0, 10)}...` : 'MISSING')
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,        // Persist session in localStorage
+    autoRefreshToken: true,      // Auto-refresh JWT before expiration
+    detectSessionInUrl: true,    // Handle OAuth redirects
+    flowType: 'pkce',            // PKCE flow for CSRF protection
+    // Storage defaults to localStorage (secure for SPA)
+  },
+})
+```
+
+### Environment Variables
+
+Required environment variables in `.env.local`:
+
+```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# DO NOT expose the service role key to the client!
+# SUPABASE_SERVICE_ROLE_KEY="eyJhbGc..."  # Server-only
+```
+
+### Client Features
+
+- **Automatic token refresh**: Tokens refreshed before expiration
+- **Session persistence**: Sessions survive browser restarts
+- **PKCE flow**: Protection against CSRF attacks
+- **Type safety**: Full TypeScript support
+
+## Database (PostgreSQL)
+
+### Tables
+
+#### 1. `bitacora_produccion` (Production Log)
+
+Main table for production batch records:
+
+```sql
+CREATE TABLE bitacora_produccion (
+  id BIGSERIAL PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  -- Batch Identification
+  lote_producto TEXT NOT NULL,
+  codigo_producto TEXT NOT NULL,
+  sucursal TEXT NOT NULL,
+  familia_producto TEXT,
+  categoria_producto TEXT,
+  fecha_fabricacion DATE NOT NULL,
+  tamano_lote NUMERIC,
+  
+  -- Quality Measurements
+  ph NUMERIC,
+  solidos_medicion_1 NUMERIC,
+  solidos_medicion_2 NUMERIC,
+  
+  -- Organoleptic Properties
+  apariencia TEXT,
+  color TEXT,
+  aroma TEXT,
+  
+  -- Metadata
+  nombre_preparador TEXT,
+  user_id UUID REFERENCES auth.users(id)
+);
+
+-- Enable Row Level Security
+ALTER TABLE bitacora_produccion ENABLE ROW LEVEL SECURITY;
+```
+
+#### 2. `profiles` (User Profiles)
+
+Extends Supabase Auth users:
+
+```sql
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT,
+  full_name TEXT,
+  area TEXT,
+  position TEXT,
+  role TEXT,
+  sucursal TEXT,
+  is_admin BOOLEAN DEFAULT false,
+  approved BOOLEAN DEFAULT false,
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can view their own profile
+CREATE POLICY "Users can view own profile"
+ON profiles FOR SELECT
+USING (auth.uid() = id);
+
+-- Policy: Users can update their own profile
+CREATE POLICY "Users can update own profile"
+ON profiles FOR UPDATE
+USING (auth.uid() = id);
+
+-- Policy: Admins can view all profiles
+CREATE POLICY "Admins can view all profiles"
+ON profiles FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+```
+
+### Indexes
+
+Optimize query performance:
+
+```sql
+-- Frequently queried fields
+CREATE INDEX idx_bitacora_user_id ON bitacora_produccion(user_id);
+CREATE INDEX idx_bitacora_fecha ON bitacora_produccion(fecha_fabricacion DESC);
+CREATE INDEX idx_bitacora_sucursal ON bitacora_produccion(sucursal);
+CREATE INDEX idx_bitacora_producto ON bitacora_produccion(codigo_producto);
+
+-- Composite index for common filters
+CREATE INDEX idx_bitacora_composite 
+  ON bitacora_produccion(sucursal, fecha_fabricacion DESC, user_id);
+
+-- Profile lookups
+CREATE INDEX idx_profiles_role ON profiles(role);
+CREATE INDEX idx_profiles_approved ON profiles(approved);
+```
+
+### Database Functions
+
+Custom PostgreSQL functions for complex queries:
+
+```sql
+-- Get user permissions
+CREATE OR REPLACE FUNCTION get_user_permissions_v2(p_user_id UUID)
+RETURNS TABLE (
+  module_key TEXT,
+  access_level TEXT,
+  can_view BOOLEAN,
+  can_create BOOLEAN,
+  can_edit BOOLEAN,
+  can_delete BOOLEAN,
+  can_export BOOLEAN,
+  available_filters TEXT[],
+  visible_tabs TEXT[]
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    p.module_key,
+    p.access_level,
+    p.can_view,
+    p.can_create,
+    p.can_edit,
+    p.can_delete,
+    p.can_export,
+    p.available_filters,
+    p.visible_tabs
+  FROM permissions p
+  INNER JOIN profiles pr ON pr.role = p.role_name
+  WHERE pr.id = p_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+## Authentication (Supabase Auth)
+
+### Email + Password Authentication
+
+Supabase Auth handles:
+- User registration
+- Email verification
+- Password hashing (bcrypt)
+- JWT token generation
+- Session management
+
+#### Sign Up
+
+```typescript
+const { data, error } = await supabase.auth.signUp({
+  email: 'user@example.com',
+  password: 'secure_password',
+  options: {
+    data: {
+      full_name: 'John Doe',
+      role: 'preparador',
+      sucursal: 'PACHUCA 1'
+    }
+  }
+})
+
+// Profile is created via database trigger
+```
+
+#### Sign In
+
+```typescript
+const { data, error } = await supabase.auth.signInWithPassword({
+  email: 'user@example.com',
+  password: 'secure_password',
+})
+
+if (data.session) {
+  // User is authenticated
+  console.log('User:', data.user)
+  console.log('Access Token:', data.session.access_token)
+}
+```
+
+#### Sign Out
+
+```typescript
+const { error } = await supabase.auth.signOut()
+```
+
+#### Get Current Session
+
+```typescript
+const { data: { session }, error } = await supabase.auth.getSession()
+
+if (session) {
+  console.log('User ID:', session.user.id)
+  console.log('Email:', session.user.email)
+}
+```
+
+#### Listen for Auth Changes
+
+```typescript
+const { data: { subscription } } = supabase.auth.onAuthStateChange(
+  (event, session) => {
+    console.log('Auth event:', event)  // SIGNED_IN, SIGNED_OUT, etc.
+    if (session) {
+      // User is authenticated
+    } else {
+      // User is signed out
+    }
+  }
+)
+
+// Clean up
+subscription.unsubscribe()
+```
+
+### JWT Tokens
+
+Supabase issues JWT tokens with user metadata:
+
+```json
+{
+  "aud": "authenticated",
+  "exp": 1234567890,
+  "sub": "user-uuid",
+  "email": "user@example.com",
+  "role": "authenticated",
+  "user_metadata": {
+    "full_name": "John Doe"
+  }
+}
+```
+
+**Token Usage:**
+- Automatically included in Supabase client requests
+- Accessible via `auth.uid()` in RLS policies
+- Auto-refreshed before expiration
+
+## Database Queries
+
+### Select (Read)
+
+```typescript
+// Get all records (filtered by RLS)
+const { data, error } = await supabase
+  .from('bitacora_produccion')
+  .select('*')
+
+// Get with filters
+const { data, error } = await supabase
+  .from('bitacora_produccion')
+  .select('*')
+  .eq('sucursal', 'PACHUCA 1')
+  .gte('fecha_fabricacion', '2024-01-01')
+  .order('created_at', { ascending: false })
+  .limit(50)
+
+// Get specific fields
+const { data, error } = await supabase
+  .from('bitacora_produccion')
+  .select('id, lote_producto, codigo_producto, fecha_fabricacion')
+
+// Get single record
+const { data, error } = await supabase
+  .from('bitacora_produccion')
+  .select('*')
+  .eq('id', 123)
+  .single()
+```
+
+### Insert (Create)
+
+```typescript
+const { data, error } = await supabase
+  .from('bitacora_produccion')
+  .insert({
+    lote_producto: '20240305-PAC1-LIMLIM-001',
+    codigo_producto: 'LIMLIM',
+    sucursal: 'PACHUCA 1',
+    fecha_fabricacion: '2024-03-05',
+    tamano_lote: 500,
+    ph: 7.5,
+    solidos_medicion_1: 1.5,
+    solidos_medicion_2: 1.6,
+    user_id: userId  // From auth context
+  })
+  .select()  // Return inserted record
+```
+
+### Update
+
+```typescript
+const { data, error } = await supabase
+  .from('bitacora_produccion')
+  .update({
+    ph: 7.8,
+    solidos_medicion_1: 1.55
+  })
+  .eq('id', recordId)
+  .select()
+```
+
+### Delete
+
+```typescript
+const { data, error } = await supabase
+  .from('bitacora_produccion')
+  .delete()
+  .eq('id', recordId)
+```
+
+### Complex Queries
+
+```typescript
+// Join with profile
+const { data, error } = await supabase
+  .from('bitacora_produccion')
+  .select(`
+    *,
+    profiles:user_id (
+      full_name,
+      area
+    )
+  `)
+
+// Count
+const { count, error } = await supabase
+  .from('bitacora_produccion')
+  .select('*', { count: 'exact', head: true })
+  .eq('sucursal', 'PACHUCA 1')
+
+// Aggregations (use RPC for complex aggregations)
+const { data, error } = await supabase
+  .rpc('get_production_stats', {
+    start_date: '2024-01-01',
+    end_date: '2024-03-31'
+  })
+```
+
+## Real-time Subscriptions
+
+### Subscribe to Table Changes
+
+```typescript
+const channel = supabase
+  .channel('bitacora_changes')
+  .on(
+    'postgres_changes',
+    {
+      event: '*',  // INSERT, UPDATE, DELETE, or *
+      schema: 'public',
+      table: 'bitacora_produccion'
+    },
+    (payload) => {
+      console.log('Change received:', payload)
+      
+      if (payload.eventType === 'INSERT') {
+        // Handle new record
+        console.log('New record:', payload.new)
+      }
+      if (payload.eventType === 'UPDATE') {
+        // Handle update
+        console.log('Updated record:', payload.new)
+      }
+      if (payload.eventType === 'DELETE') {
+        // Handle deletion
+        console.log('Deleted record ID:', payload.old.id)
+      }
+    }
+  )
+  .subscribe()
+
+// Clean up
+channel.unsubscribe()
+```
+
+### Subscribe to Specific Filters
+
+```typescript
+const channel = supabase
+  .channel('pachuca_records')
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'bitacora_produccion',
+      filter: 'sucursal=eq.PACHUCA 1'  // Only PACHUCA 1 records
+    },
+    (payload) => {
+      console.log('New PACHUCA 1 record:', payload.new)
+    }
+  )
+  .subscribe()
+```
+
+## Error Handling
+
+```typescript
+const { data, error } = await supabase
+  .from('bitacora_produccion')
+  .select('*')
+
+if (error) {
+  console.error('Database error:', error.message)
+  console.error('Error details:', error.details)
+  console.error('Error hint:', error.hint)
+  
+  // Common error codes
+  if (error.code === '23505') {
+    // Unique violation
+    toast.error('Este lote ya existe')
+  }
+  if (error.code === '42501') {
+    // Insufficient privilege (RLS denial)
+    toast.error('No tienes permiso para esta operación')
+  }
+} else {
+  console.log('Data:', data)
+}
+```
+
+## Performance Optimization
+
+### 1. Use Specific Selects
+
+```typescript
+// ❌ Bad: Select everything
+const { data } = await supabase.from('bitacora_produccion').select('*')
+
+// ✅ Good: Select only needed fields
+const { data } = await supabase
+  .from('bitacora_produccion')
+  .select('id, lote_producto, codigo_producto')
+```
+
+### 2. Use Pagination
+
+```typescript
+const PAGE_SIZE = 50
+
+const { data, error } = await supabase
+  .from('bitacora_produccion')
+  .select('*')
+  .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
+```
+
+### 3. Use Indexes
+
+Ensure frequently queried columns have indexes.
+
+### 4. Use RPC for Complex Logic
+
+Move heavy computations to the database:
+
+```typescript
+// Instead of fetching all data and processing in JS
+const { data } = await supabase.rpc('calculate_conformity_stats', {
+  start_date: '2024-01-01',
+  end_date: '2024-03-31',
+  sucursal: 'PACHUCA 1'
+})
+```
+
+## Security Best Practices
+
+### 1. Never Expose Service Role Key
+
+The service role key bypasses RLS. Never expose it to the client.
+
+### 2. Always Use RLS Policies
+
+Enable RLS on all tables and define appropriate policies.
+
+### 3. Validate on Client AND Server
+
+Client validation for UX, server validation (via RLS and constraints) for security.
+
+### 4. Use Environment Variables
+
+Never hardcode credentials. Use `.env.local` and keep it gitignored.
+
+## Next Steps
+
+- [Row Level Security](/architecture/backend/row-level-security)
+- [Data Validation](/architecture/backend/data-validation)
+- [Security Architecture](/architecture/security)

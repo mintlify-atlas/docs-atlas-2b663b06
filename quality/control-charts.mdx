@@ -1,0 +1,153 @@
+---
+title: 'Control Charts'
+description: 'Statistical process control charts for monitoring product quality in GINEZ'
+---
+
+# Control Charts
+
+Control charts are statistical tools used to monitor the stability and conformity of production processes. Quality Hub GINEZ implements control charts primarily for **sólidos (solids)** measurements to ensure products meet specification limits.
+
+## Overview
+
+Control charts use two sets of limits to classify product conformity:
+
+- **Red Lines (Specification Limits)**: Define acceptable product ranges from standards
+- **Yellow Lines (Tolerance Limits)**: Define warning zones with 5% relative error tolerance
+
+<Note>
+The control chart implementation currently focuses on sólidos measurements. pH and appearance use simpler pass/fail criteria.
+</Note>
+
+## Three-Level Classification System
+
+The system classifies measurements into three conformity levels:
+
+### 1. Conforme (Conforming)
+
+Measurements fall **between the red specification limits**.
+
+```typescript
+if (avgSolids >= specMin && avgSolids <= specMax) {
+  solidsStatus = 'conforme'
+}
+```
+
+**Example**: For product LIMLIM with specification range 1.4-1.6, a measurement of 1.5 is **Conforme**.
+
+### 2. Semi-Conforme (Semi-Conforming)
+
+Measurements fall **between red and yellow lines** (outside spec but within tolerance).
+
+```typescript
+if ((avgSolids >= warnMin && avgSolids < specMin) || 
+    (avgSolids > specMax && avgSolids <= warnMax)) {
+  solidsStatus = 'semi-conforme'
+  failedParams.push('solidos')
+}
+```
+
+**Example**: For LIMLIM (1.4-1.6), a measurement of 1.33 falls in the yellow zone (1.33-1.4) and is **Semi-Conforme**.
+
+### 3. No Conforme (Non-Conforming)
+
+Measurements fall **outside the yellow tolerance lines**.
+
+```typescript
+if (avgSolids < warnMin || avgSolids > warnMax) {
+  solidsStatus = 'no-conforme'
+  failedParams.push('solidos')
+}
+```
+
+**Example**: For LIMLIM (1.4-1.6), a measurement of 1.25 is **No Conforme**.
+
+## Control Limit Calculations
+
+The system calculates control limits from product standards defined in `production-constants.ts`:
+
+```typescript
+const stdSolids = PRODUCT_STANDARDS[record.codigo_producto]
+
+// Red lines (specification limits)
+const specMin = stdSolids.min  // Lower specification limit
+const specMax = stdSolids.max  // Upper specification limit
+
+// Yellow lines (tolerance limits with 5% relative error)
+const warnMin = specMin * 0.95 // Lower tolerance limit
+const warnMax = specMax * 1.05 // Upper tolerance limit
+```
+
+<Warning>
+The 5% tolerance is calculated as a **relative percentage** of the specification limits, not an absolute value. This means tolerance ranges scale proportionally with specification ranges.
+</Warning>
+
+## Visual Representation
+
+```
+          Yellow Line (warnMax = 1.68)
+          ───────────────────────────
+          Red Line (specMax = 1.6)    ← Upper Spec Limit
+          ═══════════════════════════
+          
+          CONFORME ZONE
+          
+          ═══════════════════════════
+          Red Line (specMin = 1.4)    ← Lower Spec Limit
+          ───────────────────────────
+          Yellow Line (warnMin = 1.33)
+```
+
+## Measurement Processing
+
+The system averages two sólidos measurements when available:
+
+```typescript
+let avgSolids: number | null = null
+if (record.solidos_medicion_1 !== null && record.solidos_medicion_2 !== null) {
+  avgSolids = (record.solidos_medicion_1 + record.solidos_medicion_2) / 2
+} else if (record.solidos_medicion_1 !== null) {
+  avgSolids = record.solidos_medicion_1
+}
+```
+
+## Implementation Reference
+
+The complete control chart logic is implemented in `lib/analysis-utils.ts:51-73`:
+
+```typescript
+let solidsStatus: ConformityLevel = 'na'
+if (avgSolids !== null && stdSolids && 
+    stdSolids.min !== undefined && stdSolids.max !== undefined) {
+  const specMin = stdSolids.min  // Red line (lower)
+  const specMax = stdSolids.max  // Red line (upper)
+  const warnMin = specMin * 0.95 // Yellow line (lower) - 5% tolerance
+  const warnMax = specMax * 1.05 // Yellow line (upper) - 5% tolerance
+
+  if (avgSolids >= specMin && avgSolids <= specMax) {
+    // Between red lines = CONFORME
+    solidsStatus = 'conforme'
+  } else if ((avgSolids >= warnMin && avgSolids < specMin) || 
+             (avgSolids > specMax && avgSolids <= warnMax)) {
+    // Between red and yellow lines = SEMI-CONFORME
+    solidsStatus = 'semi-conforme'
+    failedParams.push('solidos')
+  } else {
+    // Outside yellow lines = NO CONFORME
+    solidsStatus = 'no-conforme'
+    failedParams.push('solidos')
+  }
+}
+```
+
+## Best Practices
+
+1. **Monitor trends**: Watch for patterns of Semi-Conforme results approaching No Conforme zones
+2. **Investigate outliers**: Any No Conforme result should trigger immediate investigation
+3. **Calibrate equipment**: Regular calibration ensures accurate sólidos measurements
+4. **Document deviations**: All Semi-Conforme and No Conforme results require documentation
+
+## Related Topics
+
+- [Conformity Classification](/quality/conformity-classification) - Understanding the three-level system
+- [Standards & Specifications](/quality/standards-specifications) - Product-specific limits
+- [NCR Management](/quality/ncr-management) - Handling non-conforming products

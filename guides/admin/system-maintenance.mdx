@@ -1,0 +1,546 @@
+---
+title: System Maintenance
+description: Learn how to perform routine maintenance, troubleshooting, and system optimization for Quality Hub GINEZ
+---
+
+## Overview
+
+As a Quality Hub GINEZ administrator, you're responsible for keeping the system running smoothly, performing routine maintenance, and troubleshooting issues. This guide covers essential maintenance tasks, system health monitoring, and optimization strategies.
+
+## Daily Maintenance Tasks
+
+### Morning System Check
+
+Perform these checks at the start of each business day:
+
+<Steps>
+  <Step title="Verify System Access">
+    - Log in to confirm the application is running
+    - Check that the dashboard loads correctly
+    - Verify Supabase connection is active
+  </Step>
+  
+  <Step title="Review Pending Approvals">
+    - Go to **Configuración → Usuarios**
+    - Check for pending user registrations
+    - Approve or reject new user requests
+  </Step>
+  
+  <Step title="Check Audit Logs">
+    - Review **Configuración → Auditoría**
+    - Look for unusual activity overnight
+    - Investigate any red flags
+  </Step>
+  
+  <Step title="Test Critical Functions">
+    - Create a test bitácora entry
+    - View a report to confirm data is loading
+    - Download a document to verify catalog access
+  </Step>
+</Steps>
+
+### User Support Tasks
+
+Throughout the day:
+
+✅ Monitor for user-reported issues
+✅ Reset passwords for locked-out users
+✅ Assist with permission-related questions
+✅ Help users navigate the system
+
+## Weekly Maintenance Tasks
+
+### Data Quality Review
+
+Every week:
+
+<Steps>
+  <Step title="Review Recent Bitácora Entries">
+    - Check for incomplete or suspicious entries
+    - Verify batch numbers are formatted correctly
+    - Look for duplicate entries
+  </Step>
+  
+  <Step title="Quality Control Validation">
+    - Review conformity rates by branch
+    - Investigate batches marked non-conforming
+    - Verify measurements are within expected ranges
+  </Step>
+  
+  <Step title="Catalog Synchronization">
+    - Verify Google Sheets sync is working
+    - Check for new products added
+    - Update product standards if needed
+  </Step>
+  
+  <Step title="User Activity Review">
+    - Check inactive user accounts
+    - Review permission changes made
+    - Verify new users are properly onboarded
+  </Step>
+</Steps>
+
+### Performance Monitoring
+
+Check system performance:
+
+- **Page Load Times**: Dashboard should load in < 3 seconds
+- **Database Queries**: Reports should generate in < 5 seconds
+- **Supabase Usage**: Monitor API request limits
+- **Storage Usage**: Track database growth trends
+
+## Monthly Maintenance Tasks
+
+### Comprehensive System Review
+
+<Steps>
+  <Step title="User Access Audit">
+    - Review all active users and their roles
+    - Disable accounts for departed employees
+    - Update roles for users who changed positions
+    - Verify no unauthorized admin accounts exist
+  </Step>
+  
+  <Step title="Permission Review">
+    - Check that permissions align with job functions
+    - Remove excessive permissions
+    - Grant new permissions as needed
+    - Document any changes made
+  </Step>
+  
+  <Step title="Data Cleanup">
+    - Archive old records if necessary
+    - Remove test data
+    - Clean up duplicate entries
+    - Verify data integrity
+  </Step>
+  
+  <Step title="Documentation Update">
+    - Review internal procedures
+    - Update screenshots if UI changed
+    - Document new workflows
+    - Update user training materials
+  </Step>
+  
+  <Step title="Backup Verification">
+    - Confirm Supabase automated backups are running
+    - Test restore procedure (in development environment)
+    - Document backup locations
+    - Verify backup retention policies
+  </Step>
+</Steps>
+
+### System Health Check
+
+<Steps>
+  <Step title="Database Health">
+    Access Supabase dashboard:
+    - Check database size and growth rate
+    - Review slow query logs
+    - Monitor connection pool usage
+    - Verify RLS policies are enforced
+  </Step>
+  
+  <Step title="Application Performance">
+    - Review browser console for JavaScript errors
+    - Test all modules for functionality
+    - Check mobile responsiveness
+    - Verify all links and buttons work
+  </Step>
+  
+  <Step title="Integration Status">
+    - Test Google Sheets catalog sync
+    - Verify Google Drive document links
+    - Check email delivery (password resets)
+    - Test authentication flow
+  </Step>
+</Steps>
+
+## Troubleshooting Common Issues
+
+### Users Cannot Log In
+
+**Symptoms**: User enters correct credentials but cannot access system
+
+**Possible Causes**:
+- Account not approved
+- Email not verified
+- Supabase authentication service down
+- Browser cache/cookies issue
+
+**Solutions**:
+
+<Steps>
+  <Step title="Verify Account Status">
+    - Check **Configuración → Usuarios**
+    - Ensure user account is approved
+    - Verify email is confirmed in Supabase
+  </Step>
+  
+  <Step title="Check Supabase Status">
+    - Visit [Supabase Status](https://status.supabase.com/)
+    - Check your project's health in Supabase dashboard
+  </Step>
+  
+  <Step title="User Troubleshooting">
+    Ask user to:
+    - Clear browser cache and cookies
+    - Try incognito/private browsing mode
+    - Try a different browser
+    - Check for browser extensions blocking authentication
+  </Step>
+  
+  <Step title="Reset Password">
+    - Have user request password reset
+    - Or manually reset via Supabase dashboard
+  </Step>
+</Steps>
+
+### Data Not Loading / Blank Pages
+
+**Symptoms**: Dashboard or modules show "Loading..." indefinitely or blank content
+
+**Possible Causes**:
+- Supabase connection issue
+- RLS policies blocking data
+- JavaScript errors
+- API rate limits exceeded
+
+**Solutions**:
+
+<Steps>
+  <Step title="Check Browser Console">
+    - Press F12 to open developer tools
+    - Look for red error messages
+    - Screenshot errors for troubleshooting
+  </Step>
+  
+  <Step title="Verify Database Connection">
+    - Check Supabase dashboard
+    - Verify project is not paused
+    - Check API keys are valid
+  </Step>
+  
+  <Step title="Test with Admin Account">
+    - Log in with administrator account
+    - If data loads, it's a permissions issue
+    - If data still doesn't load, it's a system issue
+  </Step>
+  
+  <Step title="Check RLS Policies">
+    In Supabase:
+    - Go to Table Editor
+    - Verify RLS is enabled
+    - Test policies with SQL query
+  </Step>
+</Steps>
+
+### Reports Showing Incorrect Data
+
+**Symptoms**: KPIs or charts display unexpected values
+
+**Possible Causes**:
+- Incorrect filters applied
+- Data entry errors in bitácora
+- Calculation logic issues
+- Date range problems
+
+**Solutions**:
+
+<Steps>
+  <Step title="Verify Filters">
+    - Check date range selection
+    - Ensure correct branch/product filters
+    - Reset filters and try again
+  </Step>
+  
+  <Step title="Audit Source Data">
+    - Go to **Bitácora** or **Control de Calidad**
+    - Manually review recent entries
+    - Look for obviously incorrect values
+    - Correct data entry errors
+  </Step>
+  
+  <Step title="Test Calculations">
+    - Manually calculate a KPI
+    - Compare with system value
+    - If mismatch, investigate calculation logic
+  </Step>
+</Steps>
+
+### Catalog Not Syncing
+
+**Symptoms**: New products don't appear in catalog
+
+**Possible Causes**:
+- Google Sheets not published
+- CSV export URL changed
+- Network/CORS issues
+- Sheet formatting changed
+
+**Solutions**:
+
+<Steps>
+  <Step title="Verify Google Sheets">
+    - Ensure sheet is published to web
+    - Check CSV export URL is accessible
+    - Test URL in browser (should download CSV)
+  </Step>
+  
+  <Step title="Check Environment Variables">
+    - Verify `.env.local` has correct URLs:
+      - `SHEET_MP_CSV_URL`
+      - `SHEET_PT_CSV_URL`
+    - Restart development server after changes
+  </Step>
+  
+  <Step title="Test Data Format">
+    - Download CSV manually
+    - Verify column headers match expected format
+    - Check for special characters or encoding issues
+  </Step>
+</Steps>
+
+## System Optimization
+
+### Performance Tuning
+
+<Steps>
+  <Step title="Database Optimization">
+    In Supabase dashboard:
+    - Review slow query logs
+    - Add indexes to frequently queried columns
+    - Optimize RLS policies
+    - Archive old data if table is large
+  </Step>
+  
+  <Step title="Caching Strategy">
+    Consider implementing:
+    - Catalog data caching (instead of fetching every page load)
+    - User profile caching
+    - Report data caching for common queries
+  </Step>
+  
+  <Step title="Code Optimization">
+    Work with developers to:
+    - Implement lazy loading for heavy components
+    - Optimize React render cycles
+    - Reduce bundle size
+    - Compress images
+  </Step>
+</Steps>
+
+### Storage Management
+
+<Warning>
+Supabase free tier has storage limits. Monitor usage to avoid service interruption.
+</Warning>
+
+**Monitor Storage Usage**:
+- Database size
+- File uploads (avatars, documents)
+- Logs and audit tables
+
+**Optimize Storage**:
+- Archive old audit logs
+- Compress uploaded images
+- Remove unused test data
+- Implement data retention policies
+
+## Backup and Recovery
+
+### Supabase Automated Backups
+
+Supabase provides automated backups:
+- **Free tier**: Daily backups (7 day retention)
+- **Pro tier**: Daily backups with point-in-time recovery
+
+**Access Backups**:
+1. Go to Supabase Dashboard
+2. Select your project
+3. Navigate to **Database → Backups**
+4. View available backup points
+
+### Manual Backup Procedures
+
+<Steps>
+  <Step title="Export Critical Tables">
+    ```sql
+    -- In Supabase SQL Editor
+    COPY (SELECT * FROM bitacora_produccion) TO '/tmp/bitacora_backup.csv' CSV HEADER;
+    COPY (SELECT * FROM profiles) TO '/tmp/profiles_backup.csv' CSV HEADER;
+    ```
+  </Step>
+  
+  <Step title="Download Database Dump">
+    Use Supabase CLI or pg_dump:
+    ```bash
+    pg_dump -h db.xxx.supabase.co -U postgres -d postgres > backup.sql
+    ```
+  </Step>
+  
+  <Step title="Store Securely">
+    - Save backups to secure, encrypted storage
+    - Keep multiple versions (daily, weekly, monthly)
+    - Test restore procedures regularly
+  </Step>
+</Steps>
+
+### Disaster Recovery Plan
+
+If the system becomes unavailable:
+
+<Steps>
+  <Step title="Assess the Situation">
+    - Determine scope of outage
+    - Check Supabase status page
+    - Review error logs
+  </Step>
+  
+  <Step title="Communicate with Users">
+    - Notify users of outage
+    - Provide estimated restoration time
+    - Offer alternative procedures if available
+  </Step>
+  
+  <Step title="Restore Service">
+    - If Supabase issue: Wait for resolution
+    - If application issue: Deploy previous working version
+    - If data corruption: Restore from backup
+  </Step>
+  
+  <Step title="Post-Mortem">
+    - Document what happened
+    - Identify root cause
+    - Implement preventive measures
+    - Update disaster recovery procedures
+  </Step>
+</Steps>
+
+## Security Maintenance
+
+### Regular Security Tasks
+
+<Steps>
+  <Step title="Update Dependencies">
+    Monthly or when security vulnerabilities announced:
+    ```bash
+    npm audit
+    npm update
+    npm audit fix
+    ```
+  </Step>
+  
+  <Step title="Review API Keys">
+    - Rotate Supabase keys if exposed
+    - Check for API key leaks in public repos
+    - Verify environment variables are secure
+  </Step>
+  
+  <Step title="Monitor Authentication">
+    - Review failed login attempts
+    - Check for brute force patterns
+    - Disable accounts with suspicious activity
+  </Step>
+  
+  <Step title="Audit Admin Accounts">
+    - Verify all admin accounts are authorized
+    - Remove admin privileges from departed employees
+    - Use admin accounts only when necessary
+  </Step>
+</Steps>
+
+### Security Best Practices
+
+✅ **Use Strong Passwords**: Enforce password complexity
+
+✅ **Enable 2FA**: For admin accounts (if available)
+
+✅ **Regular Audits**: Review logs and access patterns
+
+✅ **Principle of Least Privilege**: Grant minimal necessary permissions
+
+✅ **Keep Updated**: Apply security patches promptly
+
+## Monitoring and Alerts
+
+### Key Metrics to Monitor
+
+| Metric | Target | Action Threshold |
+|--------|--------|------------------|
+| System Uptime | 99.5%+ | < 99% - investigate |
+| Page Load Time | < 3 sec | > 5 sec - optimize |
+| Failed Logins | < 5/day | > 20/day - security check |
+| Database Size | < 80% limit | > 90% - archive data |
+| API Errors | < 1% requests | > 5% - urgent investigation |
+| User Growth | Steady | Sudden spike - verify legitimate |
+
+### Setting Up Alerts
+
+**Supabase Alerts**:
+1. Go to Supabase Dashboard
+2. Navigate to **Settings → Monitoring**
+3. Configure alerts for:
+   - High CPU usage
+   - Storage nearly full
+   - Connection pool exhausted
+   - API error rate spikes
+
+**Application Monitoring**:
+- Use browser extension to monitor page performance
+- Set up error tracking (e.g., Sentry)
+- Monitor user reports and feedback
+
+## Maintenance Checklist
+
+### Daily
+- [ ] System access check
+- [ ] Review pending user approvals
+- [ ] Check audit logs
+- [ ] Respond to user support requests
+
+### Weekly  
+- [ ] Data quality review
+- [ ] Performance monitoring
+- [ ] Catalog sync verification
+- [ ] Inactive user review
+
+### Monthly
+- [ ] Comprehensive user access audit
+- [ ] Permission review and cleanup
+- [ ] Database health check
+- [ ] Backup verification
+- [ ] Security dependency updates
+- [ ] Documentation updates
+
+### Quarterly
+- [ ] Full system security audit
+- [ ] Disaster recovery drill
+- [ ] User training sessions
+- [ ] Feature usage analysis
+- [ ] Capacity planning review
+
+## Getting Help
+
+### Internal Resources
+- System documentation in `/docs`
+- Source code comments
+- README.md in project root
+
+### External Resources
+- [Supabase Documentation](https://supabase.com/docs)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [React Documentation](https://react.dev/)
+
+### Escalation Path
+
+1. **Level 1 - User Issues**: Admin troubleshoots
+2. **Level 2 - System Issues**: Development team
+3. **Level 3 - Infrastructure**: Supabase support / IT
+4. **Level 4 - Critical**: Management escalation
+
+## Related Topics
+
+- [Managing Users](/guides/admin/managing-users)
+- [Configuring Permissions](/guides/admin/configuring-permissions)
+- [Audit Logs](/guides/admin/audit-logs)

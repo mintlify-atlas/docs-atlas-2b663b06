@@ -1,0 +1,613 @@
+---
+title: Reports & Analytics
+description: Interactive dashboards for quality analysis, commercial insights, and production yield tracking with customizable filters
+---
+
+# Reports & Analytics
+
+The Reports & Analytics module provides comprehensive visualization and analysis tools for production quality, commercial performance, and yield metrics.
+
+![Reports FTQ](https://docs.qualityhub.ginez/public/capturas_proyecto_quality_hub/Reportes_FTQ.png)
+![Reports Commercial](https://docs.qualityhub.ginez/public/capturas_proyecto_quality_hub/Reportes_comercial.png)
+
+## Overview
+
+The module is organized into three analytical dashboards, each addressing specific business intelligence needs:
+
+<Tabs>
+  <Tab title="First Time Quality (FTQ)">
+    Quality conformity analysis with control charts and defect Pareto.
+  </Tab>
+  <Tab title="Commercial Analysis">
+    Production volume breakdown by family, category, branch, and product.
+  </Tab>
+  <Tab title="SPY (Standard Product Yield)">
+    Yield efficiency tracking and raw material consumption analysis.
+  </Tab>
+</Tabs>
+
+---
+
+## Global Filters
+
+All dashboards share a consistent filter toolbar for data slicing:
+
+### Filter Options
+
+<Tabs>
+  <Tab title="Branch (Sucursal)">
+    Filter data by production location.
+    
+    **Options**: All 40 GINEZ branches + "All"
+    
+    **Visibility**:
+    - **Admin/Quality Manager**: All branches available
+    - **Branch Manager**: Locked to assigned branch
+    - **Preparador**: Locked to assigned branch
+  </Tab>
+
+  <Tab title="Category (Categoría)">
+    Filter by product category.
+    
+    **Options**: 19 product categories + "All"
+    
+    Examples:
+    - Detergente líquido para ropa
+    - Limpiador líquido multiusos
+    - Aromatizante Ambiental
+    - Suavizante de telas
+  </Tab>
+
+  <Tab title="Product (Producto)">
+    Filter by specific product code (SKU).
+    
+    **Dynamic**: List populated from actual production records
+    
+    Examples: DETDON, LIMPINO, SUAMAG, AROANII
+  </Tab>
+
+  <Tab title="Preparer (Preparador)">
+    Filter by production operator.
+    
+    **Visibility**: Hidden for preparadores (self-filtered)
+    
+    **Use Case**: Analyze individual operator quality performance
+  </Tab>
+
+  <Tab title="Date Range (Período)">
+    Time-based filtering using manufacturing date.
+    
+    **Options**:
+    - Todo el tiempo (All time)
+    - Últimos 7 días (Last 7 days)
+    - Últimos 30 días (Last 30 days)
+    - Últimos 3 meses (Last 3 months)
+    - Últimos 6 meses (Last 6 months)
+    - Último año (Last year)
+  </Tab>
+</Tabs>
+
+<Info>
+  Filters apply instantly to all charts and KPIs without page reload. Use the refresh button to reload data from the server.
+</Info>
+
+---
+
+## First Time Quality (FTQ) Dashboard
+
+The FTQ dashboard focuses on quality conformity analysis with statistical process control charts.
+
+### Key Performance Indicators
+
+<CardGroup cols={4}>
+  <Card title="Total Registros" icon="activity" color="#1e40af">
+    Total batch count and volume produced (Liters)
+    
+    Displays:
+    - Number of batches
+    - Total liters produced
+  </Card>
+
+  <Card title="Total Conformes" icon="check-circle" color="#22c55e">
+    Conforming batches count and percentage.
+    
+    **FTQ Metric**: First Time Quality rate (target: >95%)
+  </Card>
+
+  <Card title="Semi-Conformes" icon="alert-circle" color="#eab308">
+    Batches within tolerance range.
+    
+    Indicates process capability needs improvement.
+  </Card>
+
+  <Card title="No Conformes" icon="x-circle" color="#C1272D">
+    Failing batches requiring rework or scrap.
+    
+    Triggers NCR creation.
+  </Card>
+</CardGroup>
+
+### Pareto Chart: Defects by Parameter
+
+**Purpose**: Identify the most frequent quality defects to prioritize corrective actions.
+
+**Chart Type**: Combined Bar + Line Chart
+
+**Data Displayed**:
+- **Bars**: Count of defects by parameter (pH, Sólidos, Apariencia)
+- **Line**: Cumulative percentage of defects
+
+**How to Read**:
+1. Tallest bar = most frequent defect
+2. Cumulative line shows 80/20 rule
+3. Focus corrective actions on top defects
+
+**Example Interpretation**:
+```
+Defect      | Count | Cumulative %
+------------|-------|-------------
+Sólidos     | 45    | 60%
+pH          | 20    | 87%
+Apariencia  | 10    | 100%
+```
+
+**Action**: Address solids control first (60% of defects).
+
+### Conformity by Branch (Stacked Bar Chart)
+
+**Purpose**: Compare quality performance across branches.
+
+**Chart Type**: Stacked Bar Chart
+
+**Data Displayed**:
+- **Green Stack**: Conforming batches
+- **Yellow Stack**: Semi-conforming batches
+- **Red Stack**: Non-conforming batches
+
+**Sorting**: Branches sorted by total production volume (descending)
+
+**Use Cases**:
+- Identify branches needing quality training
+- Recognize high-performing branches
+- Allocate quality resources geographically
+
+### Control Chart: % Solids Conformity
+
+**Purpose**: Visualize solids measurement conformity over time with specification and tolerance limits.
+
+**Chart Type**: Scatter Plot with Reference Lines
+
+**Elements**:
+- **Data Points**: Individual batch measurements (scatter)
+- **Red Lines**: Specification limits (min and max from PRODUCT_STANDARDS)
+- **Yellow Lines**: Tolerance limits (±5% relative error)
+
+**Color Coding**:
+- **Green Points**: Within specification (Conforme)
+- **Yellow Points**: Within tolerance (Semi-Conforme)
+- **Red Points**: Outside tolerance (No Conforme)
+
+**How to Use**:
+1. Select a specific product from filters
+2. Observe if points trend toward limits
+3. Identify systematic drift vs. random variation
+4. Use for process capability analysis
+
+<Warning>
+  Control charts only display when a specific product is selected (not "All"). This ensures accurate specification limit rendering.
+</Warning>
+
+**Example**:
+```
+Product: DETDON (Detergente Don)
+Spec: 22-28% solids
+Tolerance: 20.9-29.4% solids
+
+Chart shows:
+- Most points green (22-28)
+- Few yellow points (20.9-22 or 28-29.4)
+- Any red points require investigation
+```
+
+### Control Chart: pH Conformity
+
+**Purpose**: Monitor pH measurements against specification limits.
+
+**Chart Type**: Line Chart with Reference Lines
+
+**Elements**:
+- **Line**: pH measurements over time
+- **Red Lines**: pH specification limits (min and max)
+
+**Color Coding**:
+- **Green Segments**: Within specification
+- **Red Segments**: Outside specification
+
+**Use Cases**:
+- Detect pH drift over production runs
+- Identify equipment calibration needs
+- Verify raw material pH consistency
+
+---
+
+## Commercial Analysis Dashboard
+
+The Commercial Analysis dashboard provides production volume insights by product hierarchy.
+
+### KPI Summary Cards
+
+Similar to FTQ dashboard but focused on volume metrics:
+- Total Registros (batches)
+- Volumen Total (liters)
+- Piezas Total (pieces for certain categories)
+
+### Production by Branch (Bar Chart)
+
+**Purpose**: Compare production volume across branches.
+
+**Chart Type**: Bar Chart
+
+**Y-Axis**: Liters or Pieces (depending on dominant product type)
+
+**Sorting**: Descending by volume
+
+**Top 3 Highlight**: Top 3 branches displayed in summary cards
+
+### Production by Family (Donut Charts)
+
+**Purpose**: Visualize production mix by product family.
+
+**Chart Type**: Donut Chart (one per family)
+
+**Families Displayed**:
+1. Cuidado del Hogar (Home Care)
+2. Lavandería (Laundry)
+3. Cuidado Personal (Personal Care)
+4. Línea Automotriz (Automotive)
+5. Línea Antibacterial (Antibacterial)
+6. Productos Intermedios (Intermediate)
+
+**Drill-Down Feature**:
+- Click a family donut to open category breakdown modal
+- Modal shows products within each category
+- Displays volume and percentage per product
+
+**Example Drill-Down**:
+```
+Family: Lavandería
+  ├── Detergente Ropa: 5,000 L (50%)
+  │   ├── DETDON: 2,000 L
+  │   ├── GIRIEL: 1,500 L
+  │   └── PERGIN: 1,500 L
+  ├── Suavizante: 3,000 L (30%)
+  └── Especialidades: 2,000 L (20%)
+```
+
+### Top Products Ranking (Bar Chart)
+
+**Purpose**: Identify best-selling SKUs for inventory and demand planning.
+
+**Chart Type**: Horizontal Bar Chart
+
+**Display Options**:
+- **Default**: Top 10 products
+- **Expanded**: Toggle to show all products
+
+**Category Filter**: Dropdown to filter by specific category
+
+**Data Displayed**:
+- Product Code (SKU)
+- Volume (Liters or Pieces)
+- Horizontal bar (scaled to max product volume)
+
+**Color Scheme**: Corporate GINEZ colors (red/blue palette)
+
+**Use Cases**:
+- Demand forecasting
+- Raw material planning
+- Production scheduling
+- Sales team insights
+
+### Product Variants Distribution (Top 20)
+
+**Purpose**: Analyze SKU proliferation and production diversity.
+
+**Chart Type**: Bar Chart
+
+**Display**: Top 20 products by volume
+
+**Insights**:
+- Identify long-tail SKUs
+- Assess product line complexity
+- Support SKU rationalization decisions
+
+---
+
+## SPY (Standard Product Yield) Dashboard
+
+The SPY dashboard tracks production efficiency and raw material consumption.
+
+<Info>
+  This is a separate sub-module with dedicated page: `/reportes/spy`
+</Info>
+
+### Purpose
+
+Measure actual yield against theoretical yield to identify:
+- Raw material waste
+- Process inefficiencies
+- Formula accuracy
+- Equipment losses
+
+### Key Metrics
+
+**SPY Calculation**:
+```
+SPY (%) = (Actual Output / Theoretical Output) × 100
+
+Where:
+- Actual Output = Recorded batch size (Liters)
+- Theoretical Output = Formula yield at 100% efficiency
+```
+
+**Target**: SPY ≥ 98% (industry standard)
+
+### SPY KPI Cards
+
+<CardGroup cols={4}>
+  <Card title="Average SPY" icon="percent">
+    Mean yield percentage across all batches.
+    
+    **Color codes**:
+    - Green: Above 98%
+    - Yellow: 95-97.9%
+    - Red: Below 95%
+  </Card>
+
+  <Card title="Best SPY" icon="trophy">
+    Highest yield batch with product code.
+    
+    Benchmark for optimization.
+  </Card>
+
+  <Card title="Worst SPY" icon="alert-triangle">
+    Lowest yield batch with product code.
+    
+    Requires investigation.
+  </Card>
+
+  <Card title="Total Waste" icon="droplet">
+    Cumulative liters lost to inefficiency.
+    
+    **Calculation**: Sum of (Theoretical - Actual)
+  </Card>
+</CardGroup>
+
+### SPY by Product (Bar Chart)
+
+**Purpose**: Compare yield performance across products.
+
+**Chart Type**: Bar Chart with Target Line
+
+**Elements**:
+- Bars: Average SPY per product
+- Reference Line: 98% target
+- Color coding: Above/below target
+
+**Sorting**: By SPY percentage (ascending)
+
+**Use Cases**:
+- Identify problematic formulas
+- Prioritize process improvement
+- Validate formula changes
+
+### SPY Trend Over Time (Line Chart)
+
+**Purpose**: Monitor yield performance trends.
+
+**Chart Type**: Time Series Line Chart
+
+**X-Axis**: Manufacturing date
+
+**Y-Axis**: SPY percentage
+
+**Reference Lines**:
+- 98% target (green dashed)
+- 95% minimum acceptable (yellow dashed)
+
+**Use Cases**:
+- Detect yield degradation over time
+- Verify effectiveness of improvement actions
+- Correlate yield with raw material batches
+
+### Raw Material Consumption Analysis
+
+**Purpose**: Track ingredient usage efficiency.
+
+**Data Displayed**:
+- Material Code
+- Theoretical Consumption (kg or L)
+- Actual Consumption (from inventory system)
+- Variance (%)
+
+**Color Coding**:
+- Green: Within ±2% variance
+- Yellow: ±2-5% variance
+- Red: >5% variance
+
+<Warning>
+  Raw material consumption data requires integration with inventory system. Speak with IT to enable this feature.
+</Warning>
+
+---
+
+## Access Control by Role
+
+<Tabs>
+  <Tab title="Preparador (Operator)">
+    **Access**: Limited
+    
+    **Visible Dashboards**:
+    - ✅ First Time Quality (FTQ)
+    - ✅ SPY Dashboard
+    - ❌ Commercial Analysis (restricted)
+    
+    **Data Scope**: Own records only
+    
+    **Filters**: Branch locked, product and date available
+  </Tab>
+
+  <Tab title="Gerente Sucursal (Branch Manager)">
+    **Access**: Branch-Level
+    
+    **Visible Dashboards**:
+    - ✅ First Time Quality (FTQ)
+    - ✅ SPY Dashboard
+    - ✅ Commercial Analysis (branch only)
+    
+    **Data Scope**: Assigned branch only
+    
+    **Filters**: Branch locked, all other filters available
+  </Tab>
+
+  <Tab title="Gerente Calidad (Quality Manager)">
+    **Access**: Full
+    
+    **Visible Dashboards**:
+    - ✅ All dashboards
+    
+    **Data Scope**: All branches, all products
+    
+    **Filters**: All filters available
+    
+    **Special Features**: Can export data to Excel
+  </Tab>
+
+  <Tab title="Coordinador / Admin">
+    **Access**: Full + Export
+    
+    **Visible Dashboards**:
+    - ✅ All dashboards
+    
+    **Data Scope**: All branches, all products
+    
+    **Filters**: All filters available
+    
+    **Special Features**:
+    - Export to PDF
+    - Export to Excel
+    - Schedule automated reports
+  </Tab>
+</Tabs>
+
+---
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Weekly Quality Review" icon="calendar">
+    **Recommended Workflow**:
+    1. Open FTQ Dashboard
+    2. Set date range to "Last 7 days"
+    3. Review conformity KPIs
+    4. Check Pareto for new defect patterns
+    5. Examine control charts for drift
+    6. Create NCRs for outliers
+    7. Schedule corrective actions
+  </Accordion>
+
+  <Accordion title="Monthly Production Planning" icon="chart-bar">
+    **Recommended Workflow**:
+    1. Open Commercial Analysis Dashboard
+    2. Set date range to "Last 30 days"
+    3. Review production by branch
+    4. Analyze top products ranking
+    5. Check family distribution
+    6. Forecast next month's demand
+    7. Plan raw material purchases
+  </Accordion>
+
+  <Accordion title="Quarterly Yield Optimization" icon="trending-up">
+    **Recommended Workflow**:
+    1. Open SPY Dashboard
+    2. Set date range to "Last 3 months"
+    3. Identify lowest SPY products
+    4. Analyze raw material variances
+    5. Review process changes
+    6. Implement improvement actions
+    7. Track SPY trend for validation
+  </Accordion>
+
+  <Accordion title="Root Cause Analysis" icon="search">
+    **When investigating quality issues:**
+    1. Use filters to isolate affected scope
+    2. Compare conformity across branches
+    3. Check if defects correlate with specific preparers
+    4. Review control charts for patterns
+    5. Cross-reference with raw material batches
+    6. Document findings in NCR system
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Frequently Asked Questions
+
+<AccordionGroup>
+  <Accordion title="Why are my control charts empty?" icon="chart-line">
+    Control charts require a specific product selection.
+    
+    **Solution**: Use the "Product" filter and select a single SKU (not "All").
+    
+    This ensures accurate specification and tolerance limits are displayed.
+  </Accordion>
+
+  <Accordion title="How is SPY calculated?" icon="calculator">
+    SPY (Standard Product Yield) measures efficiency:
+    
+    ```
+    SPY = (Actual Output ÷ Theoretical Output) × 100
+    ```
+    
+    **Example**:
+    - Formula yields 100L theoretically
+    - Actual batch produced 97L
+    - SPY = (97 ÷ 100) × 100 = 97%
+    
+    **Target**: ≥98%
+  </Accordion>
+
+  <Accordion title="Can I export dashboard data?" icon="download">
+    **Quality Managers and Admins**: Yes
+    
+    **Export Options**:
+    - Excel (.xlsx) - Raw data tables
+    - PDF - Dashboard snapshot
+    
+    **Location**: Export button in top-right toolbar
+    
+    **Other Roles**: Contact admin for manual exports
+  </Accordion>
+
+  <Accordion title="What's the difference between FTQ and SPY?" icon="question">
+    **FTQ (First Time Quality)**:
+    - Measures product conformity to specifications
+    - Focus: Does the product meet standards?
+    - Example: 95% of batches conform on first attempt
+    
+    **SPY (Standard Product Yield)**:
+    - Measures production efficiency
+    - Focus: How much waste/loss occurred?
+    - Example: 97% yield (3% material loss)
+    
+    Both metrics are important for holistic quality management.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Related Modules
+
+- [Production Logbook](/modules/production-logbook) - Data source for all reports
+- [Quality Control](/modules/quality-control) - NCR tracking and conformity details
+- [Product Catalog](/modules/product-catalog) - Specification references for control charts

@@ -1,0 +1,389 @@
+---
+title: Audit Logs
+description: Track system activity, document downloads, and user actions with Quality Hub GINEZ audit logs
+---
+
+## Overview
+
+Audit logs provide a comprehensive record of user activities in Quality Hub GINEZ. As an administrator, you can track document downloads, user actions, and system events to maintain security, compliance, and operational transparency.
+
+## Types of Audit Logs
+
+Quality Hub GINEZ tracks several types of activities:
+
+### 1. Download Logs
+Tracks when users download technical documents:
+- Technical data sheets (fichas técnicas)
+- Safety data sheets (hojas de seguridad)
+- Product documentation
+- Catalog exports
+
+### 2. User Activity Logs
+Records user actions in the system:
+- Login/logout events
+- Profile updates
+- Permission changes
+- Account creation/deletion
+
+### 3. Data Modification Logs
+Tracks changes to critical data:
+- Bitácora entries (created, edited, deleted)
+- Quality control records
+- Product catalog updates
+- Configuration changes
+
+## Accessing Audit Logs
+
+<Note>
+Only users with the **Administrador** role can access audit logs.
+</Note>
+
+<Steps>
+  <Step title="Navigate to Configuration">
+    Click **Configuración** in the sidebar menu
+  </Step>
+  
+  <Step title="Open Audit Tab">
+    Select the **Auditoría** tab to view download and activity logs
+  </Step>
+</Steps>
+
+## Download Logs
+
+### Viewing Download Activity
+
+The Download Logs section shows a detailed table of all document downloads:
+
+| Column | Description |
+|--------|-------------|
+| **Fecha y Hora** | Date and time of download |
+| **Usuario** | Full name of user who downloaded |
+| **Rol** | User's role at time of download |
+| **Área** | Department/area of user |
+| **Archivo** | Name of downloaded file |
+| **Tipo** | Document type (Ficha Técnica, Hoja de Seguridad) |
+| **SKU** | Product code (if applicable) |
+
+### Filtering Download Logs
+
+Use the filter controls to narrow down results:
+
+<Steps>
+  <Step title="Filter by User">
+    Enter a name in the **User** search field to see downloads by specific person
+  </Step>
+  
+  <Step title="Filter by Area">
+    Select a department from the **Área** dropdown:
+    - Producción
+    - Calidad
+    - Comercial
+    - Almacén
+    - Gerencia
+    - Compras
+  </Step>
+  
+  <Step title="Filter by Document Type">
+    Select from **Tipo de Acción** dropdown:
+    - Ficha Técnica (Technical Data Sheet)
+    - Hoja de Seguridad (Safety Data Sheet)
+  </Step>
+  
+  <Step title="Filter by Date Range">
+    Set **Fecha Desde** and **Fecha Hasta** to view activity within specific timeframe
+  </Step>
+  
+  <Step title="Clear Filters">
+    Click **Limpiar Filtros** to reset all filters and view all logs
+  </Step>
+</Steps>
+
+### Understanding Download Patterns
+
+Audit logs help you:
+
+✅ **Ensure Compliance**: Verify users are accessing appropriate documentation
+
+✅ **Track Usage**: Identify most frequently accessed documents
+
+✅ **Security Monitoring**: Detect unusual download patterns
+
+✅ **Training Needs**: See which documents users reference most
+
+✅ **Audit Trail**: Maintain records for ISO/quality certifications
+
+## Common Use Cases
+
+### Use Case 1: ISO Audit Preparation
+
+**Scenario**: You need to prove that operators access safety data sheets before handling products.
+
+<Steps>
+  <Step title="Filter by Document Type">
+    Select "Hoja de Seguridad" from document type filter
+  </Step>
+  
+  <Step title="Filter by Area">
+    Select "Producción" to focus on production personnel
+  </Step>
+  
+  <Step title="Set Date Range">
+    Choose the audit period (e.g., last 6 months)
+  </Step>
+  
+  <Step title="Export Report">
+    Take screenshots or export the filtered table for audit documentation
+  </Step>
+</Steps>
+
+### Use Case 2: Security Investigation
+
+**Scenario**: You notice unusual activity and need to investigate who accessed specific documents.
+
+<Steps>
+  <Step title="Identify Timeframe">
+    Set date filters to the period of concern
+  </Step>
+  
+  <Step title="Review User Activity">
+    Look for unexpected users accessing sensitive documents
+  </Step>
+  
+  <Step title="Check User Roles">
+    Verify users had appropriate permissions for downloads
+  </Step>
+  
+  <Step title="Document Findings">
+    Record any anomalies for security review
+  </Step>
+</Steps>
+
+### Use Case 3: Training Compliance
+
+**Scenario**: Verify new employees have reviewed required technical documentation.
+
+<Steps>
+  <Step title="Filter by User">
+    Search for the new employee's name
+  </Step>
+  
+  <Step title="Review Download History">
+    Check if they've accessed required documents:
+    - Product technical sheets
+    - Safety data sheets
+    - Quality procedures
+  </Step>
+  
+  <Step title="Follow Up">
+    If documents haven't been accessed, remind employee to review
+  </Step>
+</Steps>
+
+## User Activity Tracking
+
+Beyond downloads, the system tracks:
+
+### Profile Changes
+- Name updates
+- Email changes
+- Password resets
+- Role modifications
+- Branch reassignments
+
+### Permission Changes
+- Role assignments
+- Permission grants/revocations
+- Admin status changes
+
+### Account Management
+- New user registrations
+- Account approvals
+- User deletions
+
+<Note>
+All user modifications include timestamps and the administrator who made the change.
+</Note>
+
+## Data Retention
+
+### Log Retention Policy
+
+Audit logs are retained according to these guidelines:
+
+| Log Type | Retention Period | Purpose |
+|----------|------------------|----------|
+| Download Logs | 2 years | Compliance and audit trail |
+| User Activity | 1 year | Security and troubleshooting |
+| Data Changes | Indefinite | Historical record integrity |
+| Login Events | 90 days | Security monitoring |
+
+### Archiving Old Logs
+
+<Warning>
+Do not manually delete audit logs. They may be required for compliance and legal purposes.
+</Warning>
+
+If you need to archive old logs:
+
+1. Contact your database administrator
+2. Export logs to secure storage
+3. Ensure compliance with data retention policies
+4. Maintain chain of custody for archived records
+
+## Security Best Practices
+
+### Regular Monitoring
+
+✅ **Review Weekly**: Check audit logs at least once per week
+
+✅ **Investigate Anomalies**: Follow up on unusual patterns immediately
+
+✅ **Document Reviews**: Keep records of your audit log reviews
+
+✅ **Cross-Reference**: Compare logs with incident reports
+
+### Red Flags to Watch For
+
+🚩 **After-Hours Access**: Downloads during non-business hours
+
+🚩 **Bulk Downloads**: Single user downloading many documents at once
+
+🚩 **Unauthorized Areas**: Users accessing documents outside their department
+
+🚩 **Terminated Users**: Activity from accounts that should be disabled
+
+🚩 **Permission Escalation**: Users suddenly accessing higher-level documents
+
+### Responding to Security Events
+
+If you detect suspicious activity:
+
+<Steps>
+  <Step title="Document the Activity">
+    Take screenshots and note all relevant details:
+    - User name and role
+    - Documents accessed
+    - Time and date
+    - Pattern of behavior
+  </Step>
+  
+  <Step title="Verify User Identity">
+    Contact the user to confirm they performed the actions
+    - May be legitimate work activity
+    - Could indicate compromised account
+  </Step>
+  
+  <Step title="Take Immediate Action">
+    If suspicious:
+    - Temporarily disable user account
+    - Reset user password
+    - Review their recent activity
+    - Check for data exfiltration
+  </Step>
+  
+  <Step title="Escalate if Needed">
+    Report to:
+    - IT security team
+    - Management
+    - Legal/compliance (if required)
+  </Step>
+  
+  <Step title="Document Resolution">
+    Record:
+    - Actions taken
+    - Resolution
+    - Preventive measures
+  </Step>
+</Steps>
+
+## Compliance and Reporting
+
+### ISO 9001 Quality Management
+
+Audit logs support ISO 9001 requirements:
+- Document control (who accessed what)
+- Training records (document access)
+- Traceability (complete audit trail)
+
+### Regulatory Compliance
+
+For industries requiring regulatory compliance:
+- Maintain logs for required retention period
+- Provide access to auditors upon request
+- Demonstrate control over sensitive information
+
+### Internal Audits
+
+Prepare for internal audits by:
+1. Organizing logs by department/area
+2. Creating summary reports of activity
+3. Documenting unusual events and resolutions
+4. Showing evidence of regular monitoring
+
+## Troubleshooting
+
+### Logs Not Appearing
+
+**Possible causes:**
+- Not logged in as administrator
+- Database connectivity issues
+- Logs haven't been generated yet (no activity)
+
+**Solutions:**
+1. Verify you have admin role
+2. Check network connection
+3. Reload the page
+4. Check Supabase dashboard for data
+
+### Missing Download Events
+
+**Possible causes:**
+- Download logging not implemented for that document type
+- User downloaded via direct link (bypassing logging)
+- Database write failure
+
+**Solutions:**
+1. Verify logging function is implemented for that document type
+2. Review code in `lib/audit.ts`
+3. Check Supabase logs for errors
+
+### Cannot Filter Logs
+
+**Possible causes:**
+- Browser cache issues
+- JavaScript errors
+- Filter logic bugs
+
+**Solutions:**
+1. Clear browser cache (Ctrl+Shift+Del)
+2. Open browser console (F12) to check for errors
+3. Try different browser
+4. Reload page
+
+## Exporting Audit Data
+
+### Manual Export
+
+Currently, you can export audit data by:
+
+1. **Screenshot**: Capture filtered results
+2. **Copy Table**: Select and copy table data
+3. **Browser Print**: Print to PDF
+
+### Automated Reports
+
+<Note>
+Automated audit report exports are planned for a future release. Check the roadmap for updates.
+</Note>
+
+Future features will include:
+- Export to Excel/CSV
+- Scheduled email reports
+- Custom report templates
+- Dashboard visualizations
+
+## Related Topics
+
+- [Managing Users](/guides/admin/managing-users)
+- [Configuring Permissions](/guides/admin/configuring-permissions)
+- [System Maintenance](/guides/admin/system-maintenance)

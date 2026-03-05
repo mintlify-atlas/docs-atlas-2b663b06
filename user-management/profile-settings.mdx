@@ -1,0 +1,454 @@
+---
+title: "Profile Settings"
+description: "User profile management and customization in Quality Hub GINEZ"
+---
+
+## Overview
+
+The Profile Settings section allows users to view and manage their personal information, role details, and system preferences. Administrators have additional capabilities to manage other users.
+
+## Accessing Profile Settings
+
+Navigate to **Configuration → My Profile** tab from the main navigation menu.
+
+## Profile Components
+
+### Profile Header
+
+The profile header displays:
+
+- **Avatar**: User profile picture (can be uploaded/changed)
+- **Full Name**: Display name
+- **Email**: User's email address
+- **Role Badge**: Current role (e.g., Preparer, Administrator)
+- **Branch Badge**: Assigned branch/location
+- **Admin Badge**: Shows if user has administrator privileges
+
+### Personal Information Card
+
+Displays core user information:
+
+- **Full Name**: User's complete name
+- **Email**: Contact email address
+- **Branch**: Assigned branch location (if applicable)
+
+### Role & Permissions Card
+
+Shows current role and access level:
+
+- **Current Role**: Assigned role name
+- **Access Level**: Administrator or Standard User
+- **Permission Summary**: Brief description of role capabilities
+
+<Note>
+Permissions are automatically assigned based on your role. Contact an administrator if you need different access rights.
+</Note>
+
+## Editing Your Profile
+
+Click the **Edit** button in the profile header to open the edit dialog.
+
+### Editable Fields
+
+#### Standard Users Can Edit:
+
+- Full Name
+- Position/Job Title
+- Area/Department
+- Branch (from predefined list)
+
+#### Administrators Can Additionally Edit:
+
+- Email address
+- Password
+
+<Warning>
+Changing your email address requires email verification. You'll receive a confirmation email that must be verified before the change takes effect.
+</Warning>
+
+### Update Process
+
+1. Click **Edit** button
+2. Modify desired fields
+3. Click **Save Changes**
+4. Page automatically refreshes to reflect changes
+
+## Avatar Management
+
+### Uploading an Avatar
+
+The system supports custom profile pictures:
+
+1. Click on your current avatar in the profile header
+2. Select **Upload Photo** or similar option
+3. Choose an image file (JPG, PNG, GIF)
+4. Image is automatically uploaded and displayed
+
+### Avatar Display
+
+- Avatars are displayed in a circular frame
+- If no avatar is uploaded, initials are shown
+- Avatars appear in profile header and navigation menu
+
+## Available Branches (Sucursales)
+
+Users can be assigned to the following branches:
+
+- Centro
+- Norte
+- Sur
+- Este
+- Oeste
+- Almacén Central
+
+<Note>
+Branch assignment affects data filtering for some roles. For example, branch managers may see data filtered to their specific location.
+</Note>
+
+## Role Information
+
+### Role Display
+
+Your current role is displayed with a badge showing:
+
+- **Role Name**: Human-readable role name
+- **Role Key**: Internal role identifier
+- **Description**: Brief description of role purpose
+
+### Role-Based Features
+
+<Accordion title="Administrator">
+  **Features**:
+  - Full system access
+  - User management
+  - Permission configuration
+  - System audit logs
+  - Export capabilities
+  - All filters and tabs
+  
+  **Profile Capabilities**:
+  - Can edit own email and password
+  - Can access Users and Audit tabs
+  - Can manage all user accounts
+</Accordion>
+
+<Accordion title="Preparer">
+  **Features**:
+  - Catalog viewing
+  - Log book entry creation and editing
+  - Limited quality control viewing
+  - Basic reporting access
+  
+  **Profile Capabilities**:
+  - Can edit personal information
+  - Can view own permissions
+  - Cannot change email/password
+</Accordion>
+
+<Accordion title="Quality Manager">
+  **Features**:
+  - Full quality control access
+  - Edit and delete quality records
+  - Branch filter access (in Quality Control)
+  - Export quality data
+  
+  **Profile Capabilities**:
+  - Can edit personal information
+  - Can view detailed permission breakdown
+  - Cannot change email/password
+</Accordion>
+
+<Accordion title="Other Roles">
+  For detailed information about other roles (Branch Manager, Operations Director, Counter Staff, Cashier, Purchasing Director), see the [Roles and Permissions](/user-management/roles-permissions) page.
+</Accordion>
+
+## User Management (Administrators Only)
+
+Administrators have access to additional tabs:
+
+### Users Tab
+
+Located at **Configuration → Users**, this section allows administrators to:
+
+- View all system users
+- Edit user roles and branches
+- Approve pending user registrations
+- Revoke user access
+- Delete user accounts
+
+#### User Table Columns
+
+- **Name**: User's full name and email
+- **Status**: Approved or Pending
+- **Role**: Current role assignment
+- **Branch**: Assigned location
+- **Registration Date**: When user was created
+- **Actions**: Edit and approval buttons
+
+### Pending User Approvals
+
+When new users register:
+
+1. They appear in the Users table with **Pending** status
+2. An amber alert shows the count of pending users
+3. Admin clicks **Approve** to grant access
+4. User can immediately log in after approval
+
+<Warning>
+Pending users cannot access the system until approved by an administrator.
+</Warning>
+
+### Editing Other Users
+
+1. Navigate to **Configuration → Users**
+2. Click **Edit** on desired user
+3. Modify role and/or branch
+4. Preview permissions for selected role
+5. Click **Save Changes**
+
+#### Editable User Fields
+
+- **Role**: Select from 8 available roles
+- **Branch**: Select from branch list
+
+Permissions are automatically updated when role changes are saved.
+
+### Revoking Access
+
+To revoke a user's access:
+
+1. Navigate to **Configuration → Users**
+2. Find the approved user
+3. Click **Revoke** button
+4. User's status changes to "Pending"
+5. User cannot log in until re-approved
+
+### Deleting Users
+
+<Warning>
+Deleting users is permanent and cannot be undone. Historical records created by the user are preserved but the profile is removed.
+</Warning>
+
+To delete a user:
+
+1. Navigate to **Configuration → Users**
+2. Click **Delete** button (trash icon)
+3. Confirm deletion in the warning dialog
+4. User profile is removed from system
+
+## Audit Tab (Administrators Only)
+
+The Audit tab provides detailed activity logs:
+
+### Logged Events
+
+- Document downloads
+- Document views
+- User actions
+- Timestamp of each event
+
+### Audit Filters
+
+Filter logs by:
+
+- **User Name**: Search by user
+- **Role**: Filter by role type
+- **Action Type**: Download, View, etc.
+- **Date Range**: From/To dates
+
+### Audit Table Columns
+
+- **Date and Time**: When action occurred
+- **User**: Who performed the action
+- **Role**: User's role at time of action
+- **Document**: Which document was accessed
+- **Action**: Type of action performed
+
+### Exporting Audit Logs
+
+Audit logs can be exported for compliance purposes:
+
+1. Apply desired filters
+2. Click export button
+3. Download CSV or Excel format
+
+## Profile Security
+
+### Password Changes
+
+<Accordion title="For Administrators">
+  Administrators can change their own password:
+  
+  1. Click **Edit** in profile header
+  2. Enter new password in password field
+  3. Leave blank to keep current password
+  4. Click **Save Changes**
+  5. Password updated immediately
+</Accordion>
+
+<Accordion title="For Standard Users">
+  Standard users cannot change their password through the profile settings. Contact your administrator to reset your password.
+</Accordion>
+
+### Email Changes
+
+Email changes require verification:
+
+1. Admin updates email in profile editor
+2. Confirmation email sent to new address
+3. User must click verification link
+4. Email change takes effect after verification
+5. Old email remains active until verified
+
+<Warning>
+Do not close your old email account until the new email is verified.
+</Warning>
+
+## Profile Data Model
+
+### Profile Fields
+
+```typescript
+interface Profile {
+    id: string              // User UUID
+    full_name: string       // Display name
+    area: string           // Department/Area
+    position: string       // Job title
+    email: string          // Email address
+    role: string           // Role key (e.g., 'preparador')
+    is_admin: boolean      // Admin flag
+    approved: boolean      // Approval status
+    sucursal?: string      // Branch assignment
+    avatar_url?: string    // Avatar image URL
+    updated_at: string     // Last update timestamp
+}
+```
+
+### Role Names Mapping
+
+| Role Key | Display Name |
+|----------|-------------|
+| admin | Administrador |
+| preparador | Preparador |
+| gerente_sucursal | Gerente de Sucursal |
+| director_operaciones | Director de Operaciones |
+| gerente_calidad | Gerente de Calidad y Desarrollo |
+| mostrador | Mostrador |
+| cajera | Cajera |
+| director_compras | Director de Compras |
+
+## Best Practices
+
+### For All Users
+
+1. **Keep Profile Updated**: Ensure your name, position, and contact information are current
+2. **Upload Avatar**: Add a profile picture for better identification
+3. **Review Permissions**: Understand your role's capabilities and limitations
+4. **Report Issues**: Contact admin if you need different permissions
+
+### For Administrators
+
+1. **Regular Reviews**: Review user list monthly
+2. **Prompt Approvals**: Approve or reject pending users within 24 hours
+3. **Role Accuracy**: Ensure users have appropriate roles for their job function
+4. **Branch Assignment**: Assign branches accurately for proper data filtering
+5. **Documentation**: Keep notes on why specific roles were assigned
+6. **Audit Monitoring**: Regularly review audit logs for unusual activity
+
+## Troubleshooting
+
+### Cannot Edit Profile
+
+**Problem**: Edit button not working or fields disabled
+
+**Solutions**:
+1. Refresh the page (F5)
+2. Check if you're logged in
+3. Verify you have edit permissions
+4. Clear browser cache
+
+### Avatar Not Uploading
+
+**Problem**: Avatar upload fails or doesn't display
+
+**Solutions**:
+1. Check file size (should be < 5MB)
+2. Use supported formats (JPG, PNG, GIF)
+3. Check internet connection
+4. Try a different image
+5. Refresh page after upload
+
+### Changes Not Saving
+
+**Problem**: Profile updates not reflected
+
+**Solutions**:
+1. Verify all required fields are filled
+2. Check browser console for errors (F12)
+3. Ensure stable internet connection
+4. Try logging out and back in
+
+### Cannot Access Users Tab
+
+**Problem**: Users tab not visible
+
+**Solutions**:
+1. Verify you're an administrator
+2. Check `is_admin` flag in database
+3. Contact system administrator
+
+### Email Verification Not Received
+
+**Problem**: Email change verification not arriving
+
+**Solutions**:
+1. Check spam/junk folder
+2. Verify email address is correct
+3. Wait 5-10 minutes for delivery
+4. Contact administrator to resend
+
+## Related Documentation
+
+- [Roles and Permissions](/user-management/roles-permissions) - Detailed role capabilities
+- [Authentication](/user-management/authentication) - Auth system and security
+
+## API Integration
+
+For developers integrating with the profile system:
+
+### Fetching Current Profile
+
+```typescript
+import { useAuth } from '@/components/AuthProvider'
+
+const { profile, loading } = useAuth()
+
+if (loading) return <Loader />
+
+console.log(profile?.full_name)
+console.log(profile?.role)
+console.log(profile?.sucursal)
+```
+
+### Updating Profile
+
+```typescript
+const { error } = await supabase
+    .from('profiles')
+    .update({
+        full_name: 'New Name',
+        position: 'New Position',
+        updated_at: new Date().toISOString()
+    })
+    .eq('id', userId)
+```
+
+### Checking Admin Status
+
+```typescript
+const { profile } = useAuth()
+
+if (profile?.is_admin) {
+    // Show admin features
+}
+```

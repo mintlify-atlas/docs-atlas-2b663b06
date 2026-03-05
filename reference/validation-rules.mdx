@@ -1,0 +1,409 @@
+---
+title: Validation Rules
+description: Form validation rules and business logic constraints
+icon: shield-check
+---
+
+## Overview
+
+All form inputs in Quality Hub GINEZ are validated using **Zod** schemas with custom error messages in Spanish.
+
+<Info>
+Validation rules are defined in `lib/validations.ts`
+</Info>
+
+## Authentication Forms
+
+### Login Form
+
+```typescript
+const LoginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "El correo es obligatorio")
+    .email("Formato de correo inválido")
+    .max(255, "El correo no puede exceder 255 caracteres"),
+  password: z
+    .string()
+    .min(6, "La contraseña debe tener al menos 6 caracteres")
+    .max(128, "La contraseña no puede exceder 128 caracteres"),
+})
+```
+
+**Validation Rules:**
+
+<ResponseField name="email" type="string" required>
+  - Must not be empty
+  - Must be valid email format
+  - Maximum 255 characters
+</ResponseField>
+
+<ResponseField name="password" type="string" required>
+  - Minimum 6 characters
+  - Maximum 128 characters
+</ResponseField>
+
+### Registration Form
+
+```typescript
+const RegisterSchema = LoginSchema.extend({
+  full_name: z
+    .string()
+    .min(2, "El nombre debe tener al menos 2 caracteres")
+    .max(100, "El nombre no puede exceder 100 caracteres")
+    .regex(
+      /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/,
+      "El nombre solo puede contener letras y espacios"
+    ),
+  role: z.enum(
+    [
+      "preparador",
+      "gerente_sucursal",
+      "director_operaciones",
+      "gerente_calidad",
+      "mostrador",
+      "cajera",
+      "director_compras",
+    ],
+    { errorMap: () => ({ message: "Selecciona un rol válido" }) }
+  ),
+  sucursal: z
+    .string()
+    .min(1, "La sucursal es obligatoria")
+    .refine(
+      (val) => SUCURSALES.includes(val),
+      "Selecciona una sucursal válida"
+    ),
+})
+```
+
+**Additional Rules:**
+
+<ResponseField name="full_name" type="string" required>
+  - Minimum 2 characters
+  - Maximum 100 characters
+  - Only letters (including Spanish accents), spaces allowed
+  - Pattern: `/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/`
+</ResponseField>
+
+<ResponseField name="role" type="enum" required>
+  Must be one of:
+  - preparador
+  - gerente_sucursal
+  - director_operaciones
+  - gerente_calidad
+  - mostrador
+  - cajera
+  - director_compras
+</ResponseField>
+
+<ResponseField name="sucursal" type="string" required>
+  - Must not be empty
+  - Must exist in `SUCURSALES` constant (40 valid locations)
+</ResponseField>
+
+## Bitácora Form
+
+### Required Fields
+
+```typescript
+sucursal: z
+  .string()
+  .min(1, "La sucursal es obligatoria")
+  .refine(
+    (val) => SUCURSALES.includes(val),
+    "Selecciona una sucursal válida"
+  )
+```
+
+<ResponseField name="sucursal" type="string" required>
+  - Must be one of 40 valid branch locations
+  - Validated against `SUCURSALES` constant
+</ResponseField>
+
+```typescript
+nombre_preparador: z
+  .string()
+  .min(1, "El nombre del preparador es obligatorio")
+  .max(200, "El nombre no puede exceder 200 caracteres")
+```
+
+<ResponseField name="nombre_preparador" type="string" required>
+  - Minimum 1 character
+  - Maximum 200 characters
+</ResponseField>
+
+```typescript
+fecha_fabricacion: z
+  .string()
+  .min(1, "La fecha de fabricación es obligatoria")
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de fecha inválido (YYYY-MM-DD)")
+```
+
+<ResponseField name="fecha_fabricacion" type="string" required>
+  - Format: YYYY-MM-DD
+  - Pattern: `/^\d{4}-\d{2}-\d{2}$/`
+  - Example: "2024-03-15"
+</ResponseField>
+
+```typescript
+codigo_producto: z
+  .string()
+  .min(1, "El código del producto es obligatorio")
+  .max(20, "Código de producto inválido")
+  .regex(
+    /^[A-Z0-9-]+$/,
+    "El código solo puede contener letras mayúsculas, números y guiones"
+  )
+```
+
+<ResponseField name="codigo_producto" type="string" required>
+  - Minimum 1 character
+  - Maximum 20 characters
+  - Only uppercase letters, numbers, and hyphens
+  - Pattern: `/^[A-Z0-9-]+$/`
+  - Examples: "LIMLIM", "TRALIM", "REFARO-SUE"
+</ResponseField>
+
+```typescript
+tamano_lote: z
+  .string()
+  .min(1, "El tamaño de lote es obligatorio")
+  .refine(
+    (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
+    "El tamaño de lote debe ser un número positivo"
+  )
+```
+
+<ResponseField name="tamano_lote" type="string" required>
+  - Must be parseable as a number
+  - Must be greater than 0
+  - Represents batch size in liters or kilograms
+</ResponseField>
+
+### Optional Numeric Fields
+
+```typescript
+const optionalNumericString = z
+  .string()
+  .transform((val) => (val === "" ? null : val))
+  .nullable()
+```
+
+Fields using this helper:
+- `temp_med1` - Temperature for first measurement
+- `temp_med2` - Temperature for second measurement
+- `viscosidad_seg` - Viscosity in seconds
+- `temperatura` - General temperature
+
+### pH Validation
+
+```typescript
+ph: z
+  .string()
+  .refine(
+    (val) => {
+      if (val === "") return true // Optional when empty
+      const num = parseFloat(val)
+      return !isNaN(num) && num >= 0 && num <= 14
+    },
+    "El pH debe estar entre 0 y 14"
+  )
+  .default("")
+```
+
+<ResponseField name="ph" type="string">
+  - Optional (empty string allowed)
+  - If provided: must be between 0 and 14
+  - Only required for products in `PH_STANDARDS`
+</ResponseField>
+
+### Solids Validation
+
+```typescript
+const optionalSolidsString = z
+  .string()
+  .refine(
+    (val) => {
+      if (val === "") return true
+      const num = parseFloat(val)
+      return !isNaN(num) && num >= 0 && num <= 55
+    },
+    "El % de sólidos debe estar entre 0 y 55"
+  )
+  .default("")
+```
+
+<ResponseField name="solidos_medicion_1" type="string">
+  - Optional (empty string allowed)
+  - If provided: must be between 0 and 55
+  - Percentage value
+</ResponseField>
+
+<ResponseField name="solidos_medicion_2" type="string">
+  - Same validation as solidos_medicion_1
+  - Used for double-checking measurements
+</ResponseField>
+
+### Categorical Fields
+
+```typescript
+color: z.enum(["CONFORME", "NO CONFORME"], {
+  errorMap: () => ({ message: "Selecciona conformidad del color" }),
+})
+```
+
+<ResponseField name="color" type="enum" required>
+  Must be one of:
+  - CONFORME
+  - NO CONFORME
+</ResponseField>
+
+```typescript
+apariencia: z.string().min(1, "La apariencia es obligatoria")
+```
+
+<ResponseField name="apariencia" type="string" required>
+  Expected values (validated against `APPEARANCE_STANDARDS`):
+  - CRISTALINO
+  - OPACO
+  - APERLADO
+</ResponseField>
+
+```typescript
+aroma: z.enum(["CONFORME", "NO CONFORME"], {
+  errorMap: () => ({ message: "Selecciona conformidad del aroma" }),
+})
+```
+
+<ResponseField name="aroma" type="enum" required>
+  Must be one of:
+  - CONFORME
+  - NO CONFORME
+</ResponseField>
+
+```typescript
+contaminacion_microbiologica: z.enum(["SIN PRESENCIA", "CON PRESENCIA"], {
+  errorMap: () => ({ message: "Selecciona estado de contaminación" }),
+})
+```
+
+<ResponseField name="contaminacion_microbiologica" type="enum" required>
+  Must be one of:
+  - SIN PRESENCIA
+  - CON PRESENCIA
+</ResponseField>
+
+### Observations
+
+```typescript
+observaciones: z
+  .string()
+  .max(1000, "Las observaciones no pueden exceder 1000 caracteres")
+  .default("")
+```
+
+<ResponseField name="observaciones" type="string">
+  - Optional field
+  - Maximum 1000 characters
+  - Free-form text
+</ResponseField>
+
+## Business Logic Validation
+
+### Product Code Validation
+
+Beyond schema validation, product codes must exist in:
+- `PRODUCT_STANDARDS` (for solids)
+- `PH_STANDARDS` (if pH applicable)
+- `APPEARANCE_STANDARDS` (for appearance)
+- `PARAMETER_APPLICABILITY` (for determining required fields)
+
+### Dynamic Field Requirements
+
+Fields become required based on `PARAMETER_APPLICABILITY`:
+
+```typescript
+if (PARAMETER_APPLICABILITY[productCode].solidos) {
+  // solidos_medicion_1 required
+}
+
+if (PARAMETER_APPLICABILITY[productCode].ph) {
+  // ph required
+}
+```
+
+### Conformity Logic
+
+After validation, measurements are classified:
+
+```typescript
+// Solids conformity
+if (solids >= min && solids <= max) {
+  status = 'CONFORME'
+} else if (solids >= min * 0.95 && solids <= max * 1.05) {
+  status = 'SEMI-CONFORME'
+} else {
+  status = 'NO CONFORME'
+}
+
+// pH conformity
+if (ph >= phMin && ph <= phMax) {
+  status = 'CONFORME'
+} else {
+  status = 'NO CONFORME'
+}
+
+// Appearance conformity
+if (appearance === APPEARANCE_STANDARDS[productCode]) {
+  status = 'CONFORME'
+} else {
+  status = 'NO CONFORME'
+}
+```
+
+## Error Handling
+
+### validateForm Helper
+
+```typescript
+const result = validateForm(BitacoraSchema, formData)
+
+if (result.success) {
+  // result.data is type-safe
+} else {
+  // result.errors is Record<string, string>
+  // Format: { "field_name": "Error message" }
+}
+```
+
+### getFirstError Helper
+
+```typescript
+const firstError = getFirstError(result.errors)
+// Returns: "El correo es obligatorio"
+```
+
+Useful for displaying a single error in toast notifications.
+
+## Client-Side vs Server-Side
+
+### Client-Side Validation
+- Real-time feedback in forms
+- Uses Zod schemas
+- Prevents invalid submissions
+
+### Server-Side Validation
+- Supabase RLS policies
+- Database constraints
+- Type checking at runtime
+
+<Warning>
+Always validate on both client and server. Client-side validation improves UX, but server-side validation ensures data integrity.
+</Warning>
+
+## Source Code Reference
+
+**File**: `lib/validations.ts`
+
+All validation schemas and helpers are defined in this file.

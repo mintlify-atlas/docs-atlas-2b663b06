@@ -1,0 +1,136 @@
+---
+title: Architecture Overview
+description: High-level architecture and design principles of Quality Hub GINEZ
+---
+
+# Architecture Overview
+
+Quality Hub GINEZ is a Progressive Web Application (PWA) designed for comprehensive quality management and production control. The system follows a modern three-tier architecture pattern with clear separation of concerns.
+
+## System Architecture
+
+The application implements a **three-tier architecture** that separates presentation, business logic, and data layers:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  PRESENTATION LAYER                          │
+│  Next.js 14 (App Router) + React + Tailwind CSS + shadcn/ui │
+└─────────────────────────────────────────────────────────────┘
+                             ↕
+┌─────────────────────────────────────────────────────────────┐
+│                   BUSINESS LOGIC LAYER                       │
+│   • Conformity Analysis (Control Charts)                    │
+│   • Data Processing (Aggregations, KPIs)                    │
+│   • Business Validation                                      │
+│   • State Management (React Hooks)                          │
+└─────────────────────────────────────────────────────────────┘
+                             ↕
+┌─────────────────────────────────────────────────────────────┐
+│                     DATA LAYER                               │
+│  Supabase (PostgreSQL) + Google Sheets (Static Catalog)     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Design Principles
+
+### 1. Separation of Concerns
+- **Presentation Layer**: Handles UI rendering and user interactions
+- **Business Logic Layer**: Implements quality control algorithms and data processing
+- **Data Layer**: Manages persistence and data retrieval
+
+### 2. Security First
+- Row Level Security (RLS) enforced at database level
+- Authentication via Supabase Auth with JWT tokens
+- Role-based access control (RBAC) throughout the application
+- Client-side validation complemented by server-side enforcement
+
+### 3. Real-time Feedback
+- Instant conformity validation during data entry
+- Live KPI updates and chart rendering
+- Real-time session management and notifications
+
+### 4. Progressive Enhancement
+- Mobile-first responsive design
+- Optimized for offline capability (PWA)
+- Graceful degradation for older browsers
+
+## Core Modules
+
+### Production Control
+- **Bitácora de Producción**: Guided batch registration with automatic lot generation
+- **Control de Calidad**: Quality control dashboard with NCR management
+- **Reportes**: Analytics and KPI visualization
+
+### Support Systems
+- **Catálogo**: Product catalog synchronized with Google Sheets
+- **Configuración**: User management and system settings
+- **Auditoría**: Document access tracking (admin only)
+
+## Key Features
+
+### Quality Control Based on Control Charts
+- **Automatic Classification**: Three-level system (Conforme, Semi-Conforme, No Conforme)
+- **Interactive Control Charts**: Real-time visualization of % Solids and pH
+- **Statistical Limits**: Red lines (specification) and yellow lines (tolerance ±5%)
+
+### Advanced Analytics
+- Dynamic KPIs with date, branch, and product filters
+- Interactive visualizations (bar charts, donut charts, Pareto analysis)
+- Commercial drill-down by product families and categories
+
+### Smart Batch Management
+- Guided step-by-step registration interface
+- Intelligent lot generation algorithm: `YYYYMMDD-SUC-PROD-###`
+- Dynamic field activation based on product family applicability
+
+## Technology Stack Summary
+
+See [Tech Stack](/architecture/tech-stack) for detailed information.
+
+- **Frontend**: Next.js 14, React 18, Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Auth, Realtime)
+- **State Management**: React Context + Hooks
+- **Charts**: Recharts
+- **Validation**: Zod
+
+## Data Flow
+
+### Production Record Flow
+1. User enters production data via guided wizard
+2. Client-side validation (Zod schemas)
+3. Conformity analysis executed (control chart logic)
+4. Data submitted to Supabase with user context
+5. RLS policies enforce access control
+6. Record saved and available for reporting
+
+### Authentication Flow
+1. User submits credentials
+2. Supabase Auth validates and issues JWT
+3. Profile fetched from `profiles` table
+4. Approval status checked
+5. Session established with user context
+6. Permissions loaded for RBAC
+
+## Performance Considerations
+
+- **Client-side Processing**: Heavy computations done in browser for instant feedback
+- **Optimistic Updates**: UI updates immediately, server syncs in background
+- **Lazy Loading**: Components loaded on-demand
+- **Memoization**: `useMemo` used for expensive calculations
+- **Image Optimization**: Next.js Image component for responsive images
+
+## Scalability
+
+The architecture supports horizontal scaling:
+- **Stateless Frontend**: Can be deployed to multiple edge locations
+- **Managed Backend**: Supabase handles database scaling
+- **CDN Integration**: Static assets served from CDN
+- **Serverless Functions**: Edge functions for custom logic
+
+## Next Steps
+
+- [Tech Stack Details](/architecture/tech-stack)
+- [Data Model](/architecture/data-model)
+- [Security Implementation](/architecture/security)
+- [Frontend Architecture](/architecture/frontend/app-structure)
+- [Backend Architecture](/architecture/backend/supabase)

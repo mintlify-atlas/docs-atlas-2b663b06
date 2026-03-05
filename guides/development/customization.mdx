@@ -1,0 +1,701 @@
+---
+title: 'Customization Guide'
+description: 'Customize Quality Hub GINEZ for your organization'
+icon: 'palette'
+---
+
+## Overview
+
+Quality Hub GINEZ is built with Next.js 14 and can be extensively customized to match your organization's needs. This guide covers common customization scenarios.
+
+## Project Architecture
+
+### Technology Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **UI Library**: React 18
+- **Styling**: Tailwind CSS 3 + shadcn/ui
+- **Database**: Supabase (PostgreSQL)
+- **Charts**: Recharts
+- **Icons**: Lucide React
+
+### Directory Structure
+
+```
+source/
+├── app/                      # Next.js App Router pages
+│   ├── (auth)/              # Authentication routes
+│   ├── bitacora/            # Production log module
+│   ├── calidad/             # Quality control module
+│   ├── catalogo/            # Product catalog
+│   ├── configuracion/       # Settings & admin
+│   ├── reportes/            # Reports & analytics
+│   └── page.tsx             # Dashboard home
+├── components/              # React components
+│   ├── ui/                  # shadcn/ui primitives
+│   ├── AppShell.tsx         # Main layout
+│   ├── AuthProvider.tsx     # Auth context
+│   └── ...                  # Feature components
+├── lib/                     # Core utilities
+│   ├── production-constants.ts  # Product standards
+│   ├── analysis-utils.ts        # Quality analysis
+│   ├── supabase.ts              # Database client
+│   └── utils.ts                 # Helper functions
+└── public/                  # Static assets
+```
+
+## Branding and Styling
+
+### Changing Colors
+
+Edit `tailwind.config.ts` to customize the color scheme:
+
+<CodeGroup>
+
+```typescript tailwind.config.ts
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  theme: {
+    extend: {
+      colors: {
+        // Change these values to match your brand
+        primary: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          // ... more shades
+          900: '#0c4a6e',
+        },
+        // Add custom colors
+        brand: {
+          DEFAULT: '#FF6B35',
+          dark: '#C23B1B',
+        }
+      },
+    },
+  },
+};
+
+export default config;
+```
+
+</CodeGroup>
+
+### Customizing the Logo
+
+1. Replace logo images in `public/` directory
+2. Update references in `components/AppShell.tsx`:
+
+<CodeGroup>
+
+```tsx AppShell.tsx
+import Image from 'next/image';
+
+export function AppShell({ children }) {
+  return (
+    <div className="app-shell">
+      <header>
+        <Image 
+          src="/your-logo.png"  {/* Update this path */}
+          alt="Your Company Name" 
+          width={120} 
+          height={40} 
+        />
+      </header>
+      {children}
+    </div>
+  );
+}
+```
+
+</CodeGroup>
+
+### Changing Typography
+
+<CodeGroup>
+
+```typescript tailwind.config.ts
+const config: Config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        heading: ['Poppins', 'sans-serif'],
+      },
+    },
+  },
+};
+```
+
+</CodeGroup>
+
+Then import fonts in `app/layout.tsx`:
+
+<CodeGroup>
+
+```tsx layout.tsx
+import { Inter, Poppins } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const poppins = Poppins({ 
+  weight: ['600', '700'], 
+  subsets: ['latin'],
+  variable: '--font-heading' 
+});
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="es" className={`${inter.variable} ${poppins.variable}`}>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+</CodeGroup>
+
+## Customizing Navigation
+
+### Adding a New Menu Item
+
+Edit `components/AppShell.tsx` to add navigation items:
+
+<CodeGroup>
+
+```tsx Navigation Menu
+const navigationItems = [
+  {
+    name: 'Dashboard',
+    href: '/',
+    icon: LayoutDashboard,
+  },
+  {
+    name: 'Bitácora',
+    href: '/bitacora',
+    icon: ClipboardList,
+  },
+  {
+    name: 'Calidad',
+    href: '/calidad',
+    icon: CheckCircle,
+  },
+  // Add your custom item
+  {
+    name: 'Inventario',
+    href: '/inventario',
+    icon: Package,
+  },
+];
+```
+
+</CodeGroup>
+
+### Restricting Access by Role
+
+<CodeGroup>
+
+```tsx Role-Based Navigation
+import { useAuth } from './AuthProvider';
+
+function Navigation() {
+  const { user, isAdmin } = useAuth();
+  
+  const navigationItems = [
+    { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['all'] },
+    { name: 'Bitácora', href: '/bitacora', icon: ClipboardList, roles: ['all'] },
+    // Admin-only item
+    { name: 'Usuarios', href: '/configuracion', icon: Users, roles: ['admin'] },
+  ];
+  
+  const filteredItems = navigationItems.filter(item => 
+    item.roles.includes('all') || (isAdmin && item.roles.includes('admin'))
+  );
+  
+  return (
+    <nav>
+      {filteredItems.map(item => (
+        <NavItem key={item.href} {...item} />
+      ))}
+    </nav>
+  );
+}
+```
+
+</CodeGroup>
+
+## Customizing the Dashboard
+
+### Adding Custom KPIs
+
+Edit `app/page.tsx` to add new dashboard metrics:
+
+<CodeGroup>
+
+```tsx Custom KPI
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+
+export default function Dashboard() {
+  const [efficiency, setEfficiency] = useState(0);
+  
+  useEffect(() => {
+    async function fetchEfficiency() {
+      // Calculate your custom metric
+      const { data } = await supabase
+        .from('bitacora_produccion')
+        .select('*')
+        .gte('fecha_fabricacion', '2024-01-01');
+      
+      // Your calculation logic
+      const conformeCount = data?.filter(r => r.estado === 'CONFORME').length || 0;
+      const total = data?.length || 1;
+      setEfficiency((conformeCount / total) * 100);
+    }
+    
+    fetchEfficiency();
+  }, []);
+  
+  return (
+    <div className="dashboard">
+      <Card>
+        <CardHeader>
+          <CardTitle>Eficiencia de Producción</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-3xl font-bold">{efficiency.toFixed(1)}%</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+</CodeGroup>
+
+### Adding Custom Charts
+
+Use Recharts to create custom visualizations:
+
+<CodeGroup>
+
+```tsx Custom Chart
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+
+function ProductionTrendChart({ data }) {
+  return (
+    <LineChart width={600} height={300} data={data}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="fecha" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      <Line 
+        type="monotone" 
+        dataKey="volumen" 
+        stroke="#8884d8" 
+        strokeWidth={2}
+      />
+    </LineChart>
+  );
+}
+```
+
+</CodeGroup>
+
+## Modifying Quality Logic
+
+### Customizing Conformity Calculation
+
+Edit `lib/analysis-utils.ts` to change how conformity is determined:
+
+<CodeGroup>
+
+```typescript analysis-utils.ts
+import { PRODUCT_STANDARDS } from './production-constants';
+
+export type ConformityLevel = 'conforme' | 'semi-conforme' | 'no-conforme';
+
+export function classifyConformity(
+  productCode: string,
+  solidsValue: number
+): ConformityLevel {
+  const standards = PRODUCT_STANDARDS[productCode];
+  if (!standards) return 'no-conforme';
+  
+  const { min, max } = standards;
+  
+  // Specification limits (red lines)
+  if (solidsValue >= min && solidsValue <= max) {
+    return 'conforme';
+  }
+  
+  // Tolerance limits (yellow lines) - customize this percentage
+  const tolerancePercent = 0.05; // 5% default
+  const warnMin = min * (1 - tolerancePercent);
+  const warnMax = max * (1 + tolerancePercent);
+  
+  if (solidsValue >= warnMin && solidsValue <= warnMax) {
+    return 'semi-conforme';
+  }
+  
+  return 'no-conforme';
+}
+```
+
+</CodeGroup>
+
+### Adding New Quality Parameters
+
+1. **Update Database Schema**:
+
+<CodeGroup>
+
+```sql Add Column
+ALTER TABLE bitacora_produccion 
+ADD COLUMN densidad NUMERIC;
+```
+
+</CodeGroup>
+
+2. **Add Standards**:
+
+<CodeGroup>
+
+```typescript production-constants.ts
+export const DENSITY_STANDARDS: Record<string, { min: number, max: number }> = {
+  "LIMLIM": { min: 0.98, max: 1.02 },
+  "LIMVIO": { min: 0.97, max: 1.01 },
+  // ... add more products
+};
+```
+
+</CodeGroup>
+
+3. **Update Bitácora Form**:
+
+<CodeGroup>
+
+```tsx bitacora/page.tsx
+<FormField
+  label="Densidad (g/mL)"
+  name="densidad"
+  type="number"
+  step="0.01"
+  min="0.90"
+  max="1.10"
+  required={PARAMETER_APPLICABILITY[selectedProduct]?.densidad}
+/>
+```
+
+</CodeGroup>
+
+4. **Add to Analysis**:
+
+<CodeGroup>
+
+```typescript analysis-utils.ts
+export function analyzeDensity(
+  productCode: string,
+  densityValue: number
+): ConformityLevel {
+  const standards = DENSITY_STANDARDS[productCode];
+  // Same conformity logic as solids
+  // ...
+}
+```
+
+</CodeGroup>
+
+## Creating Custom Reports
+
+### Adding a New Report Tab
+
+Edit `app/reportes/page.tsx`:
+
+<CodeGroup>
+
+```tsx Custom Report Tab
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+export default function Reportes() {
+  return (
+    <Tabs defaultValue="calidad">
+      <TabsList>
+        <TabsTrigger value="calidad">Calidad y Control</TabsTrigger>
+        <TabsTrigger value="comercial">Análisis Comercial</TabsTrigger>
+        <TabsTrigger value="eficiencia">Eficiencia</TabsTrigger> {/* New tab */}
+      </TabsList>
+      
+      <TabsContent value="eficiencia">
+        <EfficiencyReport />
+      </TabsContent>
+    </Tabs>
+  );
+}
+
+function EfficiencyReport() {
+  // Your custom report component
+  return (
+    <div>
+      <h2>Reporte de Eficiencia</h2>
+      {/* Your custom charts and metrics */}
+    </div>
+  );
+}
+```
+
+</CodeGroup>
+
+### Exporting Reports to PDF
+
+Install a PDF library:
+
+<CodeGroup>
+
+```bash Install jsPDF
+npm install jspdf jspdf-autotable
+```
+
+</CodeGroup>
+
+Create export function:
+
+<CodeGroup>
+
+```typescript Export to PDF
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+export function exportReportToPDF(data: any[], filename: string) {
+  const doc = new jsPDF();
+  
+  // Add title
+  doc.setFontSize(18);
+  doc.text('Reporte de Calidad', 14, 20);
+  
+  // Add table
+  autoTable(doc, {
+    head: [['Lote', 'Producto', 'Estado', '% Sólidos']],
+    body: data.map(row => [
+      row.lote_producto,
+      row.codigo_producto,
+      row.estado,
+      row.solidos_medicion_1?.toFixed(2) || 'N/A'
+    ]),
+    startY: 30,
+  });
+  
+  doc.save(filename);
+}
+```
+
+</CodeGroup>
+
+## Adding Email Notifications
+
+### Set Up Email Service
+
+<CodeGroup>
+
+```bash Install Resend
+npm install resend
+```
+
+</CodeGroup>
+
+Add to `.env.local`:
+
+```env
+RESEND_API_KEY=your_api_key_here
+```
+
+### Create Email Notification
+
+<CodeGroup>
+
+```typescript lib/email.ts
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function sendNonConformityAlert(
+  productCode: string,
+  lote: string,
+  adminEmail: string
+) {
+  await resend.emails.send({
+    from: 'Quality Hub <quality@ginez.com>',
+    to: adminEmail,
+    subject: `Alerta: Lote No Conforme - ${lote}`,
+    html: `
+      <h2>Alerta de No Conformidad</h2>
+      <p>Se ha detectado un lote no conforme:</p>
+      <ul>
+        <li><strong>Lote:</strong> ${lote}</li>
+        <li><strong>Producto:</strong> ${productCode}</li>
+      </ul>
+      <p>Por favor, revise el lote en el sistema.</p>
+    `,
+  });
+}
+```
+
+</CodeGroup>
+
+### Trigger on Non-Conformity
+
+<CodeGroup>
+
+```typescript bitacora/actions.ts
+import { sendNonConformityAlert } from '@/lib/email';
+
+export async function createBatch(data: BatchData) {
+  // Save to database
+  const result = await supabase
+    .from('bitacora_produccion')
+    .insert(data);
+  
+  // Check conformity
+  const conformity = classifyConformity(
+    data.codigo_producto,
+    data.solidos_medicion_1
+  );
+  
+  // Send alert if non-conforming
+  if (conformity === 'no-conforme') {
+    await sendNonConformityAlert(
+      data.codigo_producto,
+      data.lote_producto,
+      'admin@ginez.com'
+    );
+  }
+  
+  return result;
+}
+```
+
+</CodeGroup>
+
+## Internationalization (i18n)
+
+### Setting Up i18n
+
+<CodeGroup>
+
+```bash Install next-intl
+npm install next-intl
+```
+
+</CodeGroup>
+
+Create translation files:
+
+```
+messages/
+├── es.json
+└── en.json
+```
+
+<CodeGroup>
+
+```json messages/es.json
+{
+  "dashboard": {
+    "title": "Panel Principal",
+    "welcome": "Bienvenido"
+  },
+  "quality": {
+    "conforming": "Conforme",
+    "nonConforming": "No Conforme"
+  }
+}
+```
+
+```json messages/en.json
+{
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome"
+  },
+  "quality": {
+    "conforming": "Conforming",
+    "nonConforming": "Non-Conforming"
+  }
+}
+```
+
+</CodeGroup>
+
+## Performance Optimization
+
+### Enable Static Generation
+
+For pages that don't change often:
+
+<CodeGroup>
+
+```tsx Static Page
+// app/catalogo/page.tsx
+export const revalidate = 3600; // Revalidate every hour
+
+export default async function Catalogo() {
+  const products = await fetchProducts();
+  
+  return (
+    <div>
+      {/* Render products */}
+    </div>
+  );
+}
+```
+
+</CodeGroup>
+
+### Add Database Indexes
+
+<CodeGroup>
+
+```sql Performance Indexes
+-- Speed up date range queries
+CREATE INDEX idx_fecha_fabricacion 
+ON bitacora_produccion(fecha_fabricacion DESC);
+
+-- Speed up product code searches
+CREATE INDEX idx_codigo_producto 
+ON bitacora_produccion(codigo_producto);
+
+-- Speed up branch queries
+CREATE INDEX idx_sucursal 
+ON bitacora_produccion(sucursal);
+```
+
+</CodeGroup>
+
+### Implement Caching
+
+<CodeGroup>
+
+```typescript Using React Cache
+import { cache } from 'react';
+
+export const getProductStandards = cache(async (productCode: string) => {
+  // This result will be cached for the duration of the request
+  return PRODUCT_STANDARDS[productCode];
+});
+```
+
+</CodeGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Local Setup" icon="laptop-code" href="/guides/development/local-setup">
+    Set up your development environment
+  </Card>
+  <Card title="Adding Products" icon="box" href="/guides/development/adding-products">
+    Add new products and standards
+  </Card>
+  <Card title="Database Migrations" icon="database" href="/guides/development/database-migrations">
+    Manage database changes
+  </Card>
+</CardGroup>

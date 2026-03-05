@@ -1,0 +1,298 @@
+---
+title: Tech Stack
+description: Complete technology stack and dependencies used in Quality Hub GINEZ
+---
+
+# Tech Stack
+
+Quality Hub GINEZ is built with modern, production-ready technologies focused on developer experience, performance, and maintainability.
+
+## Frontend Stack
+
+### Framework & UI Library
+
+**Next.js 14** - React Framework
+- App Router for file-based routing
+- Server and Client Components
+- Built-in optimization (images, fonts, scripts)
+- Version: `^14.2.35`
+
+**React 18** - UI Library
+- Concurrent rendering
+- Automatic batching
+- Suspense support
+- Version: `^18`
+
+### Styling & Components
+
+**Tailwind CSS 3** - Utility-first CSS framework
+- JIT (Just-In-Time) compilation
+- Custom design system
+- Dark mode support
+- Version: `^3.3.0`
+
+**shadcn/ui** - Component Library
+- Built on Radix UI primitives
+- Fully customizable components
+- Accessible by default
+- Components:
+  - `@radix-ui/react-dialog` - Modal dialogs
+  - `@radix-ui/react-dropdown-menu` - Dropdown menus
+  - `@radix-ui/react-select` - Select inputs
+  - `@radix-ui/react-tabs` - Tab navigation
+  - `@radix-ui/react-switch` - Toggle switches
+  - `@radix-ui/react-checkbox` - Checkboxes
+  - `@radix-ui/react-popover` - Popovers
+  - `@radix-ui/react-scroll-area` - Scroll containers
+  - `@radix-ui/react-separator` - Dividers
+  - `@radix-ui/react-label` - Form labels
+  - `@radix-ui/react-avatar` - User avatars
+
+### Icons & Graphics
+
+**Lucide React** - Icon library
+- Modern, consistent icon set
+- Tree-shakeable
+- Version: `^0.316.0`
+
+### Data Visualization
+
+**Recharts** - Chart library
+- Declarative chart components
+- Responsive and customizable
+- Support for:
+  - Bar charts
+  - Line charts
+  - Donut/Pie charts
+  - Area charts
+  - Composed charts
+- Version: `^3.7.0`
+
+### State Management & Data Fetching
+
+**React Context + Hooks** - Built-in state management
+- `AuthProvider` for authentication state
+- Custom hooks for data fetching
+- Local component state with `useState`
+- Memoization with `useMemo` and `useCallback`
+
+**TanStack Table** (React Table v8)
+- Headless table library
+- Sorting, filtering, pagination
+- Version: `^8.11.8`
+
+### Animations
+
+**Framer Motion** - Animation library
+- Declarative animations
+- Gesture support
+- Version: `^12.29.2`
+
+**Embla Carousel** - Carousel component
+- Lightweight and performant
+- Autoplay support
+- Version: `^8.6.0`
+
+### Theming
+
+**next-themes** - Theme management
+- Dark/light mode toggle
+- System preference detection
+- Version: `^0.4.6`
+
+### Notifications
+
+**Sonner** - Toast notifications
+- Beautiful, accessible toasts
+- Promise-based API
+- Version: `^2.0.7`
+
+## Backend Stack
+
+### Backend as a Service (BaaS)
+
+**Supabase** - Complete backend platform
+- **PostgreSQL 15**: Production-grade database
+- **Supabase Auth**: JWT-based authentication
+- **Row Level Security**: Database-level access control
+- **Realtime**: WebSocket subscriptions
+- **Storage**: File uploads (future)
+- Version: `^2.93.3` (JS client)
+- SSR Support: `@supabase/ssr` `^0.8.0`
+
+### External Data Sources
+
+**Google Sheets** - Static data catalog
+- CSV export for product catalog
+- Real-time synchronization
+- Environment variables:
+  - `SHEET_MP_CSV_URL` - Raw materials
+  - `SHEET_PT_CSV_URL` - Finished products
+
+**Google Drive** - Document storage
+- Technical datasheets (PDF)
+- Safety data sheets (PDF)
+- Download tracking for audit
+
+## Development Tools
+
+### Language & Type Safety
+
+**TypeScript 5** - Typed JavaScript
+- Strict type checking
+- Better IDE support
+- Refactoring safety
+- Version: `^5`
+
+### Validation
+
+**Zod** - Schema validation
+- Runtime type checking
+- Form validation
+- API request/response validation
+- Version: `^3.22.4` (dev dependency)
+
+### Utilities
+
+**clsx** - Conditional class names
+- Version: `^2.1.1`
+
+**tailwind-merge** - Merge Tailwind classes
+- Resolve class conflicts
+- Version: `^2.6.1`
+
+**class-variance-authority (CVA)** - Component variants
+- Type-safe variant props
+- Version: `^0.7.1`
+
+**date-fns** - Date manipulation
+- Lightweight date utility
+- Version: `^4.1.0`
+
+**fuse.js** - Fuzzy search
+- Client-side search
+- Version: `^7.0.0`
+
+### Linting & Formatting
+
+**ESLint** - JavaScript/TypeScript linter
+- Next.js config
+- Version: `^8`
+- Config: `eslint-config-next` `^16.1.6`
+
+**Prettier** (implicit)
+- Code formatting
+- Integrated with ESLint
+
+### Build Tools
+
+**PostCSS** - CSS processing
+- Version: `^8`
+
+**Autoprefixer** - CSS vendor prefixes
+- Version: `^10.0.1`
+
+**Tailwind CSS Animate** - Animation utilities
+- Pre-built animation classes
+- Version: `^1.0.7`
+
+## Package Manager
+
+**npm** - Node package manager
+- Lock file for reproducible builds
+- Scripts:
+  - `npm run dev` - Development server
+  - `npm run build` - Production build
+  - `npm start` - Start production server
+  - `npm run lint` - Run ESLint
+
+## Environment Configuration
+
+### Required Environment Variables
+
+```bash
+# Google Sheets (Catálogo)
+SHEET_MP_CSV_URL="https://docs.google.com/spreadsheets/.../export?format=csv"
+SHEET_PT_CSV_URL="https://docs.google.com/spreadsheets/.../export?format=csv"
+
+# Supabase (Auth & Database)
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+```
+
+## Complete Dependency List
+
+### Production Dependencies
+
+```json
+{
+  "@radix-ui/react-avatar": "^1.1.11",
+  "@radix-ui/react-checkbox": "^1.3.3",
+  "@radix-ui/react-dialog": "^1.1.15",
+  "@radix-ui/react-dropdown-menu": "^2.0.6",
+  "@radix-ui/react-label": "^2.0.2",
+  "@radix-ui/react-popover": "^1.0.7",
+  "@radix-ui/react-scroll-area": "^1.2.10",
+  "@radix-ui/react-select": "^2.2.6",
+  "@radix-ui/react-separator": "^1.0.3",
+  "@radix-ui/react-slot": "^1.0.2",
+  "@radix-ui/react-switch": "^1.2.6",
+  "@radix-ui/react-tabs": "^1.1.13",
+  "@supabase/ssr": "^0.8.0",
+  "@supabase/supabase-js": "^2.93.3",
+  "@tanstack/react-table": "^8.11.8",
+  "class-variance-authority": "^0.7.1",
+  "clsx": "^2.1.1",
+  "date-fns": "^4.1.0",
+  "embla-carousel-autoplay": "^8.6.0",
+  "embla-carousel-react": "^8.6.0",
+  "framer-motion": "^12.29.2",
+  "fuse.js": "^7.0.0",
+  "lucide-react": "^0.316.0",
+  "next": "^14.2.35",
+  "next-themes": "^0.4.6",
+  "node-fetch": "^3.3.2",
+  "react": "^18",
+  "react-dom": "^18",
+  "recharts": "^3.7.0",
+  "sonner": "^2.0.7",
+  "tailwind-merge": "^2.6.1",
+  "tailwindcss-animate": "^1.0.7"
+}
+```
+
+### Development Dependencies
+
+```json
+{
+  "@types/node": "^20",
+  "@types/react": "^18",
+  "@types/react-dom": "^18",
+  "autoprefixer": "^10.0.1",
+  "eslint": "^8",
+  "eslint-config-next": "^16.1.6",
+  "papaparse": "^5.4.1",
+  "postcss": "^8",
+  "tailwindcss": "^3.3.0",
+  "typescript": "^5",
+  "zod": "^3.22.4"
+}
+```
+
+## Browser Support
+
+- Chrome/Edge (latest)
+- Firefox (latest)
+- Safari (latest)
+- Mobile browsers (iOS Safari, Chrome Mobile)
+
+## Node.js Requirements
+
+- Node.js 18+ required
+- npm 8+ recommended
+
+## Next Steps
+
+- [Architecture Overview](/architecture/overview)
+- [Frontend Structure](/architecture/frontend/app-structure)
+- [Backend Configuration](/architecture/backend/supabase)

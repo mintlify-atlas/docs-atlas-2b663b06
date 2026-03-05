@@ -1,0 +1,520 @@
+---
+title: Row Level Security
+description: RLS policies and database-level access control in Quality Hub GINEZ
+---
+
+# Row Level Security (RLS)
+
+Row Level Security (RLS) is a PostgreSQL feature that restricts which rows users can access in database tables. Quality Hub GINEZ uses RLS extensively to enforce authorization at the database level.
+
+## Why RLS?
+
+RLS provides **defense in depth** for data security:
+
+1. **Database-level enforcement**: Protection even if client code is compromised
+2. **Automatic application**: Applies to all queries, no code changes needed
+3. **Performance**: Filtering happens at database level
+4. **Consistency**: Same rules apply regardless of access method
+5. **Auditability**: Policies are versioned in database migrations
+
+## How RLS Works
+
+```
+Client Request
+    ↓
+[Supabase Client] → JWT Token in Authorization header
+    ↓
+[Supabase API] → Validates JWT, extracts user_id
+    ↓
+[PostgreSQL] → Applies RLS policies based on auth.uid()
+    ↓
+Filtered Results → Only authorized rows returned
+```
+
+### Key Concept: `auth.uid()`
+
+Supabase exposes the authenticated user's ID via the `auth.uid()` function, which is available in RLS policies:
+
+```sql
+auth.uid()  -- Returns UUID of authenticated user
+            -- Returns NULL if not authenticated
+```
+
+## Enabling RLS
+
+RLS must be explicitly enabled on each table:
+
+```sql
+ALTER TABLE bitacora_produccion ENABLE ROW LEVEL SECURITY;
+```
+
+**Important:** Once RLS is enabled, **all access is blocked by default** until policies are created.
+
+## RLS Policies
+
+### Policy Structure
+
+```sql
+CREATE POLICY "policy_name"
+ON table_name
+FOR operation  -- SELECT, INSERT, UPDATE, DELETE, ALL
+USING (condition)      -- Rows visible for SELECT/UPDATE/DELETE
+WITH CHECK (condition) -- Rows allowed for INSERT/UPDATE
+```
+
+- **USING**: Determines which existing rows are visible
+- **WITH CHECK**: Determines which new/updated rows are allowed
+
+## Production Log Policies
+
+### 1. Users Can View Own Records
+
+```sql
+CREATE POLICY "Users can view own records"
+ON bitacora_produccion
+FOR SELECT
+USING (auth.uid() = user_id);
+```
+
+**Explanation:**
+- Applies to `SELECT` queries
+- User can only see records where `user_id` matches their authenticated ID
+- If not authenticated (`auth.uid()` is NULL), no records are visible
+
+**Example Query:**
+
+```typescript
+// User with ID 'abc-123' is authenticated
+const { data } = await supabase
+  .from('bitacora_produccion')
+  .select('*')
+
+// PostgreSQL automatically adds: WHERE user_id = 'abc-123'
+// User only sees their own records
+```
+
+### 2. Admins Can View All Records
+
+```sql
+CREATE POLICY "Admins can view all records"
+ON bitacora_produccion
+FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+```
+
+**Explanation:**
+- Checks if the authenticated user has `is_admin = true` in their profile
+- If true, all records are visible
+- Uses a subquery to join with the `profiles` table
+
+**Example Query:**
+
+```typescript
+// Admin user queries records
+const { data } = await supabase
+  .from('bitacora_produccion')
+  .select('*')
+
+// Admin sees ALL records, no filtering applied
+```
+
+### 3. Users Can Insert Own Records
+
+```sql
+CREATE POLICY "Users can insert own records"
+ON bitacora_produccion
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+```
+
+**Explanation:**
+- Applies to `INSERT` operations
+- User can only insert records where `user_id` matches their authenticated ID
+- Prevents users from creating records on behalf of others
+
+**Example:**
+
+```typescript
+// User tries to insert a record
+const { data, error } = await supabase
+  .from('bitacora_produccion')
+  .insert({
+    lote_producto: 'LOT-001',
+    user_id: currentUser.id  // Must match authenticated user
+  })
+
+// If user_id doesn't match auth.uid(), insert is rejected
+```
+
+### 4. Users Can Update Own Records
+
+```sql
+CREATE POLICY "Users can update own records"
+ON bitacora_produccion
+FOR UPDATE
+USING (auth.uid() = user_id)      -- Can only update own records
+WITH CHECK (auth.uid() = user_id); -- Can't change user_id to someone else
+```
+
+**Explanation:**
+- `USING`: User can only update records they own
+- `WITH CHECK`: Updated record must still belong to the user
+- Prevents changing `user_id` to hijack records
+
+### 5. Admins Can Update All Records
+
+```sql
+CREATE POLICY "Admins can update all records"
+ON bitacora_produccion
+FOR UPDATE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+```
+
+**Explanation:**
+- Admins can update any record
+- No `WITH CHECK` needed (admins can change `user_id`)
+
+### 6. Only Admins Can Delete Records
+
+```sql
+CREATE POLICY "Admins can delete records"
+ON bitacora_produccion
+FOR DELETE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+```
+
+**Explanation:**
+- Only admins can delete records
+- Regular users have no delete policy, so deletes are blocked
+
+## Profile Table Policies
+
+### 1. Users Can View Own Profile
+
+```sql
+CREATE POLICY "Users can view own profile"
+ON profiles
+FOR SELECT
+USING (auth.uid() = id);
+```
+
+### 2. Users Can Update Own Profile
+
+```sql
+CREATE POLICY "Users can update own profile"
+ON profiles
+FOR UPDATE
+USING (auth.uid() = id)
+WITH CHECK (auth.uid() = id AND is_admin = OLD.is_admin);
+```
+
+**Note:** `WITH CHECK` prevents users from promoting themselves to admin:
+- `is_admin = OLD.is_admin` ensures the admin flag doesn't change
+- Users can update other fields but not their admin status
+
+### 3. Admins Can View All Profiles
+
+```sql
+CREATE POLICY "Admins can view all profiles"
+ON profiles
+FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles p
+    WHERE p.id = auth.uid()
+    AND p.is_admin = true
+  )
+);
+```
+
+### 4. Admins Can Update All Profiles
+
+```sql
+CREATE POLICY "Admins can update all profiles"
+ON profiles
+FOR UPDATE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles p
+    WHERE p.id = auth.uid()
+    AND p.is_admin = true
+  )
+);
+```
+
+### 5. Admins Can Delete Profiles
+
+```sql
+CREATE POLICY "Admins can delete profiles"
+ON profiles
+FOR DELETE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles p
+    WHERE p.id = auth.uid()
+    AND p.is_admin = true
+  )
+);
+```
+
+## Testing RLS Policies
+
+### Method 1: Supabase Dashboard
+
+1. Go to **SQL Editor** in Supabase Dashboard
+2. Run queries as different users:
+
+```sql
+-- Simulate user with ID 'abc-123'
+SET LOCAL role TO authenticated;
+SET LOCAL request.jwt.claim.sub TO 'abc-123';
+
+SELECT * FROM bitacora_produccion;
+-- Should only return records with user_id = 'abc-123'
+```
+
+### Method 2: Client Testing
+
+```typescript
+// Sign in as regular user
+await supabase.auth.signInWithPassword({
+  email: 'user@example.com',
+  password: 'password'
+})
+
+const { data } = await supabase
+  .from('bitacora_produccion')
+  .select('*')
+
+console.log('User sees', data.length, 'records')
+
+// Sign in as admin
+await supabase.auth.signInWithPassword({
+  email: 'admin@example.com',
+  password: 'password'
+})
+
+const { data: adminData } = await supabase
+  .from('bitacora_produccion')
+  .select('*')
+
+console.log('Admin sees', adminData.length, 'records')
+```
+
+### Method 3: Automated Tests
+
+```typescript
+import { createClient } from '@supabase/supabase-js'
+
+describe('RLS Policies', () => {
+  it('users can only see own records', async () => {
+    const userClient = createClient(url, anonKey)
+    await userClient.auth.signInWithPassword({ email: 'user@test.com', password: 'test' })
+    
+    const { data } = await userClient
+      .from('bitacora_produccion')
+      .select('*')
+    
+    expect(data.every(record => record.user_id === userId)).toBe(true)
+  })
+  
+  it('admins can see all records', async () => {
+    const adminClient = createClient(url, anonKey)
+    await adminClient.auth.signInWithPassword({ email: 'admin@test.com', password: 'test' })
+    
+    const { data } = await adminClient
+      .from('bitacora_produccion')
+      .select('*')
+    
+    expect(data.length).toBeGreaterThan(0)
+  })
+})
+```
+
+## Common RLS Patterns
+
+### Pattern 1: Owner-Based Access
+
+```sql
+CREATE POLICY "owner_access"
+ON table_name
+FOR ALL
+USING (auth.uid() = owner_id);
+```
+
+### Pattern 2: Role-Based Access
+
+```sql
+CREATE POLICY "role_access"
+ON table_name
+FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.role IN ('admin', 'manager')
+  )
+);
+```
+
+### Pattern 3: Team/Organization-Based Access
+
+```sql
+CREATE POLICY "team_access"
+ON documents
+FOR SELECT
+USING (
+  team_id IN (
+    SELECT team_id FROM team_members
+    WHERE user_id = auth.uid()
+  )
+);
+```
+
+### Pattern 4: Public Read, Authenticated Write
+
+```sql
+-- Anyone can read
+CREATE POLICY "public_read"
+ON articles
+FOR SELECT
+USING (true);
+
+-- Only authenticated users can write
+CREATE POLICY "authenticated_write"
+ON articles
+FOR INSERT
+WITH CHECK (auth.uid() IS NOT NULL);
+```
+
+### Pattern 5: Hierarchical Access
+
+```sql
+CREATE POLICY "hierarchical_access"
+ON records
+FOR SELECT
+USING (
+  -- User owns the record
+  auth.uid() = user_id
+  OR
+  -- User is a manager of the owner
+  EXISTS (
+    SELECT 1 FROM team_hierarchy
+    WHERE manager_id = auth.uid()
+    AND employee_id = records.user_id
+  )
+);
+```
+
+## Performance Considerations
+
+### 1. Index Join Columns
+
+```sql
+-- Policy uses profiles table
+CREATE INDEX idx_profiles_is_admin ON profiles(id, is_admin);
+```
+
+### 2. Avoid Complex Subqueries
+
+```sql
+-- ❌ Slow: Multiple nested queries
+CREATE POLICY "complex_policy"
+ON table_name
+USING (
+  id IN (
+    SELECT record_id FROM permissions
+    WHERE user_id IN (
+      SELECT id FROM users WHERE team_id = (
+        SELECT team_id FROM profiles WHERE id = auth.uid()
+      )
+    )
+  )
+);
+
+-- ✅ Better: Simplified with JOIN or materialized view
+CREATE POLICY "simple_policy"
+ON table_name
+USING (
+  EXISTS (
+    SELECT 1 FROM user_permissions
+    WHERE user_permissions.record_id = table_name.id
+    AND user_permissions.user_id = auth.uid()
+  )
+);
+```
+
+### 3. Use Materialized Views for Complex Logic
+
+For expensive permission checks, pre-compute into a materialized view and refresh periodically.
+
+## Debugging RLS Issues
+
+### Check if RLS is Enabled
+
+```sql
+SELECT tablename, rowsecurity
+FROM pg_tables
+WHERE schemaname = 'public';
+```
+
+### View All Policies
+
+```sql
+SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
+FROM pg_policies
+WHERE tablename = 'bitacora_produccion';
+```
+
+### Test as Specific User
+
+```sql
+-- Set session to authenticated user
+SET LOCAL role TO authenticated;
+SET LOCAL request.jwt.claim.sub TO 'user-uuid-here';
+
+-- Run query
+SELECT * FROM bitacora_produccion;
+
+-- Reset
+RESET role;
+```
+
+### Enable Query Logging
+
+In Supabase dashboard, enable slow query logs to see what filters are applied.
+
+## Security Best Practices
+
+1. **Always enable RLS** on tables with sensitive data
+2. **Test policies thoroughly** with different user roles
+3. **Use EXISTS subqueries** instead of IN for better performance
+4. **Limit policy complexity** - simpler is more maintainable
+5. **Index frequently joined columns** in policies
+6. **Never bypass RLS** with service role key in client code
+7. **Document policies** - explain the business logic
+8. **Audit policy changes** - treat as security-critical migrations
+
+## Next Steps
+
+- [Data Validation](/architecture/backend/data-validation)
+- [Supabase Configuration](/architecture/backend/supabase)
+- [Security Architecture](/architecture/security)

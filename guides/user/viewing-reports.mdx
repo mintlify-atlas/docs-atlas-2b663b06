@@ -1,0 +1,399 @@
+---
+title: Viewing Reports
+description: How to access and interpret quality and production reports in Quality Hub GINEZ
+---
+
+## Overview
+
+The Reports module (Reportes) provides comprehensive analysis of quality performance and production trends. Access to reports varies by user role.
+
+## Access Levels
+
+### Who Can Access Reports
+
+**Full Access** (all tabs):
+- Admin
+- Gerente de Calidad (Quality Manager)
+- Coordinador
+
+**Limited Access** (Calidad FTQ and SPY tabs only):
+- Preparador
+- Gerente de Sucursal (Branch Manager)
+- Gerente
+
+**No Access**:
+- Mostrador
+- Cajera  
+- Vendedor
+- Director de Compras
+- Director de Operaciones
+
+<Note>
+Branch managers and preparadores see data filtered to their assigned branch automatically.
+</Note>
+
+## Navigating the Reports Module
+
+<Steps>
+
+### Access the Module
+
+1. Click **Reportes** in the main navigation
+2. The system displays the Reports Dashboard
+3. You'll see filter controls at the top
+4. Main content area shows tabs based on your permissions
+
+### Apply Filters
+
+Use the filter dropdowns to focus your analysis:
+
+**Sucursal** (Branch)  
+Filter data by production location. Shows "Todas las sucursales" (All branches) by default.
+
+<Note>
+Branch managers see this field pre-filled and locked to their assigned branch.
+</Note>
+
+**Todas las categorías** (Product Category)  
+Filter by product family (e.g., Cuidado del Hogar, Lavandería).
+
+**Todos los productos** (Product Code)  
+Filter by specific product SKU.
+
+**Todos los preparadores** (All Preparers)  
+Filter by the person who prepared the batch.
+
+<Note>
+Preparadores only see their own data and this filter is hidden.
+</Note>
+
+**Período** (Time Period)  
+Choose the date range:
+- **Todo el tiempo**: All historical data
+- **Últimos 7 días**: Last 7 days
+- **Últimos 30 días**: Last 30 days  
+- **Últimos 3 meses**: Last 3 months
+- **Últimos 6 meses**: Last 6 months
+- **Último año**: Last year
+
+### Refresh Data
+
+Click the **refresh button** (circular arrow icon) to reload data with current filters applied.
+
+</Steps>
+
+## Report Tabs
+
+### Tab 1: Análisis Comercial (Commercial Analysis)
+
+<Note>
+Only available to Admin, Gerente de Calidad, and Coordinador roles.
+</Note>
+
+This tab focuses on production volume and distribution analysis.
+
+#### Production by Branch
+
+**Bar chart** showing:
+- Total production volume per branch
+- Measured in Liters (L) for liquid products
+- Measured in Pieces (Piezas) for aromatic bases and cleaners
+
+**Use this to:**
+- Identify highest-producing branches
+- Compare branch performance
+- Spot production imbalances
+
+#### Production by Product Family
+
+**Donut charts** displaying volume breakdown by family:
+
+- Cuidado del Hogar
+- Lavandería
+- Cuidado Personal
+- Línea Automotriz
+- Línea Antibacterial
+- Productos Intermedios
+
+Click on a family chart to see detailed product breakdown.
+
+#### Top Products Ranking
+
+**Horizontal bar chart** showing:
+- Top products by volume
+- Shows all products by default
+- Filter by category using the dropdown
+
+**Interactive Features:**
+- Hover over bars to see exact volumes
+- Bars are color-coded using corporate colors
+- Auto-scales based on maximum value
+
+#### Product Variants Analysis
+
+Shows the top 20 product SKUs by volume, useful for:
+- Identifying best-selling products
+- Planning production schedules
+- Inventory forecasting
+
+### Tab 2: First Time Quality (Calidad FTQ)
+
+This tab focuses on quality conformity and process control.
+
+#### Key Performance Indicators (KPIs)
+
+At the top, you'll see four main KPI cards:
+
+**1. Total Registros + Volumen Total**
+
+Blue gradient card showing:
+- Total number of batch records analyzed
+- Total production volume in Liters (L)
+
+**2. Total Conformes**
+
+Green gradient card displaying:
+- Number of compliant batches
+- Percentage of total (e.g., 85.2%)
+
+**3. Semi-Conformes**  
+
+Yellow gradient card showing:
+- Number of batches within tolerance
+- Percentage of total
+
+**4. No Conformes**
+
+Red gradient card displaying:
+- Number of non-compliant batches
+- Percentage of total
+
+<Note>
+These percentages are calculated based on **% Sólidos conformity**. pH and appearance non-conformities are tracked separately in the Pareto chart.
+</Note>
+
+#### Conformidad por Sucursal
+
+**Stacked bar chart** showing:
+- Compliant (green)
+- Semi-Compliant (yellow)  
+- Non-Compliant (red)
+
+**How to Read:**
+- Taller bars = higher production volume
+- More green = better quality performance
+- Significant red sections = quality issues requiring attention
+
+#### Pareto de Defectos
+
+**Combined bar and line chart** displaying:
+
+- **Bars**: Count of defects by parameter (pH, Sólidos, Apariencia)
+- **Line**: Cumulative percentage
+
+**Purpose:**  
+Identifies which quality parameters cause the most non-conformities.
+
+**How to Use:**
+- Focus improvement efforts on the highest bars
+- The 80/20 rule: often 80% of defects come from 20% of causes
+
+<Note>
+The Pareto principle helps prioritize which quality issues to address first for maximum impact.
+</Note>
+
+#### Control Charts (When Product Filter Applied)
+
+When you select a **specific product** (not "all"), the system displays control charts:
+
+**% Sólidos Control Chart**
+
+- **Blue line**: Measurement trend over time
+- **Red lines**: Specification limits (min/max)
+- **Yellow lines**: Tolerance limits (±5%)
+- **Green zone**: Between red lines (compliant)
+- **Yellow zone**: Between red and yellow lines (tolerance)
+- **Red zone**: Outside yellow lines (non-compliant)
+
+**pH Control Chart**
+
+- **Blue line**: pH measurements over time
+- **Red lines**: pH specification limits
+- Points between red lines are compliant
+
+<Warning>
+Control charts require at least one measurement to display. If you see no chart, try selecting a different time period or product with more data.
+</Warning>
+
+**How to Read Control Charts:**
+
+1. **Look for trends**: Are measurements drifting toward limits?
+2. **Check variation**: Large swings indicate process instability
+3. **Identify outliers**: Points outside limits need investigation
+4. **Monitor patterns**: Repeating patterns suggest systematic issues
+
+### Tab 3: SPY (Yield Analysis)
+
+This tab provides specialized yield and efficiency metrics.
+
+<Note>
+Refer to SPY-specific documentation for detailed analysis procedures.
+</Note>
+
+## Understanding Report Metrics
+
+### Conformity Levels Explained
+
+**CONFORME (Compliant)**
+- All measured parameters fall within specification limits
+- Product is approved for release
+- Contributes to "First Time Quality" percentage
+
+**SEMI-CONFORME (Within Tolerance)**  
+- Parameters fall within tolerance limits (±5%) but outside specifications
+- Product is releasable with caution
+- Indicates process drift - corrective action recommended
+
+**NO CONFORME (Non-Compliant)**
+- One or more parameters fail tolerance limits
+- Product must NOT be released
+- Requires investigation and NCR (Non-Conformance Report)
+
+### Volume Metrics
+
+**Total Production Volume**: Sum of all batch sizes in the filtered period
+
+**Liters (L)**: For liquid products (detergents, shampoos, cleaners)
+
+**Piezas (Pieces)**: For aromatic bases and solid products
+
+<Note>
+The system automatically applies the correct unit based on product family.
+</Note>
+
+## Interactive Features
+
+### Chart Interactions
+
+**Hover**: Move your mouse over any chart element to see detailed values
+
+**Click**: Some donut charts support click-to-drill-down for detailed category breakdowns
+
+**Legend**: Click legend items to show/hide data series (where supported)
+
+### Export and Sharing
+
+<Note>
+Export functionality is planned for future releases. Currently, use browser screenshot tools to capture reports.
+</Note>
+
+## Common Report Scenarios
+
+### Scenario 1: Daily Quality Check
+
+<Steps>
+1. Set **Período** to "Últimos 7 días"
+2. Review the **Total Conformes** percentage
+3. Check if it meets your quality target (e.g., ≥95%)
+4. If below target, examine the **Pareto de Defectos** to identify root causes
+5. Review **Conformidad por Sucursal** to see which branches need support
+</Steps>
+
+### Scenario 2: Monthly Production Report
+
+<Steps>
+1. Set **Período** to "Últimos 30 días"
+2. Navigate to **Análisis Comercial** tab
+3. Review **Production by Branch** to confirm targets met
+4. Check **Top Products** to verify production mix
+5. Compare against planned production schedule
+</Steps>
+
+### Scenario 3: Investigating Quality Issues
+
+<Steps>
+1. Filter by **specific product** showing quality issues
+2. Set **Período** to capture recent production
+3. Go to **First Time Quality** tab
+4. Examine the **Control Chart** for trends
+5. Look for patterns:
+   - Gradual drift toward limits?
+   - Sudden shifts after a specific date?
+   - Wide variation indicating process instability?
+6. Cross-reference with production logs and equipment maintenance
+</Steps>
+
+### Scenario 4: Branch Performance Review
+
+<Steps>
+1. Filter by **Sucursal** (your branch)
+2. Set **Período** to "Últimos 3 meses"
+3. Note your **Total Conformes** percentage
+4. Compare against company quality target
+5. Identify your top defect parameter in **Pareto chart**
+6. Review **Top Products** to see your production focus
+</Steps>
+
+## Tips for Effective Reporting
+
+### Regular Reviews
+
+- Check daily quality KPIs at start of shift
+- Review weekly trends every Monday
+- Conduct monthly deep-dive analysis
+- Present quarterly summaries to management
+
+### Combining Filters
+
+Filters work together - combine them for focused analysis:
+
+- **Branch + Product**: See how a specific product performs at one location
+- **Category + Time**: Track family performance over time
+- **Preparer + Product**: Evaluate individual operator performance
+
+### Identifying Trends
+
+- Use longer time periods (3-6 months) to spot seasonal patterns
+- Compare week-over-week to catch emerging issues early
+- Monitor control charts for gradual drift before hitting limits
+
+## Troubleshooting
+
+### "No data to display"
+
+**Causes:**
+- Selected filters exclude all records
+- No production in the selected time period
+- Insufficient permissions
+
+**Solutions:**
+- Widen the time period filter
+- Remove product/category filters
+- Verify you have data access for the selected branch
+
+### Charts Not Rendering
+
+**Causes:**
+- Browser compatibility
+- Slow network connection
+- Large dataset
+
+**Solutions:**
+- Click the refresh button
+- Try a smaller time period
+- Clear browser cache
+- Use Chrome or Edge for best compatibility
+
+### Different Numbers in KPIs vs. Charts
+
+**Cause:**  
+KPIs may aggregate differently than chart visualizations.
+
+**Solution:**  
+This is normal. KPIs show totals, while charts may show breakdowns. The data is consistent.
+
+## Next Steps
+
+- [Creating Production Batches](/guides/user/creating-production-batches) - Record new data
+- [Managing Your Profile](/guides/user/managing-profile) - Update user settings
+- [Quality Control Module](/guides/user/quality-control) - Review individual batches

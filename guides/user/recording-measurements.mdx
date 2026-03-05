@@ -1,0 +1,339 @@
+---
+title: Recording Measurements
+description: Detailed procedures for recording quality measurements in production batches
+---
+
+## Overview
+
+Quality Hub GINEZ uses statistical process control to evaluate batch conformity. This guide explains how to properly record measurements and understand the control chart logic.
+
+## Measurement Equipment
+
+Before recording measurements, ensure you have the proper equipment:
+
+### Digital Refractometer (% Sólidos)
+
+- Used for measuring solid content (Brix)
+- Follow procedure **IO-DOP-OP-002**
+- Record temperature at time of measurement
+- Take two independent measurements for accuracy
+
+### pH Reactive Strips
+
+- Used for measuring pH levels
+- Follow procedure **IO-DOP-OP-001**
+- Wait for color stabilization before reading
+- Compare against provided color chart
+
+<Note>
+Calibrate equipment regularly according to your quality management procedures. Inaccurate equipment leads to false non-conformities.
+</Note>
+
+## Control Chart Logic
+
+Quality Hub GINEZ uses a **three-level control chart system** to classify batch conformity:
+
+### Understanding the Limits
+
+#### Red Lines (Specification Limits)
+
+These are the **minimum and maximum acceptable values** defined in product standards:
+
+- **Lower Spec Limit**: Minimum acceptable value
+- **Upper Spec Limit**: Maximum acceptable value
+- Values between red lines = **CONFORME** (Compliant)
+
+#### Yellow Lines (Tolerance Limits)
+
+These represent a **±5% relative error tolerance** around specification limits:
+
+- **Lower Tolerance**: Spec Min × 0.95
+- **Upper Tolerance**: Spec Max × 1.05
+- Values between red and yellow lines = **SEMI-CONFORME** (Within Tolerance)
+
+#### Outside Yellow Lines
+
+- Values outside tolerance = **NO CONFORME** (Non-Compliant)
+
+### Example: Solids Measurement
+
+Assume a product has these standards:
+- Spec Min: 10.0%
+- Spec Max: 12.0%
+
+**Calculated Limits:**
+- Lower Tolerance (Yellow): 10.0 × 0.95 = 9.5%
+- Lower Spec (Red): 10.0%
+- Upper Spec (Red): 12.0%
+- Upper Tolerance (Yellow): 12.0 × 1.05 = 12.6%
+
+**Classification:**
+- **11.0%**: CONFORME (between 10.0 and 12.0)
+- **9.8%**: SEMI-CONFORME (between 9.5 and 10.0)
+- **12.4%**: SEMI-CONFORME (between 12.0 and 12.6)
+- **9.2%**: NO CONFORME (below 9.5)
+- **13.0%**: NO CONFORME (above 12.6)
+
+## Recording Solids Measurements
+
+<Steps>
+
+### Prepare the Sample
+
+1. Ensure the product is well-mixed
+2. Take a representative sample from the batch
+3. Note the ambient temperature
+
+### Take First Measurement (M1)
+
+1. Place a drop of product on the refractometer prism
+2. Close the cover and wait 5 seconds for temperature stabilization
+3. Read the **% Sólidos** value from the display
+4. Record the measurement temperature in **°C**
+5. Enter both values in the form:
+   - **% Sólidos - M1**: The Brix reading
+   - **Temp - M1**: The temperature
+
+### Take Second Measurement (M2)
+
+1. Clean the refractometer prism thoroughly
+2. Take a fresh sample
+3. Repeat the measurement process
+4. Record the second measurement:
+   - **% Sólidos - M2**: The Brix reading
+   - **Temp - M2**: The temperature
+
+<Note>
+The system automatically calculates the average of M1 and M2. This average is used for conformity evaluation.
+</Note>
+
+### Clean Equipment
+
+After recording, clean the refractometer according to maintenance procedures.
+
+</Steps>
+
+## Recording pH Measurements
+
+<Steps>
+
+### Prepare the Sample
+
+1. Ensure the product is well-mixed
+2. Pour a small amount into a clean container
+3. Use fresh reactive strips (not expired)
+
+### Measure pH
+
+1. Dip the reactive strip into the sample
+2. Remove immediately and shake off excess liquid
+3. Wait 10-15 seconds for color development
+4. Compare the strip color against the reference chart
+5. Determine the pH value
+
+### Enter pH Value
+
+1. In the **Valor de pH** field, enter the measured value
+2. The system accepts values from 0 to 14
+3. You can enter decimals (e.g., 7, 7.5, 8)
+4. The field will reject invalid entries automatically
+
+<Warning>
+**Common Error**: Entering pH values outside 0-14 range. The system will not accept these values.
+</Warning>
+
+</Steps>
+
+## Recording Organoleptic Parameters
+
+Organoleptic parameters are evaluated visually and compared against product standards.
+
+### Apariencia (Appearance)
+
+<Steps>
+
+1. Observe the product in good lighting
+2. Compare against the expected appearance for the product
+3. Select the observed characteristic from the dropdown:
+   - **CRISTALINO**: Clear, transparent liquid
+   - **OPACO**: Opaque, non-transparent
+   - **APERLADO**: Pearl-like, lustrous appearance
+   - **TURBIO**: Cloudy or hazy
+   - **PARTICULAS SUSPENDIDAS**: Visible particles floating
+   - **SEPARACION DE COMPONENTES**: Visible layer separation
+
+</Steps>
+
+<Note>
+The system knows the expected appearance for each product. If you select a different appearance than expected, it will flag as non-conforming.
+</Note>
+
+### Color
+
+Compare the product color against reference standards:
+
+1. Use daylight or neutral lighting
+2. Compare against color reference (if available)
+3. Select:
+   - **CONFORME**: Color matches specification
+   - **NO CONFORME**: Color differs from specification
+
+### Aroma
+
+1. Smell the product (safely, without direct inhalation)
+2. Compare against the expected fragrance profile
+3. Select:
+   - **CONFORME**: Aroma matches specification
+   - **NO CONFORME**: Aroma is off or different
+
+## What Happens During Validation
+
+When you click **"Finalizar y Generar Lote"**, the system performs these checks:
+
+### 1. Required Field Check
+
+- Verifies all mandatory fields are filled
+- Checks that solids measurements (if applicable) have all 4 values (M1, T1, M2, T2)
+- Checks that pH (if applicable) is filled
+
+### 2. Solids Conformity Evaluation
+
+If solids apply:
+
+```
+Average = (M1 + M2) / 2
+
+IF Average >= Spec_Min AND Average <= Spec_Max THEN
+    Status = CONFORME
+ELSE IF Average >= Tolerance_Min AND Average <= Tolerance_Max THEN
+    Status = SEMI-CONFORME  
+ELSE
+    Status = NO CONFORME
+```
+
+### 3. pH Conformity Evaluation
+
+If pH applies:
+
+```
+IF pH >= pH_Min AND pH <= pH_Max THEN
+    pH Status = CONFORME
+ELSE
+    pH Status = NO CONFORME
+```
+
+### 4. Appearance Conformity Evaluation
+
+```
+IF Appearance == Expected_Appearance THEN
+    Appearance Status = CONFORME
+ELSE
+    Appearance Status = NO CONFORME
+```
+
+### 5. Overall Status Determination
+
+```
+IF ANY parameter is NO CONFORME THEN
+    Overall Status = NO CONFORME
+ELSE IF ANY parameter is SEMI-CONFORME THEN
+    Overall Status = RETENER (Tolerance/Hold)
+ELSE
+    Overall Status = CONFORME
+```
+
+<Note>
+The **most severe** non-conformity determines the overall batch status.
+</Note>
+
+## Understanding Notifications
+
+After submission, you'll see one of these notifications:
+
+### ✅ Producto Conforme
+
+**Meaning**: All parameters passed specification limits
+
+**Action**: None required. Batch is approved for release.
+
+**Duration**: 4 seconds
+
+### ⚠️ Producto en Tolerancia (Retener)
+
+**Meaning**: All parameters passed, but some are within tolerance (yellow zone)
+
+**Action**: Releasable with caution. Document in batch record.
+
+**Duration**: 6 seconds
+
+### ⚠️ Producto No Conforme
+
+**Meaning**: One or more parameters failed tolerance limits
+
+**Action**: **DO NOT release batch**. Immediate review required. Click "Ver detalles" to navigate to Quality Control.
+
+**Duration**: 8 seconds
+
+<Warning>
+Non-conforming batches must not be released for sale. Initiate your NCR (Non-Conformance Report) procedure immediately.
+</Warning>
+
+## Best Practices
+
+### Accuracy Tips
+
+- Take measurements at stable temperatures
+- Clean equipment between measurements
+- Record values immediately - do not rely on memory
+- Use fresh, calibrated reagents and strips
+
+### Documentation
+
+- Record any unusual observations in the **Observaciones** field
+- Note environmental conditions if relevant (high humidity, temperature extremes)
+- Document equipment used if multiple devices available
+
+### Efficiency
+
+- Prepare all materials before starting measurements
+- Follow the same sequence every time to avoid missed steps
+- Record measurements as soon as taken
+- Keep standards and procedures accessible for quick reference
+
+## Troubleshooting
+
+### "Faltan mediciones de Sólidos" Error
+
+This means you filled some but not all solids fields.
+
+**Solution**: Ensure all 4 fields are filled: M1, T1, M2, T2
+
+### "Falta medición de pH" Error
+
+This means pH is required for this product but not filled.
+
+**Solution**: Enter the pH value in the Valor de pH field
+
+### pH Field Won't Accept My Value
+
+The field validates pH range (0-14).
+
+**Solution**: 
+- Check you're entering a number, not text
+- Ensure value is between 0 and 14
+- Use decimal point, not comma (e.g., 7.5, not 7,5)
+
+### Measurements Keep Showing Non-Compliant
+
+If batches consistently fail:
+
+1. Verify equipment calibration
+2. Check measurement procedure compliance
+3. Review product formulation
+4. Contact Quality Manager
+
+## Next Steps
+
+- [Creating Production Batches](/guides/user/creating-production-batches) - Complete workflow
+- [Viewing Reports](/guides/user/viewing-reports) - Analyze measurement trends
+- [NCR Management](/quality/ncr-management) - Handle non-conforming batches

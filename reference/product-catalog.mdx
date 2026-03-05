@@ -1,0 +1,116 @@
+---
+title: Product Catalog
+description: Complete catalog of all products managed in Quality Hub GINEZ
+icon: package
+---
+
+## Overview
+
+The product catalog contains all products manufactured and managed by GINEZ, organized into families and categories.
+
+## Product Groups
+
+Products are organized into 6 main groups:
+
+### Cuidado del Hogar (Home Care)
+- **Color**: Orange
+- **Icon**: 🏠
+- **Categories**: 
+  - Aromatizante Ambiental
+  - Especialidades cuidado del hogar
+  - Limpiador liquido multiusos
+  - Detergente liquido para trastes
+  - Bases aromatizante ambiental
+  - Bases limpiadores liquidos multiusos
+
+### Cuidado Personal (Personal Care)
+- **Color**: Emerald
+- **Icon**: 💆
+- **Categories**:
+  - Crema corporal
+  - Enjuagues capilares
+  - Jabón liquido para manos
+  - Shampoo capilar
+
+### Lavandería (Laundry)
+- **Color**: Blue
+- **Icon**: 🧺
+- **Categories**:
+  - Detergente líquido para ropa
+  - Suavizante de telas
+  - Especialidades lavanderia
+  - Reforzador de aromas (REFARO)
+
+### Línea Automotriz (Automotive)
+- **Color**: Slate
+- **Icon**: 🚗
+- **Categories**:
+  - Automotriz
+
+### Línea Antibacterial (Antibacterial)
+- **Color**: Cyan
+- **Icon**: 🛡️
+- **Categories**:
+  - Antibacteriales
+
+### Productos Intermedios (Intermediate Products)
+- **Color**: Indigo
+- **Icon**: 🏭
+- **Categories**:
+  - Producto intermedio
+  - Disoluciones intermedias
+  - Producto terminado especial
+
+## Product Categories
+
+| ID | Name | Image |
+|---|---|---|
+| aro-amb | Aromatizante Ambiental | [View](https://i.imgur.com/86dsPZV.jpeg) |
+| antibac | Antibacteriales | [View](https://i.imgur.com/RQfPreB.png) |
+| bs-aro-amb | Bases aromatizante ambiental | [View](https://i.imgur.com/lPo1L37.jpeg) |
+| bs-lim-mult | Bases limpiadores liquidos multiusos | [View](https://i.imgur.com/T99Fqdz.jpeg) |
+| crem-corp | Crema corporal | [View](https://i.imgur.com/NdvM2Zf.png) |
+| det-trastes | Detergente liquido para trastes | [View](https://i.imgur.com/gBct0aj.jpeg) |
+| det-ropa | Detergente líquido para ropa | [View](https://i.imgur.com/58v54Q6.jpeg) |
+| enj-cap | Enjuagues capilares | [View](https://i.imgur.com/EE3YF65.jpeg) |
+| esp-hogar | Especialidades cuidado del hogar | [View](https://i.imgur.com/RqcQxOB.jpeg) |
+| esp-lavand | Especialidades lavanderia | [View](https://i.imgur.com/ak01Ugq.png) |
+| jab-manos | Jabón liquido para manos | [View](https://i.imgur.com/WWHmKQ4.jpeg) |
+| automotriz | Línea automotriz | [View](https://i.imgur.com/zWXi9RD.png) |
+| lim-mult | Limpiador liquido multiusos | [View](https://i.imgur.com/f5SwpJ6.jpeg) |
+| prod-interm | Producto intermedio | [View](https://i.imgur.com/KjckUNn.jpeg) |
+| refaro | Reforzador de aromas(REFARO) | [View](https://i.imgur.com/MIJLRTO.png) |
+| shampoo | Shampoo capilar | [View](https://i.imgur.com/lbWy7oY.jpeg) |
+| suavizante | Suavizante de telas | [View](https://i.imgur.com/UrZoUPG.jpeg) |
+| especial | Producto terminado especial | [View](https://i.imgur.com/epnUSfo.jpeg) |
+| disoluciones | Disoluciones intermedias | [View](https://i.imgur.com/RqcQxOB.jpeg) |
+
+## Data Sources
+
+### Raw Materials (Materia Prima)
+- **Source**: Google Sheets CSV
+- **Environment Variable**: `SHEET_MP_CSV_URL`
+- **Update Frequency**: Real-time on page load
+
+### Finished Products (Producto Terminado)
+- **Source**: Google Sheets CSV
+- **Environment Variable**: `SHEET_PT_CSV_URL`
+- **Update Frequency**: Real-time on page load
+
+### Technical Documents
+- **Storage**: Google Drive
+- **Document Types**:
+  - TDS (Technical Data Sheets)
+  - SDS (Safety Data Sheets)
+  - COA (Certificates of Analysis)
+  - Labels
+
+<Info>
+The catalog is synchronized with Google Sheets on every page load. For production environments, consider implementing cache with periodic revalidation for better performance.
+</Info>
+
+## Source Code Reference
+
+**File**: `lib/production-constants.ts:56-98`
+
+The complete product catalog constants can be found in the production constants file.

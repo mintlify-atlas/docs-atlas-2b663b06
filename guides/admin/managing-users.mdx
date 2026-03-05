@@ -1,0 +1,238 @@
+---
+title: Managing Users
+description: Learn how to create, edit, and manage user accounts in Quality Hub GINEZ
+---
+
+## Overview
+
+As an administrator, you can manage all user accounts in Quality Hub GINEZ, including creating new users, assigning roles, and managing access levels. User management is centralized in the Configuration module.
+
+## Accessing User Management
+
+<Steps>
+  <Step title="Navigate to Configuration">
+    Click on **Configuración** in the sidebar menu
+  </Step>
+  
+  <Step title="Go to Users Tab">
+    Click on the **Usuarios** tab or navigate to `/configuracion/usuarios`
+  </Step>
+</Steps>
+
+## User Roles
+
+Quality Hub GINEZ has **5 predefined roles** with specific permissions:
+
+### 1. Administrador (Administrator)
+**Full system access** - Gerentes, System Administrators, IT
+
+- ✅ Full access to all modules
+- ✅ Can create, edit, and delete all records
+- ✅ Can manage users and permissions
+- ✅ Can export data from all modules
+- ✅ Access to audit logs and configuration
+
+### 2. Supervisor
+**Quality supervision and reporting** - Quality Supervisors, Department Heads, Analysts
+
+- ✅ View all modules and reports
+- ✅ Create and edit quality control records
+- ✅ Create and edit reports
+- ✅ Export data from most modules
+- ❌ Cannot access Configuration
+- ❌ Cannot delete records
+
+### 3. Operador (Operator)
+**Production logging and quality control** - Production Operators, Quality Personnel
+
+- ✅ View dashboard and catalog
+- ✅ Create and edit bitácora entries
+- ✅ Create quality control records
+- ✅ View reports
+- ❌ Cannot export data
+- ❌ Cannot access Lab I+D or Configuration
+
+### 4. Preparador (Preparer)
+**Product preparation and batch logging** - Product Preparers, Mixing Personnel, Formulation Technicians
+
+- ✅ View catalog for formulas and specifications
+- ✅ Create and edit bitácora entries
+- ✅ Can edit their own records
+- ❌ No access to quality control (separate role)
+- ❌ Cannot view reports or analysis
+- ❌ No export capabilities
+
+### 5. Consulta (View-Only)
+**Read-only access** - Visitors, External Auditors, Sales Personnel
+
+- ✅ View dashboard and reports
+- ✅ View catalog
+- ❌ Cannot create, edit, or delete any records
+- ❌ No access to bitácora, quality control, or configuration
+
+## Managing User Accounts
+
+### Viewing All Users
+
+The Users page displays a table with:
+- User name
+- Role assignment
+- Branch (sucursal)
+- Approval status
+- Last updated date
+
+**Search and Filter:**
+- Use the search bar to find users by name
+- Filter by pending approvals using the toggle
+
+### Creating New Users
+
+Users typically register themselves through the login page. As an administrator, you then:
+
+<Steps>
+  <Step title="Review Pending Users">
+    Check for users with "Pending" approval status
+  </Step>
+  
+  <Step title="Assign Role and Branch">
+    Click **Edit** on the user's row and select:
+    - Appropriate role from the dropdown
+    - Branch (sucursal) assignment
+  </Step>
+  
+  <Step title="Approve Access">
+    Toggle the **Approved** checkbox to grant system access
+  </Step>
+  
+  <Step title="Save Changes">
+    Click **Save** to apply the configuration
+  </Step>
+</Steps>
+
+### Editing User Information
+
+<Steps>
+  <Step title="Locate the User">
+    Find the user in the Users table using search or scrolling
+  </Step>
+  
+  <Step title="Click Edit">
+    Click the **Edit** icon (pencil) next to the user's name
+  </Step>
+  
+  <Step title="Modify Details">
+    Update any of the following:
+    - Full name
+    - Position/title
+    - Department area
+    - Branch assignment
+    - Role
+    - Admin status (elevate to administrator)
+  </Step>
+  
+  <Step title="Save Changes">
+    Click **Save** to update the user profile
+  </Step>
+</Steps>
+
+<Note>
+Changes take effect immediately. Users may need to refresh their browser to see updated permissions.
+</Note>
+
+### Deleting User Accounts
+
+<Warning>
+Deleting a user removes their profile and access, but **preserves historical records** for audit trail purposes. This action cannot be easily undone.
+</Warning>
+
+<Steps>
+  <Step title="Click Delete Icon">
+    Click the **Trash** icon next to the user you want to remove
+  </Step>
+  
+  <Step title="Confirm Deletion">
+    Read the warning message carefully and confirm the action
+  </Step>
+</Steps>
+
+**What happens when you delete a user:**
+- ✅ User profile information is removed
+- ✅ User loses system access
+- ✅ Historical records (bitácora, quality control) are preserved
+- ✅ Auth account may remain in the system for security
+
+## Best Practices
+
+### Principle of Least Privilege
+- Assign only the permissions necessary for the user's job function
+- Example: A preparer doesn't need access to reports or quality validation
+
+### Separation of Duties
+- The person who prepares products should not be the same person who validates quality
+- Prevents conflicts of interest and ensures checks and balances
+
+### Regular Review
+- Review user permissions every 3-6 months
+- Revoke access for inactive users
+- Update roles when employees change positions
+
+### Documentation
+- Maintain a record of who has what permissions
+- Document significant changes (promotions, role changes)
+- Keep notes on why specific permissions were granted
+
+## Workflow Example
+
+### Scenario: Onboarding a New Production Operator
+
+<Steps>
+  <Step title="User Self-Registration">
+    New employee registers through the login page with their company email
+  </Step>
+  
+  <Step title="Admin Reviews Request">
+    You receive notification of pending user approval
+  </Step>
+  
+  <Step title="Verify Identity">
+    Confirm with HR or manager that this is a legitimate new employee
+  </Step>
+  
+  <Step title="Assign Operator Role">
+    - Set role to "Operador"
+    - Assign to their work branch (e.g., "Tlalnepantla")
+    - Set their area (e.g., "Producción")
+  </Step>
+  
+  <Step title="Approve and Notify">
+    Toggle approved status and save. Inform the user they can now log in
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### User Cannot Access a Module
+
+1. Verify their role includes permissions for that module
+2. Ask user to refresh the page (F5)
+3. Check that their account is approved
+4. Review role permissions in the system
+
+### Changes Not Reflected
+
+1. User must reload the page to see permission changes
+2. Verify changes were saved successfully
+3. Check browser console (F12) for errors
+4. Clear browser cache if necessary
+
+### Cannot See User Management
+
+- Only administrators can access user management
+- Verify your account has `is_admin = true`
+- Check that you're in the "Usuarios" tab of Configuration
+
+## Related Topics
+
+- [Configuring Permissions](/guides/admin/configuring-permissions)
+- [Audit Logs](/guides/admin/audit-logs)
+- [System Maintenance](/guides/admin/system-maintenance)

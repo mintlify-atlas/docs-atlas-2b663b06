@@ -1,122 +1,170 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Quality Hub GINEZ",
+  "theme": "linden",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#7c7c7c",
+    "light": "#070707",
+    "dark": "#c4c4c4"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.png",
+  "logo": {
+    "light": "https://media.brand.dev/1f1e4836-c9b0-4d21-a221-1411146261a9.svg",
+    "dark": "https://media.brand.dev/862e10d4-beb2-49d1-91ee-e52387c286bd.png"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/AlejandroMartinezG/quality-hub"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/AlejandroMartinezG/quality-hub"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
+              "introduction",
               "quickstart",
-              "development"
+              "installation"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Modules",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "modules/production-logbook",
+              "modules/quality-control",
+              "modules/product-catalog",
+              "modules/reports-analytics"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Quality Management",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "quality/control-charts",
+              "quality/conformity-classification",
+              "quality/standards-specifications",
+              "quality/ncr-management"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "User Management",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "user-management/roles-permissions",
+              "user-management/authentication",
+              "user-management/profile-settings"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/environment-variables",
+              "configuration/supabase-setup",
+              "configuration/google-sheets-integration",
+              "configuration/multi-location"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "Architecture",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "System Design",
             "pages": [
-              "api-reference/introduction"
+              "architecture/overview",
+              "architecture/tech-stack",
+              "architecture/data-model",
+              "architecture/security"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Frontend",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "architecture/frontend/app-structure",
+              "architecture/frontend/components",
+              "architecture/frontend/state-management"
+            ]
+          },
+          {
+            "group": "Backend",
+            "pages": [
+              "architecture/backend/supabase",
+              "architecture/backend/row-level-security",
+              "architecture/backend/data-validation"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "User Guides",
+            "pages": [
+              "guides/user/creating-production-batches",
+              "guides/user/recording-measurements",
+              "guides/user/viewing-reports",
+              "guides/user/managing-profile"
+            ]
+          },
+          {
+            "group": "Administrator Guides",
+            "pages": [
+              "guides/admin/managing-users",
+              "guides/admin/configuring-permissions",
+              "guides/admin/audit-logs",
+              "guides/admin/system-maintenance"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "guides/development/local-setup",
+              "guides/development/database-migrations",
+              "guides/development/adding-products",
+              "guides/development/customization"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "Product Standards",
+            "pages": [
+              "reference/product-catalog",
+              "reference/solids-standards",
+              "reference/ph-standards",
+              "reference/appearance-standards"
+            ]
+          },
+          {
+            "group": "Data Structures",
+            "pages": [
+              "reference/database-schema",
+              "reference/type-definitions",
+              "reference/validation-rules"
+            ]
+          },
+          {
+            "group": "Constants & Configuration",
+            "pages": [
+              "reference/locations",
+              "reference/product-categories",
+              "reference/parameter-applicability"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

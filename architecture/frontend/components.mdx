@@ -1,0 +1,656 @@
+---
+title: Component Architecture
+description: Component structure, patterns, and styling in Quality Hub GINEZ
+---
+
+# Component Architecture
+
+Quality Hub GINEZ uses a component-based architecture with **React** and **shadcn/ui** for a consistent, accessible, and maintainable UI.
+
+## Component Hierarchy
+
+```
+Root Layout (app/layout.tsx)
+│
+├── Theme Provider
+│   └── Dark/light mode context
+│
+├── Auth Provider
+│   └── User authentication context
+│
+├── App Shell
+│   ├── Sidebar Navigation
+│   ├── Top Bar
+│   └── Main Content Area
+│       └── Page Components
+│           ├── Feature Components
+│           └── UI Components
+│
+└── Toast Notifications (Sonner)
+```
+
+## Component Categories
+
+### 1. Layout Components
+
+Provide structure and consistent layout across pages.
+
+#### AppShell
+
+Main application shell with navigation:
+
+```typescript
+// components/AppShell.tsx
+export function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const { user, profile } = useAuth()
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  
+  return (
+    <div className="flex min-h-screen">
+      <Sidebar collapsed={isSidebarCollapsed} />
+      <MainContent>{children}</MainContent>
+    </div>
+  )
+}
+```
+
+#### Breadcrumbs
+
+Breadcrumb navigation:
+
+```typescript
+// components/Breadcrumbs.tsx
+export function Breadcrumbs() {
+  const pathname = usePathname()
+  const segments = pathname.split('/').filter(Boolean)
+  
+  return (
+    <nav className="flex items-center space-x-2 text-sm">
+      {segments.map((segment, index) => (
+        <Fragment key={segment}>
+          <Link href={`/${segments.slice(0, index + 1).join('/')}`}>
+            {formatSegment(segment)}
+          </Link>
+          {index < segments.length - 1 && <ChevronRight />}
+        </Fragment>
+      ))}
+    </nav>
+  )
+}
+```
+
+### 2. Feature Components
+
+Domain-specific components for business logic.
+
+#### DataTable
+
+Reusable data table with sorting, filtering, and pagination:
+
+```typescript
+// components/DataTable.tsx
+import { useReactTable, getCoreRowModel } from '@tanstack/react-table'
+
+export function DataTable<T>({
+  data,
+  columns,
+  onRowClick
+}: DataTableProps<T>) {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
+  
+  return (
+    <Table>
+      <TableHeader>
+        {table.getHeaderGroups().map(headerGroup => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map(header => (
+              <TableHead key={header.id}>
+                {flexRender(header.column.columnDef.header, header.getContext())}
+              </TableHead>
+            ))}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows.map(row => (
+          <TableRow
+            key={row.id}
+            onClick={() => onRowClick?.(row.original)}
+          >
+            {row.getVisibleCells().map(cell => (
+              <TableCell key={cell.id}>
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+```
+
+#### ModuleCard
+
+Dashboard module cards:
+
+```typescript
+// components/ModuleCard.tsx
+export function ModuleCard({
+  title,
+  description,
+  icon: Icon,
+  href,
+  color
+}: ModuleCardProps) {
+  return (
+    <Link href={href}>
+      <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+        <CardHeader>
+          <div className={cn("p-3 rounded-lg w-fit", color)}>
+            <Icon className="h-6 w-6" />
+          </div>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </CardHeader>
+      </Card>
+    </Link>
+  )
+}
+```
+
+#### DashboardBanner
+
+Carousel banner component:
+
+```typescript
+// components/DashboardBanner.tsx
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
+import Autoplay from 'embla-carousel-autoplay'
+
+export function DashboardBanner({ slides }: { slides: Slide[] }) {
+  const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }))
+  
+  return (
+    <Carousel plugins={[plugin.current]} className="w-full">
+      <CarouselContent>
+        {slides.map((slide, index) => (
+          <CarouselItem key={index}>
+            <div className="relative h-64 rounded-lg overflow-hidden">
+              <img src={slide.image} alt={slide.title} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60">
+                <h3 className="text-white text-2xl font-bold">{slide.title}</h3>
+                <p className="text-white/90">{slide.description}</p>
+              </div>
+            </div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+    </Carousel>
+  )
+}
+```
+
+### 3. Form Components
+
+Form inputs with validation and error handling.
+
+#### Controlled Input Pattern
+
+```typescript
+export function ProductForm({ onSubmit }: ProductFormProps) {
+  const [formData, setFormData] = useState({
+    codigo_producto: '',
+    tamano_lote: '',
+    ph: ''
+  })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    
+    // Validate with Zod
+    const result = validateForm(BitacoraSchema, formData)
+    if (!result.success) {
+      setErrors(result.errors)
+      return
+    }
+    
+    // Submit
+    await onSubmit(result.data)
+  }
+  
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="codigo_producto">Código de Producto</Label>
+        <Select
+          value={formData.codigo_producto}
+          onValueChange={(value) => 
+            setFormData(prev => ({ ...prev, codigo_producto: value }))
+          }
+        >
+          <SelectTrigger id="codigo_producto">
+            <SelectValue placeholder="Selecciona un producto" />
+          </SelectTrigger>
+          <SelectContent>
+            {products.map(product => (
+              <SelectItem key={product.code} value={product.code}>
+                {product.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {errors.codigo_producto && (
+          <p className="text-sm text-red-500 mt-1">{errors.codigo_producto}</p>
+        )}
+      </div>
+      
+      <div>
+        <Label htmlFor="tamano_lote">Tamaño de Lote</Label>
+        <Input
+          id="tamano_lote"
+          type="number"
+          value={formData.tamano_lote}
+          onChange={(e) => 
+            setFormData(prev => ({ ...prev, tamano_lote: e.target.value }))
+          }
+        />
+        {errors.tamano_lote && (
+          <p className="text-sm text-red-500 mt-1">{errors.tamano_lote}</p>
+        )}
+      </div>
+      
+      <Button type="submit">Guardar</Button>
+    </form>
+  )
+}
+```
+
+### 4. UI Components (shadcn/ui)
+
+Base UI components from shadcn/ui, fully customizable.
+
+#### Button
+
+```typescript
+// components/ui/button.tsx
+import { cva, type VariantProps } from "class-variance-authority"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center rounded-md font-medium transition-colors",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline: "border border-input hover:bg-accent",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 px-3",
+        lg: "h-11 px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, ...props }, ref) => {
+    return (
+      <button
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+
+export { Button, buttonVariants }
+```
+
+**Usage:**
+
+```typescript
+<Button variant="default">Save</Button>
+<Button variant="outline" size="sm">Cancel</Button>
+<Button variant="destructive">Delete</Button>
+<Button variant="ghost" size="icon"><Icon /></Button>
+```
+
+#### Dialog (Modal)
+
+```typescript
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+
+export function ConfirmDialog({ open, onOpenChange, onConfirm }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>¿Estás seguro?</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <p>Esta acción no se puede deshacer.</p>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={onConfirm}>
+              Confirmar
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+#### Select
+
+```typescript
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+<Select value={value} onValueChange={setValue}>
+  <SelectTrigger>
+    <SelectValue placeholder="Selecciona una opción" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="option1">Opción 1</SelectItem>
+    <SelectItem value="option2">Opción 2</SelectItem>
+  </SelectContent>
+</Select>
+```
+
+### 5. Chart Components
+
+Data visualization with Recharts.
+
+#### Bar Chart Example
+
+```typescript
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+
+export function ConformityChart({ data }: { data: ChartData[] }) {
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip />
+        <Bar dataKey="conforme" fill="#22c55e" name="Conforme" />
+        <Bar dataKey="semiConforme" fill="#eab308" name="Semi-Conforme" />
+        <Bar dataKey="noConforme" fill="#ef4444" name="No Conforme" />
+      </BarChart>
+    </ResponsiveContainer>
+  )
+}
+```
+
+#### Control Chart with Reference Lines
+
+```typescript
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts'
+
+export function ControlChart({ data, specMin, specMax }: ControlChartProps) {
+  const warnMin = specMin * 0.95
+  const warnMax = specMax * 1.05
+  
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <LineChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="lote" />
+        <YAxis domain={[warnMin - 1, warnMax + 1]} />
+        <Tooltip />
+        
+        {/* Red lines (specification) */}
+        <ReferenceLine y={specMin} stroke="#ef4444" strokeWidth={2} label="Min Spec" />
+        <ReferenceLine y={specMax} stroke="#ef4444" strokeWidth={2} label="Max Spec" />
+        
+        {/* Yellow lines (tolerance) */}
+        <ReferenceLine y={warnMin} stroke="#eab308" strokeDasharray="3 3" label="-5%" />
+        <ReferenceLine y={warnMax} stroke="#eab308" strokeDasharray="3 3" label="+5%" />
+        
+        <Line type="monotone" dataKey="solidos" stroke="#3b82f6" strokeWidth={2} />
+      </LineChart>
+    </ResponsiveContainer>
+  )
+}
+```
+
+## Component Patterns
+
+### Composition Pattern
+
+Build complex components from simpler ones:
+
+```typescript
+// Card composition
+<Card>
+  <CardHeader>
+    <CardTitle>Title</CardTitle>
+    <CardDescription>Description</CardDescription>
+  </CardHeader>
+  <CardContent>
+    {/* Content */}
+  </CardContent>
+  <CardFooter>
+    <Button>Action</Button>
+  </CardFooter>
+</Card>
+```
+
+### Compound Component Pattern
+
+Components that work together:
+
+```typescript
+// Tabs
+<Tabs defaultValue="quality">
+  <TabsList>
+    <TabsTrigger value="quality">Calidad</TabsTrigger>
+    <TabsTrigger value="commercial">Comercial</TabsTrigger>
+  </TabsList>
+  <TabsContent value="quality">
+    <QualityReport />
+  </TabsContent>
+  <TabsContent value="commercial">
+    <CommercialReport />
+  </TabsContent>
+</Tabs>
+```
+
+### Render Props Pattern
+
+For flexible rendering:
+
+```typescript
+export function DataFetcher<T>({
+  endpoint,
+  children
+}: {
+  endpoint: string
+  children: (data: T[], loading: boolean, error: Error | null) => React.ReactNode
+}) {
+  const [data, setData] = useState<T[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+  
+  useEffect(() => {
+    fetch(endpoint)
+      .then(res => res.json())
+      .then(setData)
+      .catch(setError)
+      .finally(() => setLoading(false))
+  }, [endpoint])
+  
+  return <>{children(data, loading, error)}</>
+}
+
+// Usage
+<DataFetcher endpoint="/api/products">
+  {(products, loading, error) => {
+    if (loading) return <Spinner />
+    if (error) return <Error message={error.message} />
+    return <ProductList products={products} />
+  }}
+</DataFetcher>
+```
+
+## Styling Approach
+
+### Tailwind CSS Utility Classes
+
+```typescript
+<div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg shadow-sm">
+  <h2 className="text-xl font-bold text-slate-900 dark:text-white">Title</h2>
+  <Button size="sm">Action</Button>
+</div>
+```
+
+### Conditional Classes with `cn` Utility
+
+```typescript
+import { cn } from '@/lib/utils'
+
+<div className={cn(
+  "base-classes",
+  isActive && "active-classes",
+  variant === "primary" && "primary-classes",
+  className  // Allow external classes
+)}>
+  Content
+</div>
+```
+
+### Class Variance Authority (CVA)
+
+For component variants:
+
+```typescript
+import { cva } from "class-variance-authority"
+
+const cardVariants = cva(
+  "rounded-lg border p-4",  // Base classes
+  {
+    variants: {
+      variant: {
+        default: "bg-white border-slate-200",
+        success: "bg-green-50 border-green-200",
+        warning: "bg-yellow-50 border-yellow-200",
+        danger: "bg-red-50 border-red-200",
+      },
+      size: {
+        sm: "p-2 text-sm",
+        md: "p-4",
+        lg: "p-6 text-lg",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "md",
+    },
+  }
+)
+
+export function InfoCard({ variant, size, children }) {
+  return (
+    <div className={cardVariants({ variant, size })}>
+      {children}
+    </div>
+  )
+}
+```
+
+## Dark Mode Support
+
+All components support dark mode:
+
+```typescript
+// Light and dark variants
+<div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+  Content
+</div>
+
+// Theme toggle
+const { theme, setTheme } = useTheme()
+
+<button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+  {theme === 'dark' ? <Sun /> : <Moon />}
+</button>
+```
+
+## Accessibility
+
+### ARIA Labels
+
+```typescript
+<button aria-label="Close dialog" onClick={onClose}>
+  <X className="h-4 w-4" />
+</button>
+```
+
+### Keyboard Navigation
+
+```typescript
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') onClose()
+  if (e.key === 'Enter') onSubmit()
+}
+
+<div onKeyDown={handleKeyDown} tabIndex={0}>
+  Content
+</div>
+```
+
+### Screen Reader Support
+
+All shadcn/ui components have built-in ARIA support.
+
+## Performance Best Practices
+
+### Memoization
+
+```typescript
+const MemoizedChart = React.memo(ControlChart)
+
+const expensiveData = useMemo(() => {
+  return data.map(item => analyzeConformity(item))
+}, [data])
+```
+
+### Lazy Loading
+
+```typescript
+import dynamic from 'next/dynamic'
+
+const HeavyChart = dynamic(() => import('./HeavyChart'), {
+  loading: () => <Skeleton className="h-64 w-full" />,
+  ssr: false
+})
+```
+
+## Next Steps
+
+- [State Management](/architecture/frontend/state-management)
+- [App Structure](/architecture/frontend/app-structure)
+- [Backend Integration](/architecture/backend/supabase)

@@ -1,0 +1,309 @@
+---
+title: 'Conformity Classification'
+description: 'Three-level conformity classification system for quality control in GINEZ'
+---
+
+# Conformity Classification
+
+Quality Hub GINEZ uses a **three-level conformity classification system** to evaluate product quality based on multiple parameters: sólidos (solids), pH, and appearance.
+
+## Classification Levels
+
+### Conforme (Conforming)
+
+**Definition**: Product meets all applicable quality standards.
+
+**Status**: `'conforme'`
+
+**Characteristics**:
+- All measured parameters are within specification limits
+- Product can be released for distribution
+- No corrective action required
+
+**Example**:
+```typescript
+{
+  phStatus: 'conforme',
+  solidsStatus: 'conforme',
+  appearanceStatus: 'conforme',
+  overallStatus: 'conforme',
+  isConform: true,
+  failedParams: []
+}
+```
+
+### Semi-Conforme (Semi-Conforming)
+
+**Definition**: Product falls in tolerance zones but outside strict specifications.
+
+**Status**: `'semi-conforme'`
+
+**Characteristics**:
+- Measurements are between red and yellow control chart limits
+- Within 5% tolerance of specification limits
+- Requires evaluation before release
+- May require process adjustment
+
+<Warning>
+Semi-Conforme products are within tolerance but indicate the process is drifting toward non-conformity. Monitor these closely.
+</Warning>
+
+**Example**:
+```typescript
+{
+  phStatus: 'conforme',
+  solidsStatus: 'semi-conforme',
+  appearanceStatus: 'conforme',
+  overallStatus: 'semi-conforme',
+  isConform: false,
+  failedParams: ['solidos']
+}
+```
+
+### No Conforme (Non-Conforming)
+
+**Definition**: Product fails to meet quality standards.
+
+**Status**: `'no-conforme'`
+
+**Characteristics**:
+- One or more parameters outside tolerance limits
+- Cannot be released without corrective action
+- Requires NCR (Non-Conformity Report) documentation
+- May require rework, reprocessing, or disposal
+
+**Example**:
+```typescript
+{
+  phStatus: 'no-conforme',
+  solidsStatus: 'conforme',
+  appearanceStatus: 'no-conforme',
+  overallStatus: 'no-conforme',
+  isConform: false,
+  failedParams: ['ph', 'apariencia']
+}
+```
+
+### Not Applicable (NA)
+
+**Status**: `'na'`
+
+**Definition**: Parameter not required for the product type.
+
+<Note>
+Many products don't require all parameters. For example, aromatizantes (air fresheners) don't require sólidos or pH measurements.
+</Note>
+
+## Parameter Evaluation
+
+### Sólidos (Solids Content)
+
+**Method**: Three-level control chart classification
+
+```typescript
+let solidsStatus: ConformityLevel = 'na'
+if (avgSolids !== null && stdSolids && 
+    stdSolids.min !== undefined && stdSolids.max !== undefined) {
+  const specMin = stdSolids.min
+  const specMax = stdSolids.max
+  const warnMin = specMin * 0.95
+  const warnMax = specMax * 1.05
+
+  if (avgSolids >= specMin && avgSolids <= specMax) {
+    solidsStatus = 'conforme'
+  } else if ((avgSolids >= warnMin && avgSolids < specMin) || 
+             (avgSolids > specMax && avgSolids <= warnMax)) {
+    solidsStatus = 'semi-conforme'
+    failedParams.push('solidos')
+  } else {
+    solidsStatus = 'no-conforme'
+    failedParams.push('solidos')
+  }
+}
+```
+
+**Location**: `lib/analysis-utils.ts:54-73`
+
+### pH (Acidity/Alkalinity)
+
+**Method**: Simple pass/fail evaluation
+
+```typescript
+let phStatus: ConformityLevel = 'na'
+if (record.ph !== null && stdPH) {
+  if (record.ph >= stdPH.min && record.ph <= stdPH.max) {
+    phStatus = 'conforme'
+  } else {
+    phStatus = 'no-conforme'
+    failedParams.push('ph')
+  }
+}
+```
+
+**Location**: `lib/analysis-utils.ts:76-84`
+
+<Note>
+pH currently uses binary pass/fail logic. There is no Semi-Conforme classification for pH.
+</Note>
+
+### Apariencia (Appearance)
+
+**Method**: String matching against standard appearance values
+
+```typescript
+let appearanceStatus: ConformityLevel = 'na'
+if (record.apariencia && stdApp) {
+  if (record.apariencia.toLowerCase().includes(stdApp.toLowerCase()) || 
+      stdApp.toLowerCase().includes(record.apariencia.toLowerCase())) {
+    appearanceStatus = 'conforme'
+  } else {
+    if (record.apariencia.toUpperCase() === stdApp.toUpperCase()) {
+      appearanceStatus = 'conforme'
+    } else {
+      appearanceStatus = 'no-conforme'
+      failedParams.push('apariencia')
+    }
+  }
+}
+```
+
+**Location**: `lib/analysis-utils.ts:87-101`
+
+**Standard Values**:
+- `CRISTALINO` - Clear/transparent
+- `OPACO` - Opaque
+- `APERLADO` - Pearlescent
+
+## Overall Conformity Logic
+
+<Note>
+Currently, overall status is determined **only by sólidos status** as specified by user requirements. pH and appearance are evaluated but don't affect overall conformity.
+</Note>
+
+```typescript
+const overallStatus = solidsStatus
+const isConform = overallStatus === 'conforme'
+```
+
+**Location**: `lib/analysis-utils.ts:114-118`
+
+### Future Enhancement: Worst Status Algorithm
+
+The code includes a `getWorstStatus` function for comprehensive evaluation:
+
+```typescript
+const getWorstStatus = (statuses: ConformityLevel[]): ConformityLevel => {
+  const activeStatuses = statuses.filter(s => s !== 'na')
+  if (activeStatuses.length === 0) return 'na'
+  if (activeStatuses.includes('no-conforme')) return 'no-conforme'
+  if (activeStatuses.includes('semi-conforme')) return 'semi-conforme'
+  return 'conforme'
+}
+```
+
+**Logic**:
+1. Filter out 'na' statuses
+2. If any parameter is 'no-conforme', overall is 'no-conforme'
+3. If any parameter is 'semi-conforme', overall is 'semi-conforme'
+4. If all parameters are 'conforme', overall is 'conforme'
+
+## Data Structure
+
+### ConformityLevel Type
+
+```typescript
+export type ConformityLevel = 'conforme' | 'semi-conforme' | 'no-conforme' | 'na'
+```
+
+### AnalysisResult Type
+
+```typescript
+export type AnalysisResult = {
+  isConform: boolean
+  failedParams: string[] // 'ph', 'solidos', 'apariencia', 'color', 'aroma'
+  phStatus: ConformityLevel
+  solidsStatus: ConformityLevel
+  appearanceStatus: ConformityLevel
+  overallStatus: ConformityLevel
+}
+```
+
+**Location**: `lib/analysis-utils.ts:6-15`
+
+## Decision Matrix
+
+| Parameter | Conforme | Semi-Conforme | No Conforme |
+|-----------|----------|---------------|-------------|
+| **Sólidos** | Within spec limits (red lines) | Between spec and tolerance (red-yellow) | Outside tolerance (beyond yellow) |
+| **pH** | Within min-max range | N/A | Outside min-max range |
+| **Apariencia** | Matches standard string | N/A | Does not match standard |
+| **Overall** | solidsStatus = 'conforme' | solidsStatus = 'semi-conforme' | solidsStatus = 'no-conforme' |
+
+## Practical Examples
+
+### Example 1: Fully Conforming Product
+
+**Product**: LIMLIM (Limón limpiador)  
+**Standards**: 1.4-1.6% sólidos, no pH requirement, CRISTALINO appearance
+
+**Measurements**:
+- Sólidos: 1.5%
+- Apariencia: CRISTALINO
+
+**Result**:
+```typescript
+{
+  solidsStatus: 'conforme',
+  appearanceStatus: 'conforme',
+  overallStatus: 'conforme',
+  failedParams: []
+}
+```
+
+### Example 2: Semi-Conforming Product
+
+**Product**: TRALIM (Detergente para trastes limón)  
+**Standards**: 16.5-17.5% sólidos, pH 7-9, CRISTALINO
+
+**Measurements**:
+- Sólidos: 16.1% (below 16.5, but above 15.675 = 16.5 × 0.95)
+- pH: 8.0
+- Apariencia: CRISTALINO
+
+**Result**:
+```typescript
+{
+  solidsStatus: 'semi-conforme',
+  phStatus: 'conforme',
+  appearanceStatus: 'conforme',
+  overallStatus: 'semi-conforme',
+  failedParams: ['solidos']
+}
+```
+
+### Example 3: Non-Conforming Product
+
+**Product**: TRABLU (Detergente para trastes blue)  
+**Standards**: 16.5-17.5% sólidos, pH 7-9, CRISTALINO
+
+**Measurements**:
+- Sólidos: 15.0% (below 15.675 tolerance limit)
+- pH: 6.5 (below 7.0 minimum)
+- Apariencia: CRISTALINO
+
+**Result**:
+```typescript
+{
+  solidsStatus: 'no-conforme',
+  phStatus: 'no-conforme',
+  appearanceStatus: 'conforme',
+  overallStatus: 'no-conforme',
+  failedParams: ['solidos', 'ph']
+}
+```
+
+## Related Topics
+
+- [Control Charts](/quality/control-charts) - Statistical process control implementation
+- [Standards & Specifications](/quality/standards-specifications) - Product-specific quality standards
+- [NCR Management](/quality/ncr-management) - Non-conformity reporting procedures

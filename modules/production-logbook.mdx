@@ -1,0 +1,256 @@
+---
+title: Production Logbook
+description: Track and record production batches with real-time quality validation and automatic batch numbering
+---
+
+# Production Logbook
+
+The Production Logbook module provides a guided interface for recording production batches with real-time quality validation and automatic batch number generation.
+
+![Production Logbook](https://docs.qualityhub.ginez/public/capturas_proyecto_quality_hub/bitacora_produccion_calidad.png)
+
+## Overview
+
+The Production Logbook is designed for production operators (preparadores) to register quality parameters for finished products. The system automatically evaluates conformity against predefined specifications and generates unique batch identifiers.
+
+## Key Features
+
+### Guided Data Entry Wizard
+- **Category Selection**: Choose product family from organized groups
+- **Step-by-step Form**: Progressive disclosure of relevant fields
+- **Real-time Validation**: Instant feedback on parameter compliance
+- **Automatic Calculations**: Average solids computation from duplicate measurements
+
+### Automatic Batch Number Generation
+
+Batch numbers follow the format: `YYMMDD-SUC-PRODSIZE-##`
+
+**Example**: `260305-PAC1-DETDON100-01`
+- `260305`: Date (March 5, 2026)
+- `PAC1`: Branch code (Pachuca 1)
+- `DETDON100`: Product code + batch size
+- `01`: Sequential number for the day
+
+### Dynamic Field Activation
+
+Fields are enabled/disabled based on product requirements:
+- **Solids Measurement**: Required for emulsions, detergents, and viscous products
+- **pH Measurement**: Required for alkaline and acidic formulations
+- **Organoleptic Properties**: Appearance, color, and aroma evaluation
+
+## User Workflow
+
+<Steps>
+  <Step title="Select Product Category">
+    Browse product families organized by application:
+    - Cuidado del Hogar (Home Care)
+    - Lavandería (Laundry)
+    - Cuidado Personal (Personal Care)
+    - Línea Automotriz (Automotive)
+    - Línea Antibacterial (Antibacterial)
+    - Productos Intermedios (Intermediate Products)
+  </Step>
+
+  <Step title="Complete General Information">
+    - **Branch**: Auto-filled from user profile
+    - **Preparer Name**: Auto-filled from user profile
+    - **Manufacturing Date**: Defaults to today
+    - **Product Code**: Select from filtered list by category
+    - **Batch Size**: Choose preset or enter custom value (Liters or Pieces)
+  </Step>
+
+  <Step title="Record Physicochemical Parameters">
+    
+    **% Solids (Brix) - Dual Measurement**
+    - Measurement 1 (% Solids + Temperature °C)
+    - Measurement 2 (% Solids + Temperature °C)
+    - Average automatically calculated
+    - Refractometer required (IO-DOP-OP-002)
+
+    **pH Value**
+    - Integer values from 0-14
+    - Test strips required (IO-DOP-OP-001)
+    - Validated against pH standards
+
+    **Additional Measurements**
+    - **Appearance**: CRISTALINO, OPACO, APERLADO, TURBIO, PARTICULAS SUSPENDIDAS, SEPARACION DE COMPONENTES
+    - **Color**: CONFORME / NO CONFORME
+    - **Aroma**: CONFORME / NO CONFORME
+  </Step>
+
+  <Step title="Review and Submit">
+    - System evaluates all parameters against specifications
+    - Batch number is auto-generated
+    - Quality status determined (CONFORME / RETENER / NO CONFORME)
+    - Record saved to database with user ID
+  </Step>
+</Steps>
+
+## Quality Evaluation Logic
+
+### Control Chart Classification
+
+The system uses a three-level conformity classification:
+
+<Tabs>
+  <Tab title="CONFORME (Green)">
+    **Within Specification Limits**
+    
+    Product meets all quality standards:
+    - % Solids: Within red lines (min-max specification)
+    - pH: Within defined range
+    - Appearance: Matches expected standard
+    - Color & Aroma: Conforming
+
+    **Action**: Batch approved for release
+  </Tab>
+
+  <Tab title="RETENER (Yellow)">
+    **Within Tolerance Range**
+    
+    Product is within tolerance (±5% relative error):
+    - % Solids: Between yellow lines (min×0.95 to max×1.05)
+    - pH: Slightly out of specification
+    
+    **Action**: Batch releasable with precaution. Quality team review recommended.
+  </Tab>
+
+  <Tab title="NO CONFORME (Red)">
+    **Outside Tolerance Limits**
+    
+    Product fails quality standards:
+    - % Solids: Outside yellow tolerance lines
+    - pH: Significantly out of range
+    - Appearance: Non-conforming characteristics
+    
+    **Action**: Batch requires immediate review. Hold for disposition.
+  </Tab>
+</Tabs>
+
+### Validation Rules
+
+**Solids Evaluation**
+```
+Specification Min/Max (Red Lines): From PRODUCT_STANDARDS
+Tolerance Min/Max (Yellow Lines): ±5% relative error
+
+IF avg_solids >= spec_min AND avg_solids <= spec_max:
+  → CONFORME
+ELSE IF avg_solids >= (spec_min × 0.95) AND avg_solids <= (spec_max × 1.05):
+  → RETENER (Semi-Conforme)
+ELSE:
+  → NO CONFORME
+```
+
+**pH Evaluation**
+```
+IF ph_value >= ph_min AND ph_value <= ph_max:
+  → CONFORME
+ELSE:
+  → NO CONFORME
+```
+
+**Appearance Evaluation**
+```
+IF appearance == expected_appearance:
+  → CONFORME
+ELSE:
+  → NO CONFORME
+```
+
+## Product Standards Reference
+
+The system maintains predefined standards for each product code including:
+- Minimum and maximum % solids
+- pH range
+- Expected appearance (CRISTALINO, OPACO, APERLADO)
+- Applicability flags (which parameters apply)
+
+**Example Standards:**
+- **DETDON** (Detergente Don): 22-28% solids, pH 6-8, OPACO
+- **LIMPIN** (Limpiador Pino): 0.5-1.5% solids, pH 11-13, CRISTALINO
+- **SUAMAG** (Suavizante Magic): 2-4% solids, pH 3-5, OPACO
+
+## Access Control
+
+### Allowed Roles
+- **Preparador** (Production Operator)
+- **Gerente Calidad** (Quality Manager)
+- **Coordinador** (Coordinator)
+- **Admin**
+
+### Restricted Roles
+- Gerente de Sucursal
+- Director de Operaciones
+- Mostrador / Cajera / Vendedor
+- Director de Compras
+
+<Info>
+  Users automatically see their branch pre-filled. Branch managers can only view records from their assigned location.
+</Info>
+
+## Notifications
+
+The system provides contextual toast notifications:
+
+<AccordionGroup>
+  <Accordion title="Conforme (Success)" icon="check">
+    ✅ **Producto Conforme**
+    
+    Lote [BATCH_CODE] registrado exitosamente.
+    
+    All parameters within specification. Batch approved.
+  </Accordion>
+
+  <Accordion title="Retener (Warning)" icon="alert-triangle">
+    ⚠️ **Producto en Tolerancia (Retener)**
+    
+    Lote [BATCH_CODE] liberable con precaución.
+    
+    Parameters within tolerance range. Review recommended.
+  </Accordion>
+
+  <Accordion title="No Conforme (Error)" icon="x">
+    ⚠️ **Producto No Conforme**
+    
+    Lote [BATCH_CODE] requiere revisión inmediata.
+    
+    Batch held. Quality team must disposition.
+  </Accordion>
+</AccordionGroup>
+
+## Equipment Required
+
+<CardGroup cols={2}>
+  <Card title="pH Test Strips" icon="droplet">
+    Reactive strips for pH measurement (0-14 range)
+    
+    **Procedure**: IO-DOP-OP-001
+  </Card>
+
+  <Card title="Digital Refractometer" icon="flask">
+    Brix refractometer for % solids measurement
+    
+    **Procedure**: IO-DOP-OP-002
+  </Card>
+</CardGroup>
+
+## Data Retention
+
+All batch records are permanently stored with:
+- User ID of creator
+- Timestamp of creation
+- Original measurements
+- Calculated averages
+- Quality status determination
+- Observations and notes
+
+<Warning>
+  Records cannot be deleted by regular users. Only administrators can remove entries, ensuring full traceability and audit trail.
+</Warning>
+
+## Related Modules
+
+- [Quality Control](/modules/quality-control) - Review historical records and NCRs
+- [Reports & Analytics](/modules/reports-analytics) - Analyze conformity trends
+- [Product Catalog](/modules/product-catalog) - View product specifications

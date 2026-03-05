@@ -1,0 +1,565 @@
+---
+title: 'Multi-Location Configuration'
+description: 'Configuration for 40+ production branches and locations in Quality Hub GINEZ'
+icon: 'location-dot'
+---
+
+## Overview
+
+Quality Hub GINEZ operates across **40+ production branches** throughout Mexico. The system is designed to handle multi-location production tracking, quality control, and reporting with location-specific data segregation and aggregation.
+
+<Info>
+  All locations (sucursales) are defined in `lib/production-constants.ts` and used throughout the application for filtering, reporting, and batch number generation.
+</Info>
+
+---
+
+## Location List
+
+The system supports the following 40 production locations:
+
+### Regional Distribution
+
+<CardGroup cols={3}>
+  <Card title="Central Mexico" icon="map-pin">
+    - ACTOPAN
+    - ATITALAQUIA
+    - ATLACOMULCO
+    - IXMIQUILPAN
+    - MIXQUIAHUALA
+    - PACHUCA 1
+    - PACHUCA 2
+    - TIZAYUCA
+    - TULANCINGO 1
+    - TULANCINGO 2
+    - ZUMPANGO 1
+    - ZUMPANGO 2
+  </Card>
+  
+  <Card title="Puebla & Surroundings" icon="map-pin">
+    - AMOZOC
+    - APIZACO
+    - CHOLULA
+    - PUEBLA 1
+    - PUEBLA 2
+    - PUEBLA 3
+    - TEHUACAN
+    - TEZIUTLAN
+  </Card>
+  
+  <Card title="Bajío Region" icon="map-pin">
+    - CELAYA
+    - IRAPUATO
+    - QUERETARO 1
+    - QUERETARO 2
+    - QUERETARO 3
+  </Card>
+  
+  <Card title="Western Mexico" icon="map-pin">
+    - GUADALAJARA
+    - MORELIA
+  </Card>
+  
+  <Card title="Southern Mexico" icon="map-pin">
+    - CUAUTLA
+    - OAXACA 1
+    - OAXACA 2
+  </Card>
+  
+  <Card title="Southeast" icon="map-pin">
+    - CANCUN 1
+    - CANCUN 2
+    - CEIBA
+    - MERIDA
+    - PLAYA DEL CARMEN
+    - VILLAHERMOSA
+  </Card>
+  
+  <Card title="Gulf Coast" icon="map-pin">
+    - HUEJUTLA
+    - VERACRUZ
+  </Card>
+  
+  <Card title="Administrative" icon="building">
+    - CEDIS (Distribution Center)
+    - CORPORATIVO (Corporate HQ)
+  </Card>
+</CardGroup>
+
+---
+
+## Complete Location Reference
+
+<AccordionGroup>
+  <Accordion title="All 40 Locations (Alphabetical)">
+    | # | Location | Acronym | Region |
+    |---|----------|---------|--------|
+    | 1 | ACTOPAN | ACT | Hidalgo |
+    | 2 | AMOZOC | AMO | Puebla |
+    | 3 | APIZACO | APZ | Tlaxcala |
+    | 4 | ATITALAQUIA | ATI | Hidalgo |
+    | 5 | ATLACOMULCO | ATL | Estado de México |
+    | 6 | CANCUN 1 | CAN1 | Quintana Roo |
+    | 7 | CANCUN 2 | CAN2 | Quintana Roo |
+    | 8 | CEIBA | CEI | Quintana Roo |
+    | 9 | CELAYA | CEL | Guanajuato |
+    | 10 | CHOLULA | CHO | Puebla |
+    | 11 | CUAUTLA | CUA | Morelos |
+    | 12 | GUADALAJARA | GDL | Jalisco |
+    | 13 | HUEJUTLA | HUE | Hidalgo |
+    | 14 | IRAPUATO | IRA | Guanajuato |
+    | 15 | IXMIQUILPAN | IXM | Hidalgo |
+    | 16 | MERIDA | MER | Yucatán |
+    | 17 | MIXQUIAHUALA | MIX | Hidalgo |
+    | 18 | MORELIA | MOR | Michoacán |
+    | 19 | OAXACA 1 | OAX1 | Oaxaca |
+    | 20 | OAXACA 2 | OAX2 | Oaxaca |
+    | 21 | PACHUCA 1 | PAC1 | Hidalgo |
+    | 22 | PACHUCA 2 | PAC2 | Hidalgo |
+    | 23 | PLAYA DEL CARMEN | PDC | Quintana Roo |
+    | 24 | PUEBLA 1 | PUE1 | Puebla |
+    | 25 | PUEBLA 2 | PUE2 | Puebla |
+    | 26 | PUEBLA 3 | PUE3 | Puebla |
+    | 27 | QUERETARO 1 | QR01 | Querétaro |
+    | 28 | QUERETARO 2 | QR02 | Querétaro |
+    | 29 | QUERETARO 3 | QR03 | Querétaro |
+    | 30 | TEHUACAN | TEH | Puebla |
+    | 31 | TEZIUTLAN | TEZ | Puebla |
+    | 32 | TIZAYUCA | TIZ | Hidalgo |
+    | 33 | TULANCINGO 1 | TUL1 | Hidalgo |
+    | 34 | TULANCINGO 2 | TUL2 | Hidalgo |
+    | 35 | VERACRUZ | VER | Veracruz |
+    | 36 | VILLAHERMOSA | VHM | Tabasco |
+    | 37 | ZUMPANGO 1 | ZUM1 | Estado de México |
+    | 38 | ZUMPANGO 2 | ZUM2 | Estado de México |
+    | 39 | CEDIS | CEDIS | Distribution |
+    | 40 | CORPORATIVO | CORP | Corporate |
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Location Acronyms
+
+Each location has a unique acronym used in batch/lot number generation:
+
+<CodeGroup>
+
+```typescript lib/production-constants.ts
+export const SUCURSAL_ACRONYMS: Record<string, string> = {
+  "ACTOPAN": "ACT",
+  "AMOZOC": "AMO",
+  "APIZACO": "APZ",
+  "ATITALAQUIA": "ATI",
+  "ATLACOMULCO": "ATL",
+  "CANCUN 1": "CAN1",
+  "CANCUN 2": "CAN2",
+  "CEIBA": "CEI",
+  "CELAYA": "CEL",
+  "CHOLULA": "CHO",
+  "CUAUTLA": "CUA",
+  "GUADALAJARA": "GDL",
+  "HUEJUTLA": "HUE",
+  "IRAPUATO": "IRA",
+  "IXMIQUILPAN": "IXM",
+  "MERIDA": "MER",
+  "MIXQUIAHUALA": "MIX",
+  "MORELIA": "MOR",
+  "OAXACA 1": "OAX1",
+  "OAXACA 2": "OAX2",
+  "PACHUCA 1": "PAC1",
+  "PACHUCA 2": "PAC2",
+  "PLAYA DEL CARMEN": "PDC",
+  "PUEBLA 1": "PUE1",
+  "PUEBLA 2": "PUE2",
+  "PUEBLA 3": "PUE3",
+  "QUERETARO 1": "QR01",
+  "QUERETARO 2": "QR02",
+  "QUERETARO 3": "QR03",
+  "TEHUACAN": "TEH",
+  "TEZIUTLAN": "TEZ",
+  "TIZAYUCA": "TIZ",
+  "TULANCINGO 1": "TUL1",
+  "TULANCINGO 2": "TUL2",
+  "VERACRUZ": "VER",
+  "VILLAHERMOSA": "VHM",
+  "ZUMPANGO 1": "ZUM1",
+  "ZUMPANGO 2": "ZUM2",
+  "CEDIS": "CEDIS",
+  "CORPORATIVO": "CORP"
+};
+```
+
+```typescript Usage Example
+import { SUCURSAL_ACRONYMS } from '@/lib/production-constants'
+
+const location = "PACHUCA 1"
+const acronym = SUCURSAL_ACRONYMS[location] // "PAC1"
+
+// Used in batch number generation
+const batchNumber = `20240315-${acronym}-LIMLIM-001`
+// Result: "20240315-PAC1-LIMLIM-001"
+```
+
+</CodeGroup>
+
+---
+
+## Batch Number Format
+
+Batch/lot numbers are automatically generated using the location acronym:
+
+```
+YYYYMMDD-{ACRONYM}-{PRODUCT_CODE}-###
+```
+
+**Components:**
+- `YYYYMMDD` - Production date (e.g., 20240315)
+- `ACRONYM` - Location acronym (e.g., PAC1)
+- `PRODUCT_CODE` - Product identifier (e.g., LIMLIM)
+- `###` - Sequential number (001, 002, 003...)
+
+<CodeGroup>
+
+```typescript Example Batch Numbers
+// PACHUCA 1 producing LIMLIM on March 15, 2024
+"20240315-PAC1-LIMLIM-001"
+
+// CANCUN 2 producing SUASUE on March 15, 2024
+"20240315-CAN2-SUASUE-001"
+
+// QUERETARO 3 producing TRALIM on December 31, 2025
+"20251231-QR03-TRALIM-005"
+```
+
+```typescript Generation Algorithm
+function generateBatchNumber(
+  date: Date,
+  sucursal: string,
+  productCode: string,
+  sequence: number
+): string {
+  const dateStr = date.toISOString().split('T')[0].replace(/-/g, '')
+  const acronym = SUCURSAL_ACRONYMS[sucursal]
+  const seqStr = sequence.toString().padStart(3, '0')
+  
+  return `${dateStr}-${acronym}-${productCode}-${seqStr}`
+}
+
+// Usage
+const batch = generateBatchNumber(
+  new Date('2024-03-15'),
+  'PACHUCA 1',
+  'LIMLIM',
+  1
+)
+console.log(batch) // "20240315-PAC1-LIMLIM-001"
+```
+
+</CodeGroup>
+
+---
+
+## Location-Based Features
+
+### 1. Filtering and Search
+
+All modules support location-based filtering:
+
+<Tabs>
+  <Tab title="Quality Control">
+    Users can filter records by location to view:
+    - Production logs for specific branch
+    - Conformity rates by location
+    - Quality trends per site
+  </Tab>
+  
+  <Tab title="Reports">
+    Generate location-specific reports:
+    - Production volume by branch
+    - Conformity percentage comparison
+    - Top products per location
+  </Tab>
+  
+  <Tab title="Dashboard">
+    Admin dashboard shows:
+    - Total production across all locations
+    - Location performance comparison
+    - Geographic production distribution
+  </Tab>
+</Tabs>
+
+---
+
+### 2. Data Segregation
+
+While data is stored centrally, the UI can be configured for location-specific views:
+
+```typescript
+// Optional: Restrict user to specific location
+const userLocation = profile.sucursal // From user profile
+
+const records = await supabase
+  .from('bitacora_produccion')
+  .select('*')
+  .eq('sucursal', userLocation) // Filter by user's location
+  .order('fecha_fabricacion', { ascending: false })
+```
+
+<Note>
+  Current implementation allows all users to see all locations. Location-based access restrictions can be added via RLS policies if needed.
+</Note>
+
+---
+
+## Adding New Locations
+
+To add a new production location to the system:
+
+<Steps>
+  <Step title="Update Constants File">
+    Edit `lib/production-constants.ts`:
+    
+    ```typescript
+    // 1. Add to SUCURSALES array
+    export const SUCURSALES = [
+      // ... existing locations ...
+      "NEW_LOCATION",
+    ];
+    
+    // 2. Add acronym mapping
+    export const SUCURSAL_ACRONYMS: Record<string, string> = {
+      // ... existing mappings ...
+      "NEW_LOCATION": "NEWLOC",
+    };
+    ```
+  </Step>
+  
+  <Step title="Update UI Components">
+    Location dropdown components automatically read from `SUCURSALES`, but verify:
+    
+    ```typescript
+    import { SUCURSALES } from '@/lib/production-constants'
+    
+    <Select>
+      {SUCURSALES.map(suc => (
+        <SelectItem key={suc} value={suc}>
+          {suc}
+        </SelectItem>
+      ))}
+    </Select>
+    ```
+  </Step>
+  
+  <Step title="Test Batch Generation">
+    Verify batch numbers generate correctly:
+    
+    ```bash
+    npm run dev
+    # Navigate to Bitácora → Create new record
+    # Select new location and verify batch format
+    ```
+  </Step>
+  
+  <Step title="Update Documentation">
+    Document the new location in:
+    - Internal wiki/procedures
+    - User training materials
+    - This documentation page
+  </Step>
+</Steps>
+
+<Warning>
+  Do not modify or remove existing locations unless absolutely necessary, as it may affect historical data integrity.
+</Warning>
+
+---
+
+## Location-Specific Configurations
+
+### Option 1: Centralized Configuration
+
+All locations use the same quality standards and product definitions (current implementation).
+
+**Pros:**
+- Consistent quality standards across all sites
+- Simplified maintenance
+- Easier compliance and auditing
+
+**Cons:**
+- Less flexibility for location-specific requirements
+- Cannot accommodate regional variations
+
+---
+
+### Option 2: Location-Specific Standards (Advanced)
+
+For organizations requiring location-specific configurations:
+
+<CodeGroup>
+
+```typescript Location-Specific Standards
+export const LOCATION_CONFIGS: Record<string, LocationConfig> = {
+  "PACHUCA 1": {
+    timezone: "America/Mexico_City",
+    specialRequirements: ["ISO-9001", "FSSC-22000"],
+    customStandards: {
+      "LIMLIM": { min: 1.5, max: 1.6 } // Tighter tolerance
+    }
+  },
+  "CANCUN 1": {
+    timezone: "America/Cancun",
+    specialRequirements: ["ISO-9001"],
+    customStandards: {} // Use defaults
+  }
+  // ... more locations
+}
+```
+
+```typescript Usage
+function getProductStandards(product: string, location: string) {
+  const locationConfig = LOCATION_CONFIGS[location]
+  
+  // Check for location-specific override
+  if (locationConfig?.customStandards?.[product]) {
+    return locationConfig.customStandards[product]
+  }
+  
+  // Fall back to global standards
+  return PRODUCT_STANDARDS[product]
+}
+```
+
+</CodeGroup>
+
+<Tip>
+  Only implement location-specific configurations if truly needed. Most organizations benefit from standardization.
+</Tip>
+
+---
+
+## Multi-Site Reporting
+
+### Aggregated Reports
+
+Generate company-wide reports across all locations:
+
+```typescript
+const aggregatedData = await supabase
+  .from('bitacora_produccion')
+  .select('sucursal, tamano_lote, codigo_producto')
+  .gte('fecha_fabricacion', startDate)
+  .lte('fecha_fabricacion', endDate)
+
+// Group by location
+const byLocation = aggregatedData.reduce((acc, record) => {
+  if (!acc[record.sucursal]) {
+    acc[record.sucursal] = { volume: 0, batches: 0 }
+  }
+  acc[record.sucursal].volume += record.tamano_lote
+  acc[record.sucursal].batches += 1
+  return acc
+}, {})
+```
+
+### Location Comparison
+
+Compare performance metrics across locations:
+
+<CardGroup cols={2}>
+  <Card title="Production Volume" icon="chart-bar">
+    Compare total liters/kg produced per location over time period
+  </Card>
+  
+  <Card title="Quality Conformance" icon="check-circle">
+    Percentage of conforming batches by location
+  </Card>
+  
+  <Card title="Product Mix" icon="layer-group">
+    Distribution of product families by location
+  </Card>
+  
+  <Card title="Efficiency Metrics" icon="gauge-high">
+    Average batch size, production rate, and throughput
+  </Card>
+</CardGroup>
+
+---
+
+## Geographic Visualization (Future Enhancement)
+
+For advanced deployments, consider adding geographic visualization:
+
+```typescript
+import { MapContainer, Marker, Popup } from 'react-leaflet'
+
+const LOCATION_COORDINATES: Record<string, [number, number]> = {
+  "PACHUCA 1": [20.1220, -98.7316],
+  "CANCUN 1": [21.1619, -86.8515],
+  "GUADALAJARA": [20.6597, -103.3496],
+  // ... more coordinates
+}
+
+function ProductionMap({ data }: { data: ProductionRecord[] }) {
+  return (
+    <MapContainer center={[23.6345, -102.5528]} zoom={5}>
+      {data.map(record => (
+        <Marker
+          key={record.id}
+          position={LOCATION_COORDINATES[record.sucursal]}
+        >
+          <Popup>
+            <strong>{record.sucursal}</strong><br />
+            Volume: {record.tamano_lote} L<br />
+            Status: {record.conformity}
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
+  )
+}
+```
+
+---
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Naming Consistency" icon="tags">
+    - Always use official location names from `SUCURSALES`
+    - Never use variations or abbreviations in data entry
+    - Validate location input against constant list
+  </Card>
+  
+  <Card title="Data Integrity" icon="database">
+    - Enforce location foreign key constraints
+    - Validate batch numbers follow correct format
+    - Audit location changes in production records
+  </Card>
+  
+  <Card title="Performance" icon="gauge-high">
+    - Index `sucursal` column for fast filtering
+    - Use location-based partitioning for large datasets
+    - Cache location list in frontend (rarely changes)
+  </Card>
+  
+  <Card title="User Experience" icon="users">
+    - Pre-select user's default location
+    - Show location in batch number preview
+    - Provide location-based quick filters
+  </Card>
+</CardGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Environment Variables" icon="gear" href="/configuration/environment-variables">
+    Complete your environment configuration
+  </Card>
+  
+  <Card title="Supabase Setup" icon="database" href="/configuration/supabase-setup">
+    Set up location-aware database policies
+  </Card>
+</CardGroup>

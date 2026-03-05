@@ -1,0 +1,344 @@
+---
+title: Database Schema
+description: Complete database schema and table structure for Quality Hub GINEZ
+icon: database
+---
+
+## Overview
+
+Quality Hub GINEZ uses **Supabase** (PostgreSQL 15) as its backend database with Row Level Security (RLS) enabled for all tables.
+
+## Main Tables
+
+### bitacora_produccion
+
+The primary table for production batch records.
+
+<ResponseField name="id" type="bigint" required>
+  Primary key, auto-incrementing
+</ResponseField>
+
+<ResponseField name="created_at" type="timestamp with time zone" required>
+  Timestamp when the record was created (automatic)
+</ResponseField>
+
+<ResponseField name="lote_producto" type="text" required>
+  Batch/lot identifier in format: `YYYYMMDD-SUC-PROD-###`
+  
+  Example: `20240315-PAC1-LIMLIM-001`
+</ResponseField>
+
+<ResponseField name="codigo_producto" type="text" required>
+  Product code (e.g., LIMLIM, TRALIM, SUASUE)
+  
+  Must match codes defined in `PRODUCT_STANDARDS`
+</ResponseField>
+
+<ResponseField name="sucursal" type="text" required>
+  Branch/location where product was manufactured
+  
+  Must be one of 40 locations from `SUCURSALES` constant
+</ResponseField>
+
+<ResponseField name="familia_producto" type="text">
+  Product family (e.g., "Cuidado del Hogar", "Lavandería")
+</ResponseField>
+
+<ResponseField name="categoria_producto" type="text">
+  Product category (e.g., "Limpiador liquido multiusos")
+</ResponseField>
+
+<ResponseField name="fecha_fabricacion" type="date" required>
+  Manufacturing date
+</ResponseField>
+
+<ResponseField name="tamano_lote" type="numeric" required>
+  Batch size in liters or kilograms
+  
+  Must be a positive number
+</ResponseField>
+
+<ResponseField name="ph" type="numeric">
+  pH measurement (0-14)
+  
+  Only required for products in `PH_STANDARDS`
+</ResponseField>
+
+<ResponseField name="solidos_medicion_1" type="numeric">
+  First solids percentage measurement (0-55%)
+  
+  Required for products with solids applicability
+</ResponseField>
+
+<ResponseField name="temp_med1" type="numeric">
+  Temperature for first solids measurement
+</ResponseField>
+
+<ResponseField name="solidos_medicion_2" type="numeric">
+  Second solids percentage measurement (0-55%)
+</ResponseField>
+
+<ResponseField name="temp_med2" type="numeric">
+  Temperature for second solids measurement
+</ResponseField>
+
+<ResponseField name="viscosidad_seg" type="numeric">
+  Viscosity measurement in seconds
+</ResponseField>
+
+<ResponseField name="temperatura" type="numeric">
+  General temperature measurement
+</ResponseField>
+
+<ResponseField name="apariencia" type="text" required>
+  Visual appearance: "CRISTALINO", "OPACO", or "APERLADO"
+  
+  Must match `APPEARANCE_STANDARDS` for conformity
+</ResponseField>
+
+<ResponseField name="color" type="text" required>
+  Color conformity: "CONFORME" or "NO CONFORME"
+</ResponseField>
+
+<ResponseField name="aroma" type="text" required>
+  Aroma conformity: "CONFORME" or "NO CONFORME"
+</ResponseField>
+
+<ResponseField name="contaminacion_microbiologica" type="text" required>
+  Microbiological contamination: "SIN PRESENCIA" or "CON PRESENCIA"
+</ResponseField>
+
+<ResponseField name="observaciones" type="text">
+  Additional observations (max 1000 characters)
+</ResponseField>
+
+<ResponseField name="nombre_preparador" type="text" required>
+  Name of the operator who prepared the batch (max 200 characters)
+</ResponseField>
+
+<ResponseField name="user_id" type="uuid" required>
+  Foreign key to `auth.users(id)`
+  
+  Identifies the user who created the record
+</ResponseField>
+
+### profiles
+
+User profile information and roles.
+
+<ResponseField name="id" type="uuid" required>
+  Primary key, references `auth.users(id)`
+</ResponseField>
+
+<ResponseField name="email" type="text">
+  User email address
+</ResponseField>
+
+<ResponseField name="nombre" type="text">
+  Full name of the user
+</ResponseField>
+
+<ResponseField name="area" type="text">
+  Department/area
+</ResponseField>
+
+<ResponseField name="puesto" type="text">
+  Job title/position
+</ResponseField>
+
+<ResponseField name="is_admin" type="boolean" default="false">
+  Whether the user has administrator privileges
+</ResponseField>
+
+<ResponseField name="created_at" type="timestamp with time zone">
+  Account creation timestamp
+</ResponseField>
+
+## SQL Schema
+
+### Create bitacora_produccion Table
+
+```sql
+CREATE TABLE bitacora_produccion (
+  id BIGSERIAL PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  lote_producto TEXT NOT NULL,
+  codigo_producto TEXT NOT NULL,
+  sucursal TEXT NOT NULL,
+  familia_producto TEXT,
+  categoria_producto TEXT,
+  fecha_fabricacion DATE NOT NULL,
+  tamano_lote NUMERIC NOT NULL,
+  ph NUMERIC,
+  solidos_medicion_1 NUMERIC,
+  temp_med1 NUMERIC,
+  solidos_medicion_2 NUMERIC,
+  temp_med2 NUMERIC,
+  viscosidad_seg NUMERIC,
+  temperatura NUMERIC,
+  apariencia TEXT NOT NULL,
+  color TEXT NOT NULL,
+  aroma TEXT NOT NULL,
+  contaminacion_microbiologica TEXT NOT NULL,
+  observaciones TEXT,
+  nombre_preparador TEXT NOT NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE
+);
+
+-- Enable Row Level Security
+ALTER TABLE bitacora_produccion ENABLE ROW LEVEL SECURITY;
+
+-- Create index for faster queries
+CREATE INDEX idx_bitacora_user_id ON bitacora_produccion(user_id);
+CREATE INDEX idx_bitacora_fecha ON bitacora_produccion(fecha_fabricacion DESC);
+CREATE INDEX idx_bitacora_producto ON bitacora_produccion(codigo_producto);
+CREATE INDEX idx_bitacora_sucursal ON bitacora_produccion(sucursal);
+```
+
+### Create profiles Table
+
+```sql
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT,
+  nombre TEXT,
+  area TEXT,
+  puesto TEXT,
+  is_admin BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Row Level Security
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+```
+
+## Row Level Security (RLS) Policies
+
+### bitacora_produccion Policies
+
+```sql
+-- Users can view their own records
+CREATE POLICY "Users can view own records"
+ON bitacora_produccion FOR SELECT
+USING (auth.uid() = user_id);
+
+-- Admins can view all records
+CREATE POLICY "Admins can view all records"
+ON bitacora_produccion FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+
+-- Users can insert their own records
+CREATE POLICY "Users can insert own records"
+ON bitacora_produccion FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+-- Users can update their own records
+CREATE POLICY "Users can update own records"
+ON bitacora_produccion FOR UPDATE
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+
+-- Admins can update all records
+CREATE POLICY "Admins can update all records"
+ON bitacora_produccion FOR UPDATE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+)
+WITH CHECK (true);
+
+-- Only admins can delete records
+CREATE POLICY "Admins can delete records"
+ON bitacora_produccion FOR DELETE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+```
+
+### profiles Policies
+
+```sql
+-- Users can view their own profile
+CREATE POLICY "Users can view own profile"
+ON profiles FOR SELECT
+USING (auth.uid() = id);
+
+-- Admins can view all profiles
+CREATE POLICY "Admins can view all profiles"
+ON profiles FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles p
+    WHERE p.id = auth.uid()
+    AND p.is_admin = true
+  )
+);
+
+-- Users can update their own profile (except is_admin)
+CREATE POLICY "Users can update own profile"
+ON profiles FOR UPDATE
+USING (auth.uid() = id)
+WITH CHECK (auth.uid() = id);
+
+-- Only admins can change roles
+CREATE POLICY "Admins can update all profiles"
+ON profiles FOR UPDATE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles p
+    WHERE p.id = auth.uid()
+    AND p.is_admin = true
+  )
+)
+WITH CHECK (true);
+```
+
+## Environment Variables
+
+```env
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+```
+
+## Client Configuration
+
+**File**: `lib/supabase.ts`
+
+```typescript
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+export const supabase = createClient(supabaseUrl, supabaseKey)
+```
+
+## Data Integrity
+
+### Referential Integrity
+- `user_id` in `bitacora_produccion` references `auth.users(id)` with `ON DELETE CASCADE`
+- When a user is deleted, their production records are preserved but the foreign key is nullified
+
+### Constraints
+- All `NOT NULL` fields must be provided
+- Numeric fields accept NULL for optional measurements
+- Text fields have maximum lengths enforced at the application level
+
+## Source Code Reference
+
+**Database Schema Documentation**: `README.md:85-103`
+
+**RLS Policies Documentation**: `README.md:329-347`

@@ -1,0 +1,293 @@
+---
+title: 'Environment Variables'
+description: 'Complete reference for Quality Hub GINEZ environment variables'
+icon: 'gear'
+---
+
+## Overview
+
+Quality Hub GINEZ uses environment variables to configure external integrations and application settings. All sensitive configuration should be stored in a `.env.local` file that is never committed to version control.
+
+<Warning>
+  **Never commit** `.env.local` to your repository. The file contains sensitive credentials and API keys.
+</Warning>
+
+## Setup Instructions
+
+1. Copy the example environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+2. Fill in the actual values for each variable
+3. Restart your development server for changes to take effect
+
+---
+
+## Environment Variables Reference
+
+### Google Sheets Integration
+
+These variables configure the CSV data sources for the product catalog.
+
+<ParamField path="SHEET_MP_CSV_URL" type="string" required>
+  **Materia Prima (Raw Materials) CSV URL**
+  
+  Google Sheets published CSV URL for raw materials catalog. This sheet contains all raw material specifications and documentation links.
+  
+  **Format**: `https://docs.google.com/spreadsheets/d/e/YOUR_ID/pub?gid=SHEET_ID_MP&single=true&output=csv`
+  
+  **How to get this URL**:
+  1. Open your Google Sheet
+  2. Go to File → Share → Publish to web
+  3. Select the specific sheet/tab for Raw Materials
+  4. Choose "Comma-separated values (.csv)" format
+  5. Click "Publish" and copy the generated URL
+</ParamField>
+
+<ParamField path="SHEET_PT_CSV_URL" type="string" required>
+  **Producto Terminado (Finished Products) CSV URL**
+  
+  Google Sheets published CSV URL for finished products catalog. This sheet contains all finished product specifications and documentation links.
+  
+  **Format**: `https://docs.google.com/spreadsheets/d/e/YOUR_ID/pub?gid=SHEET_ID_PT&single=true&output=csv`
+  
+  **How to get this URL**:
+  1. Open your Google Sheet
+  2. Go to File → Share → Publish to web
+  3. Select the specific sheet/tab for Finished Products
+  4. Choose "Comma-separated values (.csv)" format
+  5. Click "Publish" and copy the generated URL
+</ParamField>
+
+<Note>
+  The catalog syncs on every page load. For better performance in production, consider implementing caching with periodic revalidation.
+</Note>
+
+---
+
+### Next.js Configuration
+
+<ParamField path="NEXT_PUBLIC_BASE_PATH" type="string" default="">
+  **Application Base Path**
+  
+  Optional base path for the application if deployed to a subdirectory. Leave empty for root deployment.
+  
+  **Example**: If deploying to `https://example.com/quality-hub`, set:
+  ```env
+  NEXT_PUBLIC_BASE_PATH="/quality-hub"
+  ```
+  
+  **Default**: Empty string (root path)
+</ParamField>
+
+---
+
+### Supabase Configuration
+
+These variables connect the application to your Supabase project for authentication and database access.
+
+<ParamField path="NEXT_PUBLIC_SUPABASE_URL" type="string" required>
+  **Supabase Project URL**
+  
+  The public URL for your Supabase project. This is safe to expose in the browser.
+  
+  **Format**: `https://your-project-id.supabase.co`
+  
+  **Where to find it**:
+  1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+  2. Select your project
+  3. Navigate to Settings → API
+  4. Copy the "Project URL" value
+  
+  **Example**:
+  ```env
+  NEXT_PUBLIC_SUPABASE_URL="https://xyzcompany.supabase.co"
+  ```
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_SUPABASE_ANON_KEY" type="string" required>
+  **Supabase Anonymous Key**
+  
+  The public anonymous key for browser-side Supabase client initialization. This key is safe to expose as it respects Row Level Security (RLS) policies.
+  
+  **Where to find it**:
+  1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+  2. Select your project
+  3. Navigate to Settings → API
+  4. Copy the "anon public" key from the "Project API keys" section
+  
+  **Security**: This key is restricted by RLS policies and is safe for client-side use.
+</ParamField>
+
+<ParamField path="SUPABASE_SERVICE_ROLE_KEY" type="string" optional>
+  **Supabase Service Role Key** (Server-side only)
+  
+  <Warning>
+    **CRITICAL**: This key bypasses Row Level Security. **NEVER** expose this in client-side code or commit it to version control.
+  </Warning>
+  
+  Used for server-side operations that require elevated privileges.
+  
+  **Where to find it**:
+  1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+  2. Select your project
+  3. Navigate to Settings → API
+  4. Copy the "service_role" key (click to reveal)
+  
+  **Usage**: Only use in server-side API routes or functions. Never import this in client components.
+  
+  **Example**:
+  ```typescript
+  // ✅ Correct: Server-side only
+  // app/api/admin/route.ts
+  import { createClient } from '@supabase/supabase-js'
+  
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY! // Only accessible server-side
+  )
+  
+  // ❌ Wrong: Never use in client components
+  // components/MyComponent.tsx
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY! // DANGER: Exposes admin key
+  )
+  ```
+</ParamField>
+
+---
+
+## Complete Example File
+
+<CodeGroup>
+
+```env .env.example
+# ================================================
+# QualityHub - Variables de Entorno
+# ================================================
+# Copia este archivo como .env.local y rellena los valores reales.
+# NUNCA commitees .env.local al repositorio.
+#
+#   cp .env.example .env.local
+#
+# ================================================
+
+# --- Google Sheets (URLs de datos CSV) ---
+SHEET_MP_CSV_URL="https://docs.google.com/spreadsheets/d/e/TU_ID/pub?gid=ID_HOJA_MP&single=true&output=csv"
+SHEET_PT_CSV_URL="https://docs.google.com/spreadsheets/d/e/TU_ID/pub?gid=ID_HOJA_PT&single=true&output=csv"
+
+# --- Next.js ---
+NEXT_PUBLIC_BASE_PATH=""
+
+# --- Supabase ---
+# Obtén estos valores en: https://supabase.com/dashboard/project/TU_PROYECTO/settings/api
+NEXT_PUBLIC_SUPABASE_URL="https://tu-proyecto.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="tu-anon-key-aqui"
+
+# --- Supabase Service Role (SOLO para server-side, NUNCA exponer en frontend) ---
+# SUPABASE_SERVICE_ROLE_KEY="tu-service-role-key-aqui"
+```
+
+```env .env.local (Production Example)
+# Production configuration - DO NOT COMMIT
+SHEET_MP_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxyz.../pub?gid=123456789&single=true&output=csv"
+SHEET_PT_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxyz.../pub?gid=987654321&single=true&output=csv"
+
+NEXT_PUBLIC_BASE_PATH=""
+
+NEXT_PUBLIC_SUPABASE_URL="https://ginez-quality-hub.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+</CodeGroup>
+
+---
+
+## Validation
+
+After configuring your environment variables, verify they're loaded correctly:
+
+```bash
+npm run dev
+```
+
+Check the browser console for any connection errors. You should see:
+- ✅ Successful Supabase client initialization
+- ✅ Product catalog loading from Google Sheets
+- ✅ Authentication system responding
+
+<Tip>
+  Use `console.log(process.env.NEXT_PUBLIC_SUPABASE_URL)` temporarily to verify variables are loaded. Remove debug logs before committing.
+</Tip>
+
+---
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Error: Missing environment variable">
+    **Solution**: Ensure your `.env.local` file exists in the project root and contains all required variables. Restart the dev server after making changes.
+  </Accordion>
+  
+  <Accordion title="Supabase connection fails">
+    **Check**:
+    - URL format is correct (should start with `https://` and end with `.supabase.co`)
+    - Anonymous key is copied completely (usually 200+ characters)
+    - No extra spaces or quotes in the values
+    - RLS policies are configured (see [Supabase Setup](/configuration/supabase-setup))
+  </Accordion>
+  
+  <Accordion title="Google Sheets data not loading">
+    **Verify**:
+    - Sheet is published to web (File → Share → Publish to web)
+    - URL format includes `/pub?` and `output=csv`
+    - Sheet permissions allow public access
+    - CSV structure matches expected format
+  </Accordion>
+  
+  <Accordion title="Changes not taking effect">
+    **Try**:
+    1. Stop the dev server (Ctrl+C)
+    2. Delete `.next` folder: `rm -rf .next`
+    3. Restart: `npm run dev`
+    
+    Environment variables are cached during build. Fresh restart required.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Security Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Never Commit Secrets" icon="shield-halved">
+    Add `.env.local` to `.gitignore`. Use `.env.example` for documentation only.
+  </Card>
+  
+  <Card title="Rotate Keys Regularly" icon="arrows-rotate">
+    Periodically regenerate API keys, especially if exposed or when team members leave.
+  </Card>
+  
+  <Card title="Use Separate Environments" icon="layer-group">
+    Maintain separate Supabase projects and Google Sheets for development, staging, and production.
+  </Card>
+  
+  <Card title="Validate on Startup" icon="check-circle">
+    Implement runtime validation to ensure all required variables are present before app initialization.
+  </Card>
+</CardGroup>
+
+---
+
+## Next Steps
+
+<Card title="Supabase Setup" icon="database" href="/configuration/supabase-setup">
+  Configure your Supabase database tables and Row Level Security policies
+</Card>
+
+<Card title="Google Sheets Integration" icon="table" href="/configuration/google-sheets-integration">
+  Set up your product catalog spreadsheets for the application
+</Card>

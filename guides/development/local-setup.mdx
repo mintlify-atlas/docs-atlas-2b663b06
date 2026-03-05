@@ -1,0 +1,308 @@
+---
+title: 'Local Development Setup'
+description: 'Complete guide to setting up Quality Hub GINEZ for local development'
+icon: 'laptop-code'
+---
+
+## Prerequisites
+
+Before setting up Quality Hub GINEZ locally, ensure you have the following installed:
+
+- **Node.js 18+** and npm
+- **Git** for version control
+- A **Supabase** account (free tier available)
+- Access to **Google Sheets** for product catalog
+- Access to **Google Drive** for technical documents
+
+## Step 1: Clone the Repository
+
+<CodeGroup>
+
+```bash Clone Repository
+git clone <repository-url>
+cd QualityHub
+```
+
+</CodeGroup>
+
+## Step 2: Install Dependencies
+
+Install all required npm packages:
+
+<CodeGroup>
+
+```bash Install
+npm install
+```
+
+</CodeGroup>
+
+This will install all dependencies including:
+- Next.js 14 (App Router)
+- React 18
+- Supabase client libraries
+- Tailwind CSS & shadcn/ui components
+- Recharts for data visualization
+- And more...
+
+## Step 3: Configure Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+<CodeGroup>
+
+```bash Create .env.local
+touch .env.local
+```
+
+</CodeGroup>
+
+Add the following environment variables:
+
+```env .env.local
+# Google Sheets (Catálogo)
+SHEET_MP_CSV_URL="https://docs.google.com/spreadsheets/d/.../export?format=csv"
+SHEET_PT_CSV_URL="https://docs.google.com/spreadsheets/d/.../export?format=csv"
+
+# Supabase (Auth & Database)
+NEXT_PUBLIC_SUPABASE_URL="https://tu-proyecto.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="tu-clave-anonima-publica"
+```
+
+### Getting Supabase Credentials
+
+1. Go to [Supabase](https://supabase.com/) and create a new project
+2. Navigate to **Settings** → **API**
+3. Copy the **Project URL** and **anon/public** key
+4. Paste them into your `.env.local` file
+
+### Setting Up Google Sheets URLs
+
+1. Create or access the Google Sheets for product catalogs
+2. For each sheet, go to **File** → **Share** → **Publish to web**
+3. Select **Comma-separated values (.csv)** format
+4. Copy the published URL and add it to `.env.local`
+
+## Step 4: Set Up Supabase Database
+
+### Create Tables
+
+Run the following SQL in your Supabase SQL Editor:
+
+<CodeGroup>
+
+```sql Bitácora Table
+CREATE TABLE bitacora_produccion (
+  id BIGSERIAL PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  lote_producto TEXT NOT NULL,
+  codigo_producto TEXT NOT NULL,
+  sucursal TEXT NOT NULL,
+  familia_producto TEXT,
+  categoria_producto TEXT,
+  fecha_fabricacion DATE NOT NULL,
+  tamano_lote NUMERIC,
+  ph NUMERIC,
+  solidos_medicion_1 NUMERIC,
+  solidos_medicion_2 NUMERIC,
+  apariencia TEXT,
+  color TEXT,
+  aroma TEXT,
+  nombre_preparador TEXT,
+  user_id UUID REFERENCES auth.users(id)
+);
+
+-- Enable RLS
+ALTER TABLE bitacora_produccion ENABLE ROW LEVEL SECURITY;
+```
+
+```sql Profiles Table
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id),
+  email TEXT,
+  nombre TEXT,
+  area TEXT,
+  puesto TEXT,
+  is_admin BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+```
+
+</CodeGroup>
+
+### Set Up Row Level Security (RLS) Policies
+
+<CodeGroup>
+
+```sql User Policies
+-- Users can view their own records
+CREATE POLICY "Users can view own records"
+ON bitacora_produccion FOR SELECT
+USING (auth.uid() = user_id);
+
+-- Users can insert their own records
+CREATE POLICY "Users can insert own records"
+ON bitacora_produccion FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+-- Users can update their own records
+CREATE POLICY "Users can update own records"
+ON bitacora_produccion FOR UPDATE
+USING (auth.uid() = user_id);
+```
+
+```sql Admin Policies
+-- Admins can view all records
+CREATE POLICY "Admins can view all records"
+ON bitacora_produccion FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+
+-- Admins can delete any record
+CREATE POLICY "Admins can delete records"
+ON bitacora_produccion FOR DELETE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+```
+
+</CodeGroup>
+
+## Step 5: Start Development Server
+
+<CodeGroup>
+
+```bash Start Dev Server
+npm run dev
+```
+
+</CodeGroup>
+
+The application will be available at **http://localhost:3000**
+
+## Step 6: Create Your First Admin User
+
+1. Navigate to **http://localhost:3000/login**
+2. Register a new account
+3. Go to Supabase dashboard → **Table Editor** → **profiles**
+4. Find your user and set `is_admin` to `true`
+5. Log out and log back in to see admin features
+
+## Available npm Scripts
+
+<CodeGroup>
+
+```bash Development
+# Start development server (hot reload)
+npm run dev
+```
+
+```bash Production Build
+# Build for production
+npm run build
+
+# Start production server
+npm start
+```
+
+```bash Linting
+# Run ESLint
+npm run lint
+```
+
+```bash Data Build
+# Build static data files
+npm run build-data
+```
+
+</CodeGroup>
+
+## Project Structure
+
+Once set up, your project structure should look like this:
+
+```
+QualityHub/
+├── app/                          # Next.js App Router
+│   ├── (auth)/                   # Authentication routes
+│   ├── bitacora/                 # Production log module
+│   ├── calidad/                  # Quality control module
+│   ├── catalogo/                 # Product catalog
+│   ├── configuracion/            # Settings & user management
+│   ├── reportes/                 # Reports and analytics
+│   └── page.tsx                  # Dashboard
+├── components/                   # React components
+│   ├── ui/                       # shadcn/ui components
+│   └── *.tsx                     # Custom components
+├── lib/                          # Utilities and logic
+│   ├── production-constants.ts   # Product standards
+│   ├── supabase.ts               # Supabase client
+│   └── utils.ts                  # Helper functions
+├── public/                       # Static assets
+├── .env.local                    # Environment variables (not in git)
+├── next.config.js                # Next.js configuration
+├── tailwind.config.ts            # Tailwind configuration
+└── package.json                  # Dependencies
+```
+
+## Troubleshooting
+
+### Port Already in Use
+
+If port 3000 is already in use:
+
+<CodeGroup>
+
+```bash Change Port
+PORT=3001 npm run dev
+```
+
+</CodeGroup>
+
+### Supabase Connection Issues
+
+1. Verify your `.env.local` variables are correct
+2. Check that your Supabase project is active
+3. Ensure RLS policies are properly configured
+
+### Module Not Found Errors
+
+<CodeGroup>
+
+```bash Clear Cache
+# Delete node_modules and reinstall
+rm -rf node_modules
+npm install
+
+# Clear Next.js cache
+rm -rf .next
+npm run dev
+```
+
+</CodeGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Database Migrations" icon="database" href="/guides/development/database-migrations">
+    Learn how to manage database schema changes
+  </Card>
+  <Card title="Adding Products" icon="box" href="/guides/development/adding-products">
+    Add new products to the system
+  </Card>
+  <Card title="Customization" icon="palette" href="/guides/development/customization">
+    Customize the application for your needs
+  </Card>
+</CardGroup>

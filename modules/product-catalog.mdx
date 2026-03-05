@@ -1,0 +1,432 @@
+---
+title: Product Catalog
+description: Browse technical documentation, safety data sheets, and certificates of analysis for raw materials and finished products
+---
+
+# Product Catalog
+
+The Product Catalog provides centralized access to technical documentation for all GINEZ products, including raw materials and finished goods.
+
+## Overview
+
+The catalog is divided into two main sections, synchronized with Google Sheets for real-time data updates:
+
+<CardGroup cols={2}>
+  <Card title="Raw Materials" icon="flask">
+    Technical data sheets, safety information, and certificates of analysis for production inputs.
+    
+    **Data Source**: Google Sheets CSV export
+  </Card>
+
+  <Card title="Finished Products" icon="package">
+    Product specifications, formulations, and quality standards for completed goods.
+    
+    **Data Source**: Google Sheets CSV export + Static catalog
+  </Card>
+</CardGroup>
+
+---
+
+## Raw Materials Catalog
+
+### Navigation
+
+Access via: **Catálogo > Materias Primas**
+
+### Features
+
+<Tabs>
+  <Tab title="Search & Filter">
+    **Search Bar**
+    - Search by material name
+    - Search by CAS number
+    - Search by supplier
+    - Real-time filtering as you type
+
+    **Advanced Filters**
+    - Filter by hazard classification
+    - Filter by supplier
+    - Filter by material type
+  </Tab>
+
+  <Tab title="Material Cards">
+    Each material card displays:
+    - **Material Name**: Common and chemical name
+    - **CAS Number**: Chemical Abstracts Service registry
+    - **Supplier**: Primary vendor
+    - **Hazard Icons**: GHS pictograms
+    - **Documents Available**: Count of attached files
+  </Tab>
+
+  <Tab title="Documents">
+    Available documentation types:
+    - **FT** (Ficha Técnica): Technical Data Sheet
+    - **HS** (Hoja de Seguridad): Safety Data Sheet (SDS)
+    - **COA** (Certificado de Análisis): Certificate of Analysis
+    
+    Documents stored in Google Drive with direct download links.
+  </Tab>
+</Tabs>
+
+### Document Access Audit
+
+<Info>
+  **Admin Feature**: All document downloads are logged with user ID, timestamp, and document type for compliance tracking.
+</Info>
+
+The audit log captures:
+- User who downloaded
+- Material accessed
+- Document type (FT/HS/COA)
+- Download timestamp
+- IP address (if enabled)
+
+**Audit Trail Location**: `/configuracion` > Auditoría de Documentos (Admin only)
+
+---
+
+## Finished Products Catalog
+
+### Navigation
+
+Access via: **Catálogo > Productos Terminados**
+
+### Hierarchical Structure
+
+The finished products catalog uses a three-level hierarchy:
+
+```
+Familias (Families)
+  └── Categorías (Categories)
+      └── Productos (Products/SKUs)
+```
+
+**Example:**
+```
+Cuidado del Hogar (Home Care Family)
+  └── Limpiador líquido multiusos (Multi-Purpose Cleaner Category)
+      └── LIMPINO (Pine Cleaner Product)
+```
+
+### Product Families
+
+Finished products are organized into six major families:
+
+<CardGroup cols={2}>
+  <Card title="Cuidado del Hogar" icon="home" color="#3b82f6">
+    Home care products:
+    - Multi-purpose cleaners
+    - Air fresheners
+    - Specialty household products
+    - Pine oil cleaners
+  </Card>
+
+  <Card title="Lavandería" icon="washing-machine" color="#8b5cf6">
+    Laundry products:
+    - Liquid laundry detergent
+    - Fabric softeners
+    - Stain removers
+    - Laundry specialty items
+  </Card>
+
+  <Card title="Cuidado Personal" icon="sparkles" color="#ec4899">
+    Personal care products:
+    - Hand soap
+    - Hair shampoo
+    - Hair conditioner
+    - Body cream
+  </Card>
+
+  <Card title="Línea Automotriz" icon="car" color="#f59e0b">
+    Automotive products:
+    - Liquid wax
+    - Gel wax
+    - Tire shine
+    - Engine degreaser
+    - Car shampoo
+  </Card>
+
+  <Card title="Línea Antibacterial" icon="shield" color="#10b981">
+    Antibacterial products:
+    - Antibacterial hand soap
+    - Hand sanitizer gel
+    - Disinfectant spray
+  </Card>
+
+  <Card title="Productos Intermedios" icon="factory" color="#6366f1">
+    Intermediate products:
+    - Emulsions
+    - Detergent alcohol
+    - Fragrance bases
+    - Fabric softener base
+  </Card>
+</CardGroup>
+
+### Product Detail View
+
+Clicking a product opens a detailed view showing:
+
+**Basic Information**
+- Product Code (SKU)
+- Commercial Name
+- Product Family
+- Category
+- Presentation Sizes
+
+**Quality Specifications**
+- % Solids Range (min-max)
+- pH Range (min-max)
+- Expected Appearance (CRISTALINO/OPACO/APERLADO)
+- Parameter Applicability Flags
+
+**Documentation**
+- Technical Data Sheet
+- Safety Data Sheet (if applicable)
+- Quality Certificate Template
+- Label Design
+
+**Production References**
+- Standard Batch Sizes
+- Typical Lead Time
+- Shelf Life
+- Storage Conditions
+
+### Drill-Down Navigation
+
+The catalog supports intuitive drill-down exploration:
+
+<Steps>
+  <Step title="Family Level">
+    Browse all six product families on the main page.
+    
+    Click a family card to view its categories.
+  </Step>
+
+  <Step title="Category Level">
+    View all categories within the selected family.
+    
+    Example: Within "Lavandería", see Detergente Ropa, Suavizante, etc.
+    
+    Click a category to view its products.
+  </Step>
+
+  <Step title="Product Level">
+    View all SKUs within the selected category.
+    
+    Example: Within "Detergente Ropa", see DETDON, GIRIEL, PERGIN, etc.
+    
+    Click a product for full specifications.
+  </Step>
+</Steps>
+
+<Info>
+  Breadcrumbs at the top of the page allow quick navigation back to any level.
+</Info>
+
+---
+
+## Search Functionality
+
+### Global Search
+
+The catalog features a global search bar that indexes:
+- Product codes (SKUs)
+- Product names
+- Family names
+- Category names
+- Raw material names
+- CAS numbers
+
+**Search Tips:**
+- Use partial matches (e.g., "DET" finds all detergents)
+- Case-insensitive matching
+- Accent-insensitive (e.g., "jabon" finds "jabón")
+- Real-time results as you type
+
+### Filter Combinations
+
+Combine multiple filters for precise results:
+
+**Example Workflow:**
+1. Select "Lavandería" family
+2. Apply "Detergente Ropa" category filter
+3. Search for "GIN" to find all GIRIEL variants
+
+---
+
+## Data Synchronization
+
+### Google Sheets Integration
+
+The catalog syncs with Google Sheets via CSV export:
+
+**Raw Materials Sheet Columns:**
+- Material Name
+- CAS Number
+- Supplier
+- Hazard Classification
+- FT URL
+- HS URL
+- COA URL
+
+**Finished Products Sheet Columns:**
+- Product Code
+- Product Name
+- Family
+- Category
+- Solids Min
+- Solids Max
+- pH Min
+- pH Max
+- Appearance
+- Documentation URLs
+
+### Update Frequency
+
+Data refreshes:
+- **On page load**: Fresh data every visit
+- **Manual refresh**: Refresh button in UI
+- **Cache duration**: 5 minutes client-side cache
+
+<Warning>
+  Changes to Google Sheets may take up to 5 minutes to reflect in the catalog due to caching.
+</Warning>
+
+---
+
+## Access Control
+
+### View Permissions
+
+All authenticated users can:
+- Browse product catalog
+- Search products
+- View product specifications
+- Download technical documents
+
+### Document Download Restrictions
+
+Certain documents may be restricted:
+- **Internal Use Only**: Visible to quality and production roles
+- **Confidential**: Visible to managers and above
+- **Public**: Available to all users
+
+<Info>
+  Document visibility is controlled via metadata in Google Sheets.
+</Info>
+
+---
+
+## Mobile Experience
+
+The catalog is fully responsive:
+- Touch-optimized navigation
+- Swipeable product cards
+- Bottom sheet for product details
+- Optimized document viewer
+
+**Mobile-Specific Features:**
+- Tap to expand product families
+- Pull-to-refresh data sync
+- Offline-capable (cached results)
+
+---
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Before Production" icon="clipboard-check">
+    **Review product specifications:**
+    - Check % solids range
+    - Verify pH requirements
+    - Confirm appearance standard
+    - Note any special instructions
+    
+    This ensures accurate data entry in the Production Logbook.
+  </Accordion>
+
+  <Accordion title="Raw Material Selection" icon="flask">
+    **Verify compliance:**
+    - Check certificate of analysis (COA)
+    - Review safety data sheet (SDS)
+    - Confirm supplier and batch number
+    - Validate expiration date
+    
+    Ensures quality of incoming materials.
+  </Accordion>
+
+  <Accordion title="Documentation Updates" icon="refresh">
+    **Keep current:**
+    - Update Google Sheets monthly
+    - Upload new COAs upon receipt
+    - Refresh SDS annually
+    - Archive obsolete formulations
+    
+    Maintains catalog accuracy and compliance.
+  </Accordion>
+
+  <Accordion title="Audit Compliance" icon="shield-check">
+    **Regular reviews:**
+    - Monthly audit log review (admin)
+    - Quarterly documentation completeness check
+    - Annual compliance verification
+    
+    Ensures regulatory compliance and traceability.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Frequently Asked Questions
+
+<AccordionGroup>
+  <Accordion title="Why can't I find a product?" icon="question">
+    **Troubleshooting:**
+    1. Check spelling and spacing
+    2. Use product code instead of name
+    3. Browse by family instead of search
+    4. Verify product exists in Google Sheets
+    5. Clear browser cache and refresh
+    
+    If still missing, contact IT to verify Sheets sync.
+  </Accordion>
+
+  <Accordion title="How do I download multiple documents?" icon="download">
+    Currently, documents must be downloaded individually.
+    
+    **Workaround:**
+    - Use middle-click to open in new tabs
+    - Download all tabs at once
+    - Or request bulk download from admin
+  </Accordion>
+
+  <Accordion title="Can I add a new product?" icon="plus">
+    Product additions require admin approval.
+    
+    **Process:**
+    1. Submit request to Quality Manager
+    2. Provide product specifications
+    3. Quality team reviews and approves
+    4. Admin adds to Google Sheets
+    5. Product appears in catalog within 5 minutes
+  </Accordion>
+
+  <Accordion title="What if a specification changes?" icon="edit">
+    Specification changes follow change control process:
+    
+    1. Quality Manager proposes change
+    2. Review by technical committee
+    3. Approval by Director of Operations
+    4. Update Google Sheets with new spec
+    5. Notify production teams
+    6. Update training materials
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Related Modules
+
+- [Production Logbook](/modules/production-logbook) - Use specs to validate batches
+- [Quality Control](/modules/quality-control) - View product standards in NCRs
+- [Reports & Analytics](/modules/reports-analytics) - Analyze production by product family

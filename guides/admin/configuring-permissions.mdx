@@ -1,0 +1,352 @@
+---
+title: Configuring Permissions
+description: Learn how to assign and manage user permissions and access levels in Quality Hub GINEZ
+---
+
+## Overview
+
+Quality Hub GINEZ uses a **Role-Based Access Control (RBAC)** system with granular permissions for each module. As an administrator, you can assign roles and configure specific permissions to control what users can view, create, edit, delete, and export.
+
+## Permission System Architecture
+
+The system uses two levels of access control:
+
+1. **Role-Based Permissions**: Predefined permission sets for common job functions
+2. **Module-Level Permissions**: Granular control over specific actions in each module
+
+### Permission Types
+
+Each module can have the following permission types:
+
+| Permission | Description | Example |
+|------------|-------------|----------|
+| **View** | Read-only access to module data | View product catalog |
+| **Create** | Add new records | Register new batch in bitácora |
+| **Edit** | Modify existing records | Update quality measurements |
+| **Delete** | Remove records | Delete incorrect entries |
+| **Export** | Download data to files | Export reports to Excel/PDF |
+
+## System Modules
+
+Quality Hub GINEZ has the following modules with configurable permissions:
+
+- **Panel Principal** (Dashboard) - Overview and KPIs
+- **Catálogo** - Product catalog and technical documentation
+- **Bitácora** - Production batch logging
+- **Control de Calidad** - Quality control and NCR
+- **Laboratorio I+D** - Research and development lab
+- **Reportes** - Reports and analytics
+- **Configuración** - System configuration and user management
+
+## Assigning Permissions
+
+### Method 1: Using Predefined Roles (Recommended)
+
+The fastest way to grant permissions is by assigning a predefined role that matches the user's job function.
+
+<Steps>
+  <Step title="Navigate to User Management">
+    Go to **Configuración → Usuarios**
+  </Step>
+  
+  <Step title="Find the User">
+    Search for the user in the users table
+  </Step>
+  
+  <Step title="Click Permissions Button">
+    Click the **🛡️ Permisos** button next to the user's name
+  </Step>
+  
+  <Step title="Select Role">
+    Choose from the dropdown:
+    - Administrador
+    - Supervisor
+    - Operador
+    - Preparador
+    - Consulta
+  </Step>
+  
+  <Step title="Review Permissions">
+    The permission matrix will auto-populate based on the selected role
+  </Step>
+  
+  <Step title="Save Changes">
+    Click **Guardar** to apply the permissions
+  </Step>
+</Steps>
+
+### Method 2: Manual Permission Configuration (Advanced)
+
+For custom permission needs, you can configure each module's permissions individually.
+
+<Steps>
+  <Step title="Open Permission Dialog">
+    Click the **🛡️ Permisos** button for the user
+  </Step>
+  
+  <Step title="Configure Each Module">
+    For each module (Catálogo, Bitácora, etc.), toggle the switches:
+    - ✅ Ver (View)
+    - ✅ Crear (Create)
+    - ✅ Editar (Edit)
+    - ✅ Eliminar (Delete)
+    - ✅ Exportar (Export)
+  </Step>
+  
+  <Step title="Review Access Level">
+    The system automatically calculates access level:
+    - **Acceso Completo** (Full Access) - All permissions enabled
+    - **Acceso Parcial** (Partial Access) - Some permissions enabled
+    - **Acceso Restringido** (Restricted Access) - View only or no access
+  </Step>
+  
+  <Step title="Save Configuration">
+    Click **Guardar** to apply the custom permissions
+  </Step>
+</Steps>
+
+## Permission Matrix by Role
+
+### Administrador - Full Access
+
+| Module | Ver | Crear | Editar | Eliminar | Exportar |
+|--------|-----|-------|--------|----------|----------|
+| Panel Principal | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Catálogo | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Control Calidad | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Bitácora | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Laboratorio I+D | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Reportes | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Configuración | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+### Supervisor - Quality Oversight
+
+| Module | Ver | Crear | Editar | Eliminar | Exportar |
+|--------|-----|-------|--------|----------|----------|
+| Panel Principal | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Catálogo | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Control Calidad | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Bitácora | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Laboratorio I+D | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Reportes | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Configuración | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+### Operador - Production & QC
+
+| Module | Ver | Crear | Editar | Eliminar | Exportar |
+|--------|-----|-------|--------|----------|----------|
+| Panel Principal | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Catálogo | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Control Calidad | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Bitácora | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Laboratorio I+D | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Reportes | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Configuración | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+### Preparador - Batch Preparation
+
+| Module | Ver | Crear | Editar | Eliminar | Exportar |
+|--------|-----|-------|--------|----------|----------|
+| Panel Principal | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Catálogo | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Control Calidad | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Bitácora | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Laboratorio I+D | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Reportes | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Configuración | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+### Consulta - View Only
+
+| Module | Ver | Crear | Editar | Eliminar | Exportar |
+|--------|-----|-------|--------|----------|----------|
+| Panel Principal | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Catálogo | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Control Calidad | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Bitácora | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Laboratorio I+D | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Reportes | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Configuración | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+## Row Level Security (RLS)
+
+In addition to module permissions, Quality Hub GINEZ implements **Row Level Security** to control data access:
+
+### User-Level RLS
+
+**Normal users** can only:
+- View their own bitácora records
+- Edit their own bitácora records
+- View their own quality control entries
+
+### Admin-Level Override
+
+**Administrators** can:
+- View all records from all users
+- Edit any record regardless of creator
+- Delete any record (with audit trail)
+
+<Note>
+RLS policies are enforced at the database level in Supabase, providing an additional security layer beyond application permissions.
+</Note>
+
+## Real-World Workflow Example
+
+### Scenario: Batch Preparation and Quality Validation
+
+<Steps>
+  <Step title="Preparador - Juan">
+    **Permissions: Preparador role**
+    
+    - ✅ Views catalog to see product formula
+    - ✅ Prepares batch following specifications
+    - ✅ Registers batch in bitácora with basic data
+    - ❌ Cannot perform quality control (separate role)
+  </Step>
+  
+  <Step title="Operador - María">
+    **Permissions: Operador role**
+    
+    - ✅ Sees batch registered by Juan in bitácora
+    - ✅ Takes samples and performs quality measurements
+    - ✅ Records pH, solids, and other parameters
+    - ✅ Marks batch as conforming/non-conforming
+  </Step>
+  
+  <Step title="Supervisor - Carlos">
+    **Permissions: Supervisor role**
+    
+    - ✅ Reviews all records in Reports
+    - ✅ Analyzes trends and control charts
+    - ✅ Exports data for external analysis
+    - ✅ Can edit quality parameters if needed
+  </Step>
+  
+  <Step title="Administrador - You">
+    **Permissions: Admin role**
+    
+    - ✅ Full access to everything
+    - ✅ Manages users and permissions
+    - ✅ Configures system settings
+    - ✅ Reviews audit logs
+  </Step>
+</Steps>
+
+## Advanced: SQL-Based Permission Assignment
+
+<Warning>
+This method requires database access and SQL knowledge. Use the UI method unless you need to bulk-assign permissions.
+</Warning>
+
+For advanced users with Supabase database access:
+
+```sql
+-- Step 1: Get the user ID
+SELECT id FROM auth.users WHERE email = 'user@ginez.com';
+
+-- Step 2: Assign role permissions
+DO $$
+DECLARE
+    v_user_id UUID := 'USER_ID_HERE'; -- Paste from step 1
+    v_role_id UUID;
+    v_module RECORD;
+BEGIN
+    -- Get role ID (e.g., 'Preparador')
+    SELECT id INTO v_role_id FROM user_roles WHERE name = 'Preparador';
+    
+    -- Copy all role permissions to user
+    FOR v_module IN 
+        SELECT module_id, can_view, can_create, can_edit, can_delete, can_export
+        FROM role_permissions
+        WHERE role_id = v_role_id
+    LOOP
+        INSERT INTO user_permissions (
+            user_id, module_id, can_view, can_create, can_edit, can_delete, can_export
+        ) VALUES (
+            v_user_id, 
+            v_module.module_id,
+            v_module.can_view,
+            v_module.can_create,
+            v_module.can_edit,
+            v_module.can_delete,
+            v_module.can_export
+        )
+        ON CONFLICT (user_id, module_id) 
+        DO UPDATE SET
+            can_view = EXCLUDED.can_view,
+            can_create = EXCLUDED.can_create,
+            can_edit = EXCLUDED.can_edit,
+            can_delete = EXCLUDED.can_delete,
+            can_export = EXCLUDED.can_export;
+    END LOOP;
+END $$;
+```
+
+## Important Notes
+
+⚠️ **Permission changes are immediate** - Users see changes instantly
+
+⚠️ **Users must reload the page** - After permission changes, users should press F5 to refresh
+
+⚠️ **Only Administrators can manage permissions** - Regular users cannot view or change permissions
+
+⚠️ **All changes are audited** - Every permission change is logged for security
+
+## Best Practices
+
+### Security Guidelines
+
+1. **Minimum Necessary Access**: Grant only permissions required for job duties
+2. **Regular Audits**: Review permissions quarterly
+3. **Separation of Duties**: Preparers shouldn't validate their own work
+4. **Document Changes**: Keep records of why permissions were granted
+5. **Revoke Promptly**: Remove access when employees leave or change roles
+
+### Common Permission Patterns
+
+**Production Floor Staff**:
+- Role: Operador or Preparador
+- Focus: Bitácora and Quality Control
+- No export or delete capabilities
+
+**Quality Management**:
+- Role: Supervisor
+- Focus: Reports and Quality Control
+- Can export but not delete
+
+**Executive/Management**:
+- Role: Consulta
+- Focus: Dashboard and Reports
+- Read-only access for oversight
+
+## Troubleshooting
+
+### User Can't See a Module They Should Access
+
+1. Check that "View" permission is enabled for that module
+2. Verify their role assignment is correct
+3. Ask user to clear cache and reload (Ctrl+Shift+R)
+4. Check for JavaScript errors in browser console
+
+### Permission Changes Not Taking Effect
+
+1. Confirm changes were saved (look for success message)
+2. User must reload the page completely
+3. Check for database connectivity issues
+4. Verify RLS policies aren't blocking access
+
+### Accidentally Locked Out Admin
+
+ If you accidentally remove admin permissions:
+ 
+1. Access Supabase dashboard directly
+2. Run SQL to restore admin flag:
+   ```sql
+   UPDATE profiles SET is_admin = true WHERE email = 'admin@ginez.com';
+   ```
+3. Reload the application
+
+## Related Topics
+
+- [Managing Users](/guides/admin/managing-users)
+- [Audit Logs](/guides/admin/audit-logs)
+- [System Maintenance](/guides/admin/system-maintenance)

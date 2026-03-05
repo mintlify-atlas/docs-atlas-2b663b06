@@ -1,0 +1,456 @@
+---
+title: 'Database Migrations'
+description: 'Guide to managing database schema changes in Quality Hub GINEZ'
+icon: 'database'
+---
+
+## Overview
+
+Quality Hub GINEZ uses Supabase (PostgreSQL) as its database. This guide covers how to safely modify the database schema and manage migrations.
+
+## Database Schema
+
+### Core Tables
+
+The application uses two main tables:
+
+#### 1. bitacora_produccion
+
+Stores all production batch records with quality measurements:
+
+```sql
+CREATE TABLE bitacora_produccion (
+  id BIGSERIAL PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  lote_producto TEXT NOT NULL,
+  codigo_producto TEXT NOT NULL,
+  sucursal TEXT NOT NULL,
+  familia_producto TEXT,
+  categoria_producto TEXT,
+  fecha_fabricacion DATE NOT NULL,
+  tamano_lote NUMERIC,
+  ph NUMERIC,
+  solidos_medicion_1 NUMERIC,
+  solidos_medicion_2 NUMERIC,
+  apariencia TEXT,
+  color TEXT,
+  aroma TEXT,
+  nombre_preparador TEXT,
+  user_id UUID REFERENCES auth.users(id)
+);
+```
+
+#### 2. profiles
+
+Stores user profile information and admin status:
+
+```sql
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id),
+  email TEXT,
+  nombre TEXT,
+  area TEXT,
+  puesto TEXT,
+  is_admin BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+## Creating Migrations
+
+### Using Supabase Dashboard
+
+The simplest way to create migrations is through the Supabase dashboard:
+
+1. Go to your Supabase project
+2. Navigate to **SQL Editor**
+3. Write your migration SQL
+4. Click **Run** to execute
+
+### Example: Adding a New Column
+
+<CodeGroup>
+
+```sql Add Column
+-- Add a new column for batch notes
+ALTER TABLE bitacora_produccion 
+ADD COLUMN notas TEXT;
+```
+
+```sql Add Column with Default
+-- Add a column with a default value
+ALTER TABLE bitacora_produccion 
+ADD COLUMN estado TEXT DEFAULT 'PENDIENTE';
+```
+
+</CodeGroup>
+
+### Example: Creating Indexes
+
+<CodeGroup>
+
+```sql Single Column Index
+-- Index for faster searches by product code
+CREATE INDEX idx_codigo_producto 
+ON bitacora_produccion(codigo_producto);
+```
+
+```sql Composite Index
+-- Index for date range queries by branch
+CREATE INDEX idx_sucursal_fecha 
+ON bitacora_produccion(sucursal, fecha_fabricacion DESC);
+```
+
+```sql Partial Index
+-- Index only for non-conforming batches
+CREATE INDEX idx_no_conforme 
+ON bitacora_produccion(codigo_producto) 
+WHERE apariencia != 'CONFORME';
+```
+
+</CodeGroup>
+
+## Row Level Security (RLS)
+
+### Understanding RLS
+
+RLS ensures users can only access data they're authorized to see. Quality Hub uses RLS extensively for security.
+
+### User Access Policies
+
+<CodeGroup>
+
+```sql SELECT Policy
+-- Users can only view their own records
+CREATE POLICY "Users can view own records"
+ON bitacora_produccion FOR SELECT
+USING (auth.uid() = user_id);
+```
+
+```sql INSERT Policy
+-- Users can only create records for themselves
+CREATE POLICY "Users can insert own records"
+ON bitacora_produccion FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+```
+
+```sql UPDATE Policy
+-- Users can only update their own records
+CREATE POLICY "Users can update own records"
+ON bitacora_produccion FOR UPDATE
+USING (auth.uid() = user_id);
+```
+
+</CodeGroup>
+
+### Admin Access Policies
+
+<CodeGroup>
+
+```sql Admin View All
+-- Admins can view all records
+CREATE POLICY "Admins can view all records"
+ON bitacora_produccion FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+```
+
+```sql Admin Delete
+-- Admins can delete any record
+CREATE POLICY "Admins can delete records"
+ON bitacora_produccion FOR DELETE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+```
+
+</CodeGroup>
+
+## Migration Best Practices
+
+### 1. Always Backup First
+
+Before running migrations:
+
+<CodeGroup>
+
+```bash Export Data
+# Use Supabase CLI to backup
+supabase db dump -f backup.sql
+```
+
+</CodeGroup>
+
+Or use the Supabase dashboard:
+- Go to **Database** → **Backups**
+- Create a manual backup before major changes
+
+### 2. Test Migrations in Development
+
+Never run migrations directly in production:
+
+1. Create a separate Supabase project for development
+2. Test migrations there first
+3. Verify application functionality
+4. Then apply to production
+
+### 3. Use Transactions
+
+<CodeGroup>
+
+```sql Safe Migration
+BEGIN;
+
+-- Your migration statements
+ALTER TABLE bitacora_produccion ADD COLUMN nueva_columna TEXT;
+CREATE INDEX idx_nueva_columna ON bitacora_produccion(nueva_columna);
+
+-- Only commit if everything succeeds
+COMMIT;
+```
+
+</CodeGroup>
+
+### 4. Make Migrations Reversible
+
+Always know how to undo a migration:
+
+<CodeGroup>
+
+```sql Forward Migration
+-- Add column
+ALTER TABLE bitacora_produccion 
+ADD COLUMN temperatura NUMERIC;
+```
+
+```sql Rollback Migration
+-- Remove column (if needed)
+ALTER TABLE bitacora_produccion 
+DROP COLUMN temperatura;
+```
+
+</CodeGroup>
+
+## Common Migration Scenarios
+
+### Adding a New Quality Parameter
+
+<CodeGroup>
+
+```sql Add Parameter
+-- Add viscosity measurement
+ALTER TABLE bitacora_produccion 
+ADD COLUMN viscosidad NUMERIC;
+
+-- Update application code to handle new field
+-- Update production-constants.ts with standards
+```
+
+</CodeGroup>
+
+Then update `lib/production-constants.ts`:
+
+```typescript
+export const VISCOSITY_STANDARDS: Record<string, { min: number, max: number }> = {
+  "LIMLIM": { min: 50, max: 100 },
+  "LIMVIO": { min: 45, max: 95 },
+  // ... add more products
+};
+```
+
+### Creating an Audit Log Table
+
+<CodeGroup>
+
+```sql Audit Table
+CREATE TABLE audit_log (
+  id BIGSERIAL PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  user_id UUID REFERENCES auth.users(id),
+  action TEXT NOT NULL,
+  table_name TEXT NOT NULL,
+  record_id BIGINT,
+  old_values JSONB,
+  new_values JSONB
+);
+
+-- Index for querying by user and date
+CREATE INDEX idx_audit_user_date 
+ON audit_log(user_id, created_at DESC);
+```
+
+```sql Audit Trigger
+-- Trigger function to log changes
+CREATE OR REPLACE FUNCTION log_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO audit_log (user_id, action, table_name, record_id, old_values, new_values)
+  VALUES (
+    auth.uid(),
+    TG_OP,
+    TG_TABLE_NAME,
+    NEW.id,
+    to_jsonb(OLD),
+    to_jsonb(NEW)
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Attach trigger to table
+CREATE TRIGGER bitacora_audit_trigger
+AFTER UPDATE OR DELETE ON bitacora_produccion
+FOR EACH ROW EXECUTE FUNCTION log_changes();
+```
+
+</CodeGroup>
+
+### Adding Full-Text Search
+
+<CodeGroup>
+
+```sql Search Column
+-- Add tsvector column for search
+ALTER TABLE bitacora_produccion 
+ADD COLUMN search_vector tsvector;
+
+-- Update search vector
+UPDATE bitacora_produccion 
+SET search_vector = 
+  to_tsvector('spanish', 
+    coalesce(lote_producto, '') || ' ' ||
+    coalesce(codigo_producto, '') || ' ' ||
+    coalesce(nombre_preparador, '')
+  );
+
+-- Create GIN index for fast search
+CREATE INDEX idx_search 
+ON bitacora_produccion USING GIN(search_vector);
+```
+
+```sql Auto-Update Trigger
+-- Keep search vector updated
+CREATE OR REPLACE FUNCTION update_search_vector()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.search_vector := to_tsvector('spanish',
+    coalesce(NEW.lote_producto, '') || ' ' ||
+    coalesce(NEW.codigo_producto, '') || ' ' ||
+    coalesce(NEW.nombre_preparador, '')
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER search_vector_update
+BEFORE INSERT OR UPDATE ON bitacora_produccion
+FOR EACH ROW EXECUTE FUNCTION update_search_vector();
+```
+
+</CodeGroup>
+
+## Modifying Existing Columns
+
+### Changing Column Type
+
+<CodeGroup>
+
+```sql Type Change
+-- Change column type (safe if data compatible)
+ALTER TABLE bitacora_produccion 
+ALTER COLUMN tamano_lote TYPE DECIMAL(10,2);
+```
+
+```sql Type Change with Conversion
+-- Change with explicit conversion
+ALTER TABLE bitacora_produccion 
+ALTER COLUMN tamano_lote TYPE DECIMAL(10,2) 
+USING tamano_lote::DECIMAL(10,2);
+```
+
+</CodeGroup>
+
+### Adding NOT NULL Constraint
+
+<CodeGroup>
+
+```sql Safe NOT NULL
+-- First, set default for existing nulls
+UPDATE bitacora_produccion 
+SET apariencia = 'NO ESPECIFICADO' 
+WHERE apariencia IS NULL;
+
+-- Then add NOT NULL constraint
+ALTER TABLE bitacora_produccion 
+ALTER COLUMN apariencia SET NOT NULL;
+```
+
+</CodeGroup>
+
+## Monitoring and Maintenance
+
+### Check Table Size
+
+<CodeGroup>
+
+```sql Table Size
+SELECT 
+  schemaname,
+  tablename,
+  pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+```
+
+</CodeGroup>
+
+### Vacuum and Analyze
+
+<CodeGroup>
+
+```sql Maintenance
+-- Reclaim space and update statistics
+VACUUM ANALYZE bitacora_produccion;
+```
+
+</CodeGroup>
+
+## Emergency Rollback
+
+If a migration causes issues:
+
+1. **Restore from backup** (Supabase Dashboard → Backups)
+2. Or manually revert the changes:
+
+<CodeGroup>
+
+```sql Rollback Example
+-- Drop the problematic column
+ALTER TABLE bitacora_produccion DROP COLUMN nueva_columna;
+
+-- Drop the problematic index
+DROP INDEX IF EXISTS idx_nueva_columna;
+```
+
+</CodeGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Adding Products" icon="box" href="/guides/development/adding-products">
+    Learn how to add new products and standards
+  </Card>
+  <Card title="Customization" icon="palette" href="/guides/development/customization">
+    Customize the application functionality
+  </Card>
+</CardGroup>

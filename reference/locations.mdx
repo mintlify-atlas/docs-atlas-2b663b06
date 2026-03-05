@@ -1,0 +1,206 @@
+---
+title: Locations (Sucursales)
+description: Complete list of all GINEZ branch locations
+icon: map-pin
+---
+
+## Overview
+
+GINEZ operates across 40 locations throughout Mexico. Each location (sucursal) has a unique identifier and acronym used in batch numbering and reporting.
+
+<Info>
+Location data is defined in `lib/production-constants.ts:1-54`
+</Info>
+
+## All Locations
+
+### Complete List
+
+| # | Location Name | Acronym |
+|---|---|---|
+| 1 | ACTOPAN | ACT |
+| 2 | AMOZOC | AMO |
+| 3 | APIZACO | APZ |
+| 4 | ATITALAQUIA | ATI |
+| 5 | ATLACOMULCO | ATL |
+| 6 | CANCUN 1 | CAN1 |
+| 7 | CANCUN 2 | CAN2 |
+| 8 | CEIBA | CEI |
+| 9 | CELAYA | CEL |
+| 10 | CHOLULA | CHO |
+| 11 | CUAUTLA | CUA |
+| 12 | GUADALAJARA | GDL |
+| 13 | HUEJUTLA | HUE |
+| 14 | IRAPUATO | IRA |
+| 15 | IXMIQUILPAN | IXM |
+| 16 | MERIDA | MER |
+| 17 | MIXQUIAHUALA | MIX |
+| 18 | MORELIA | MOR |
+| 19 | OAXACA 1 | OAX1 |
+| 20 | OAXACA 2 | OAX2 |
+| 21 | PACHUCA 1 | PAC1 |
+| 22 | PACHUCA 2 | PAC2 |
+| 23 | PLAYA DEL CARMEN | PDC |
+| 24 | PUEBLA 1 | PUE1 |
+| 25 | PUEBLA 2 | PUE2 |
+| 26 | PUEBLA 3 | PUE3 |
+| 27 | QUERETARO 1 | QR01 |
+| 28 | QUERETARO 2 | QR02 |
+| 29 | QUERETARO 3 | QR03 |
+| 30 | TEHUACAN | TEH |
+| 31 | TEZIUTLAN | TEZ |
+| 32 | TIZAYUCA | TIZ |
+| 33 | TULANCINGO 1 | TUL1 |
+| 34 | TULANCINGO 2 | TUL2 |
+| 35 | VERACRUZ | VER |
+| 36 | VILLAHERMOSA | VHM |
+| 37 | ZUMPANGO 1 | ZUM1 |
+| 38 | ZUMPANGO 2 | ZUM2 |
+| 39 | CEDIS | CEDIS |
+| 40 | CORPORATIVO | CORP |
+
+## Locations by Region
+
+### Hidalgo (Central)
+- ACTOPAN (ACT)
+- ATITALAQUIA (ATI)
+- HUEJUTLA (HUE)
+- IXMIQUILPAN (IXM)
+- MIXQUIAHUALA (MIX)
+- PACHUCA 1 (PAC1)
+- PACHUCA 2 (PAC2)
+- TIZAYUCA (TIZ)
+- TULANCINGO 1 (TUL1)
+- TULANCINGO 2 (TUL2)
+
+### Puebla
+- AMOZOC (AMO)
+- APIZACO (APZ)
+- CHOLULA (CHO)
+- PUEBLA 1 (PUE1)
+- PUEBLA 2 (PUE2)
+- PUEBLA 3 (PUE3)
+- TEHUACAN (TEH)
+- TEZIUTLAN (TEZ)
+
+### Querétaro
+- QUERETARO 1 (QR01)
+- QUERETARO 2 (QR02)
+- QUERETARO 3 (QR03)
+
+### Guanajuato
+- CELAYA (CEL)
+- IRAPUATO (IRA)
+
+### Jalisco
+- GUADALAJARA (GDL)
+
+### Michoacán
+- MORELIA (MOR)
+
+### México
+- ATLACOMULCO (ATL)
+- ZUMPANGO 1 (ZUM1)
+- ZUMPANGO 2 (ZUM2)
+
+### Morelos
+- CUAUTLA (CUA)
+
+### Oaxaca
+- OAXACA 1 (OAX1)
+- OAXACA 2 (OAX2)
+
+### Veracruz
+- VERACRUZ (VER)
+
+### Tabasco
+- VILLAHERMOSA (VHM)
+- CEIBA (CEI)
+
+### Yucatán
+- MERIDA (MER)
+
+### Quintana Roo
+- CANCUN 1 (CAN1)
+- CANCUN 2 (CAN2)
+- PLAYA DEL CARMEN (PDC)
+
+### Corporate/Distribution
+- CEDIS (Central Distribution - CEDIS)
+- CORPORATIVO (Corporate Offices - CORP)
+
+## Usage in Batch Numbering
+
+Location acronyms are used in the automatic batch number generation:
+
+```
+Format: YYYYMMDD-[ACRONYM]-[PRODUCT]-###
+
+Example: 20240315-PAC1-LIMLIM-001
+         └─date──┘ └─┬─┘ └──┬──┘ └┬┘
+                 location product seq
+```
+
+## SUCURSALES Constant
+
+```typescript
+export const SUCURSALES = [
+  "ACTOPAN", "AMOZOC", "APIZACO", "ATITALAQUIA", "ATLACOMULCO",
+  "CANCUN 1", "CANCUN 2", "CEIBA", "CELAYA", "CHOLULA",
+  "CUAUTLA", "GUADALAJARA", "HUEJUTLA", "IRAPUATO", "IXMIQUILPAN",
+  "MERIDA", "MIXQUIAHUALA", "MORELIA", "OAXACA 1", "OAXACA 2",
+  "PACHUCA 1", "PACHUCA 2", "PLAYA DEL CARMEN", "PUEBLA 1", "PUEBLA 2",
+  "PUEBLA 3", "QUERETARO 1", "QUERETARO 2", "QUERETARO 3", "TEHUACAN",
+  "TEZIUTLAN", "TIZAYUCA", "TULANCINGO 1", "TULANCINGO 2", "VERACRUZ",
+  "VILLAHERMOSA", "ZUMPANGO 1", "ZUMPANGO 2",
+  "CEDIS", "CORPORATIVO"
+]
+```
+
+**Source**: `lib/production-constants.ts:1-11`
+
+## SUCURSAL_ACRONYMS Constant
+
+```typescript
+export const SUCURSAL_ACRONYMS: Record<string, string> = {
+  "AMOZOC": "AMO",
+  "APIZACO": "APZ",
+  "ATITALAQUIA": "ATI",
+  // ... (40 entries total)
+}
+```
+
+**Source**: `lib/production-constants.ts:13-54`
+
+## Validation
+
+When creating bitácora records, the selected sucursal must exist in the `SUCURSALES` array:
+
+```typescript
+sucursal: z
+  .string()
+  .min(1, "La sucursal es obligatoria")
+  .refine(
+    (val) => SUCURSALES.includes(val),
+    "Selecciona una sucursal válida"
+  )
+```
+
+## Analytics & Reporting
+
+Locations can be used to filter and analyze production data:
+
+- Production volume by location
+- Quality conformity by branch
+- Top producing locations
+- Regional performance analysis
+
+<Info>
+The reports module includes filters for analyzing data by specific sucursales or comparing across all locations.
+</Info>
+
+## Source Code Reference
+
+**File**: `lib/production-constants.ts:1-54`
+
+Both the `SUCURSALES` array and `SUCURSAL_ACRONYMS` mapping are defined in this file.

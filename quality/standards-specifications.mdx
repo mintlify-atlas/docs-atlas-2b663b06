@@ -1,0 +1,387 @@
+---
+title: 'Standards & Specifications'
+description: 'Product quality standards and specifications database for GINEZ products'
+---
+
+# Standards & Specifications
+
+Quality Hub GINEZ maintains comprehensive quality standards for over 200 products across multiple parameters: sólidos content, pH levels, and appearance specifications.
+
+## Standards Overview
+
+All product standards are centrally defined in `lib/production-constants.ts` in three key constants:
+
+- **PRODUCT_STANDARDS**: Sólidos (solids content) specifications
+- **PH_STANDARDS**: pH range specifications
+- **APPEARANCE_STANDARDS**: Visual appearance requirements
+
+## PRODUCT_STANDARDS (Sólidos)
+
+Defines minimum and maximum sólidos content (% by weight) for each product.
+
+### Data Structure
+
+```typescript
+export const PRODUCT_STANDARDS: Record<string, { min?: number, max?: number }> = {
+  "LIMLIM": { min: 1.4, max: 1.6 },
+  "LIMVIO": { min: 1.3, max: 1.4 },
+  "TRALIM": { min: 16.5, max: 17.5 },
+  // ... 200+ products
+}
+```
+
+**Location**: `lib/production-constants.ts:100-220`
+
+### Usage
+
+```typescript
+const stdSolids = PRODUCT_STANDARDS[record.codigo_producto]
+if (stdSolids && stdSolids.min !== undefined && stdSolids.max !== undefined) {
+  // Use standards for conformity evaluation
+}
+```
+
+### Sample Standards by Product Category
+
+#### Limpiadores Multiusos (Multi-purpose Cleaners)
+
+| Product Code | Min % | Max % | Description |
+|--------------|-------|-------|-------------|
+| LIMLIM | 1.4 | 1.6 | Limón |
+| LIMVIO | 1.3 | 1.4 | Violeta |
+| LIMMAR | 1.1 | 1.7 | Marina |
+| PINO | 3.6 | 4.2 | Pino |
+
+#### Detergentes para Trastes (Dish Detergents)
+
+| Product Code | Min % | Max % | Description |
+|--------------|-------|-------|-------------|
+| TRALIM | 16.5 | 17.5 | Limón |
+| TRAMAN | 15.5 | 17.5 | Manzana |
+| TRABLU | 16.5 | 17.5 | Blue |
+| XPUMAX | 15.6 | 17.5 | Pumax |
+
+#### Detergentes para Ropa (Laundry Detergents)
+
+| Product Code | Min % | Max % | Description |
+|--------------|-------|-------|-------------|
+| COLGIN | 9.0 | 10.5 | Color Guard Ginebra |
+| GIRIEL | 9.0 | 10.5 | Giro Ariel |
+| PERLA | 11.1 | 13.5 | Perla |
+| AQUA | 10.5 | 12.5 | Aqua |
+
+#### Suavizantes (Fabric Softeners)
+
+| Product Code | Min % | Max % | Description |
+|--------------|-------|-------|-------------|
+| SUASUE | 1.3 | 2.0 | Sueños |
+| SUALIB | 1.5 | 2.2 | Libertad |
+| SUAMAG | 1.4 | 2.6 | Magia |
+
+#### Línea Automotriz (Automotive Line)
+
+| Product Code | Min % | Max % | Description |
+|--------------|-------|-------|-------------|
+| ALTBRI | 38.0 | 38.6 | Alto Brillo |
+| BRIGEL | 21.5 | 24.5 | Brillo Gel |
+| GINLIQ | 10.5 | 11.0 | Ginebra Líquido |
+| CREMEC | 37.0 | 40.5 | Crema Mecánica |
+
+<Note>
+High-concentration products (automotive, specialty cleaners) have significantly higher sólidos content, often 20-40%, compared to standard cleaners at 1-3%.
+</Note>
+
+## PH_STANDARDS
+
+Defines acceptable pH ranges for products where pH is a critical quality parameter.
+
+### Data Structure
+
+```typescript
+export const PH_STANDARDS: Record<string, { min: number, max: number }> = {
+  "TRALIM": { min: 7, max: 9 },
+  "COLGIN": { min: 7, max: 9 },
+  "JABPM": { min: 5, max: 6 },
+  // ... products requiring pH control
+}
+```
+
+**Location**: `lib/production-constants.ts:222-242`
+
+### pH Ranges by Product Type
+
+#### Neutral pH (7-9): Detergents & Cleaners
+
+```typescript
+"TRALIM": { min: 7, max: 9 },  // Dish detergent
+"COLGIN": { min: 7, max: 9 },  // Laundry detergent
+"DETER": { min: 7, max: 9 },   // General detergent
+```
+
+#### Slightly Acidic pH (5-6): Personal Care
+
+```typescript
+"JABPM": { min: 5, max: 6 },   // Hand soap
+"JABHIE": { min: 5, max: 6 },  // Hypoallergenic soap
+```
+
+#### Acidic pH (3-4): Specialty Products
+
+```typescript
+"GINESH": { min: 3, max: 4 },  // Special ginebra
+```
+
+#### Slightly Acidic pH (6-7): Shampoos & Creams
+
+```typescript
+"SHAPAN": { min: 6, max: 7 },  // Pantene shampoo
+"CREDEL": { min: 6, max: 7 },  // Body cream
+```
+
+#### Alkaline pH (8-10): Heavy-duty Cleaners
+
+```typescript
+"DESMUG": { min: 8, max: 10 }, // Degreaser
+"DETALC": { min: 9, max: 11 }, // Alcohol detergent
+```
+
+<Warning>
+pH outside specified ranges can affect product efficacy, stability, and safety. pH is especially critical for personal care products and disinfectants.
+</Warning>
+
+## APPEARANCE_STANDARDS
+
+Defines expected visual appearance characteristics for quality inspection.
+
+### Data Structure
+
+```typescript
+export const APPEARANCE_STANDARDS: Record<string, string> = {
+  "LIMLIM": "CRISTALINO",
+  "LIMVIO": "CRISTALINO",
+  "SUASUE": "OPACO",
+  "PERLA": "APERLADO",
+  // ... 200+ products
+}
+```
+
+**Location**: `lib/production-constants.ts:244-483`
+
+### Appearance Categories
+
+#### CRISTALINO (Clear/Transparent)
+
+**Characteristics**: Clear, see-through liquid with no cloudiness
+
+**Products**:
+- Most limpiadores multiusos (LIMLIM, LIMVIO, LIMMAR)
+- Dish detergents (TRALIM, TRAMAN, TRABLU)
+- Clear laundry detergents (COLGIN, COLBLA, GIRIEL)
+- Antibacterials (GELANT, LIMSAK)
+
+```typescript
+"LIMLIM": "CRISTALINO",
+"TRALIM": "CRISTALINO",
+"GELANT": "CRISTALINO",
+```
+
+#### OPACO (Opaque)
+
+**Characteristics**: Non-transparent, solid appearance with no visibility through liquid
+
+**Products**:
+- All suavizantes/fabric softeners (SUASUE, SUALIB, SUAMAG)
+- Aromatizantes ambientales (AROANII, AROCAN)
+- Bases (BAROANII, BLIMALA)
+- Creams (CREDEL, CREBAB)
+
+```typescript
+"SUASUE": "OPACO",
+"AROANII": "OPACO",
+"CREDEL": "OPACO",
+```
+
+#### APERLADO (Pearlescent)
+
+**Characteristics**: Opalescent, pearly sheen with milky appearance
+
+**Products**:
+- Premium laundry detergents (PERLA, ENCANTO, VELGIN)
+- Specialty cleaners (SHAMAS)
+- Some shampoos (SHAPAN, SHAHEA)
+
+```typescript
+"PERLA": "APERLADO",
+"SHAPAN": "APERLADO",
+"ENCANTO": "APERLADO",
+```
+
+### Appearance Evaluation Logic
+
+```typescript
+let appearanceStatus: ConformityLevel = 'na'
+if (record.apariencia && stdApp) {
+  // Case-insensitive string matching
+  if (record.apariencia.toLowerCase().includes(stdApp.toLowerCase()) || 
+      stdApp.toLowerCase().includes(record.apariencia.toLowerCase())) {
+    appearanceStatus = 'conforme'
+  } else {
+    // Exact uppercase match as fallback
+    if (record.apariencia.toUpperCase() === stdApp.toUpperCase()) {
+      appearanceStatus = 'conforme'
+    } else {
+      appearanceStatus = 'no-conforme'
+      failedParams.push('apariencia')
+    }
+  }
+}
+```
+
+## PARAMETER_APPLICABILITY
+
+Defines which quality parameters apply to each product.
+
+### Data Structure
+
+```typescript
+export const PARAMETER_APPLICABILITY: Record<string, { solidos: boolean, ph: boolean }> = {
+  "LIMLIM": { solidos: true, ph: false },
+  "TRALIM": { solidos: true, ph: true },
+  "AROANII": { solidos: false, ph: false },
+  // ...
+}
+```
+
+**Location**: `lib/production-constants.ts:485-503`
+
+### Common Patterns
+
+#### Sólidos Only
+
+```typescript
+"LIMLIM": { solidos: true, ph: false },   // Multi-purpose cleaner
+"SUASUE": { solidos: true, ph: false },   // Fabric softener
+```
+
+#### Sólidos + pH
+
+```typescript
+"TRALIM": { solidos: true, ph: true },    // Dish detergent
+"COLGIN": { solidos: true, ph: true },    // Laundry detergent
+"JABPM": { solidos: true, ph: true },     // Hand soap
+```
+
+#### No Parameters (Appearance Only)
+
+```typescript
+"AROANII": { solidos: false, ph: false }, // Air freshener
+"BAROANII": { solidos: false, ph: false },// Air freshener base
+```
+
+<Note>
+Aromatizantes (air fresheners) and their bases typically only require appearance inspection, as sólidos and pH are not critical quality parameters for these products.
+</Note>
+
+## Product Categories
+
+Products are organized into families for easier standard management:
+
+```typescript
+export const PRODUCT_CATEGORIES = [
+  { id: "aro-amb", name: "Aromatizante Ambiental" },
+  { id: "antibac", name: "Antibacteriales" },
+  { id: "lim-mult", name: "Limpiador liquido multiusos" },
+  { id: "det-trastes", name: "Detergente liquido para trastes" },
+  { id: "det-ropa", name: "Detergente líquido para ropa" },
+  { id: "suavizante", name: "Suavizante de telas" },
+  { id: "automotriz", name: "Línea automotriz" },
+  { id: "jab-manos", name: "Jabón liquido para manos" },
+  { id: "shampoo", name: "Shampoo capilar" },
+  { id: "crem-corp", name: "Crema corporal" },
+  { id: "prod-interm", name: "Producto intermedio" },
+  // ... more categories
+];
+```
+
+**Location**: `lib/production-constants.ts:56-76`
+
+## Working with Standards
+
+### Checking if Standards Exist
+
+```typescript
+const productCode = "LIMLIM"
+const hasSolidsStandard = PRODUCT_STANDARDS[productCode] !== undefined
+const hasPhStandard = PH_STANDARDS[productCode] !== undefined
+const hasAppearanceStandard = APPEARANCE_STANDARDS[productCode] !== undefined
+```
+
+### Retrieving Standards
+
+```typescript
+const stdSolids = PRODUCT_STANDARDS[productCode]
+if (stdSolids) {
+  console.log(`Sólidos range: ${stdSolids.min}% - ${stdSolids.max}%`)
+}
+
+const stdPH = PH_STANDARDS[productCode]
+if (stdPH) {
+  console.log(`pH range: ${stdPH.min} - ${stdPH.max}`)
+}
+
+const stdApp = APPEARANCE_STANDARDS[productCode]
+if (stdApp) {
+  console.log(`Expected appearance: ${stdApp}`)
+}
+```
+
+### Validating Measurements
+
+```typescript
+const isWithinSolidsSpec = (value: number, productCode: string): boolean => {
+  const std = PRODUCT_STANDARDS[productCode]
+  if (!std || std.min === undefined || std.max === undefined) return false
+  return value >= std.min && value <= std.max
+}
+
+const isWithinPhSpec = (value: number, productCode: string): boolean => {
+  const std = PH_STANDARDS[productCode]
+  if (!std) return false
+  return value >= std.min && value <= std.max
+}
+```
+
+## Standards Maintenance
+
+<Warning>
+Standards are hardcoded in `production-constants.ts`. Any changes require code updates and redeployment. Future versions may implement database-driven standards for easier updates.
+</Warning>
+
+### Adding New Product Standards
+
+1. Add sólidos range to `PRODUCT_STANDARDS`
+2. Add pH range to `PH_STANDARDS` (if applicable)
+3. Add appearance to `APPEARANCE_STANDARDS`
+4. Update `PARAMETER_APPLICABILITY`
+5. Add to appropriate `CATEGORY_PRODUCTS` group
+
+**Example**:
+```typescript
+// In PRODUCT_STANDARDS
+"NEWPROD": { min: 10.0, max: 12.0 },
+
+// In PH_STANDARDS
+"NEWPROD": { min: 7, max: 9 },
+
+// In APPEARANCE_STANDARDS
+"NEWPROD": "CRISTALINO",
+
+// In PARAMETER_APPLICABILITY
+"NEWPROD": { solidos: true, ph: true },
+```
+
+## Related Topics
+
+- [Control Charts](/quality/control-charts) - How standards are used in control charts
+- [Conformity Classification](/quality/conformity-classification) - Evaluation logic using standards
+- [NCR Management](/quality/ncr-management) - Handling products that fail standards

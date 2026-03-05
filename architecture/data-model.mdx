@@ -1,0 +1,366 @@
+---
+title: Data Model
+description: Database schema and data structures for Quality Hub GINEZ
+---
+
+# Data Model
+
+Quality Hub GINEZ uses PostgreSQL (via Supabase) as its primary database, with supplementary data from Google Sheets for the product catalog.
+
+## Database Schema
+
+### Primary Table: `bitacora_produccion`
+
+Stores production batch records with quality control measurements.
+
+```sql
+CREATE TABLE bitacora_produccion (
+  id BIGSERIAL PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  -- Batch Identification
+  lote_producto TEXT NOT NULL,
+  codigo_producto TEXT NOT NULL,
+  sucursal TEXT NOT NULL,
+  familia_producto TEXT,
+  categoria_producto TEXT,
+  fecha_fabricacion DATE NOT NULL,
+  tamano_lote NUMERIC,
+  
+  -- Quality Measurements
+  ph NUMERIC,
+  solidos_medicion_1 NUMERIC,
+  solidos_medicion_2 NUMERIC,
+  
+  -- Organoleptic Properties
+  apariencia TEXT,
+  color TEXT,
+  aroma TEXT,
+  
+  -- Metadata
+  nombre_preparador TEXT,
+  user_id UUID REFERENCES auth.users(id)
+);
+
+-- Enable Row Level Security
+ALTER TABLE bitacora_produccion ENABLE ROW LEVEL SECURITY;
+```
+
+#### Field Descriptions
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | bigint | Auto-incrementing primary key |
+| `created_at` | timestamptz | Automatic timestamp of record creation |
+| `lote_producto` | text | Generated batch number (format: `YYYYMMDD-SUC-PROD-###`) |
+| `codigo_producto` | text | Product code (e.g., `LIMLIM`, `TRALIM`) |
+| `sucursal` | text | Branch name where product was manufactured |
+| `familia_producto` | text | Product family (e.g., "Limpiador liquido multiusos") |
+| `categoria_producto` | text | Product category |
+| `fecha_fabricacion` | date | Manufacturing date |
+| `tamano_lote` | numeric | Batch size in liters or kilograms |
+| `ph` | numeric | pH measurement (0-14 scale) |
+| `solidos_medicion_1` | numeric | First % solids measurement (0-55%) |
+| `solidos_medicion_2` | numeric | Second % solids measurement (0-55%) |
+| `apariencia` | text | Appearance (CRISTALINO, OPACO, APERLADO) |
+| `color` | text | Color conformity (CONFORME, NO CONFORME) |
+| `aroma` | text | Aroma conformity (CONFORME, NO CONFORME) |
+| `nombre_preparador` | text | Name of the person who prepared the batch |
+| `user_id` | uuid | Foreign key to `auth.users`, identifies record creator |
+
+### Supporting Table: `profiles`
+
+Extends Supabase Auth users with application-specific profile data.
+
+```sql
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id),
+  email TEXT,
+  nombre TEXT,
+  area TEXT,
+  puesto TEXT,
+  is_admin BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+#### Field Descriptions
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | uuid | User ID (references auth.users) |
+| `email` | text | User email address |
+| `nombre` | text | Full name |
+| `area` | text | Department/area |
+| `puesto` | text | Job position |
+| `is_admin` | boolean | Admin flag for elevated permissions |
+| `created_at` | timestamptz | Profile creation timestamp |
+
+## Data Types & Validation
+
+### Product Standards
+
+Product standards are defined in code (`lib/production-constants.ts`) for real-time validation:
+
+```typescript
+export const PRODUCT_STANDARDS: Record<string, { min?: number, max?: number }> = {
+  "LIMLIM": { min: 1.4, max: 1.6 },
+  "LIMVIO": { min: 1.3, max: 1.4 },
+  "TRALIM": { min: 16.5, max: 17.5 },
+  "COLGIN": { min: 9.0, max: 10.5 },
+  // ... 100+ products with specification limits
+}
+```
+
+### pH Standards
+
+```typescript
+export const PH_STANDARDS: Record<string, { min: number, max: number }> = {
+  "TRALIM": { min: 7, max: 9 },
+  "COLGIN": { min: 7, max: 9 },
+  "JABPM": { min: 5, max: 6 },
+  // ... pH ranges by product
+}
+```
+
+### Appearance Standards
+
+```typescript
+export const APPEARANCE_STANDARDS: Record<string, string> = {
+  "LIMLIM": "CRISTALINO",
+  "LIMVIO": "CRISTALINO",
+  "SUASUE": "OPACO",
+  "SHAPAN": "APERLADO",
+  // ... expected appearance by product
+}
+```
+
+### Parameter Applicability
+
+Defines which quality parameters apply to each product:
+
+```typescript
+export const PARAMETER_APPLICABILITY: Record<string, { solidos: boolean, ph: boolean }> = {
+  "LIMLIM": { solidos: true, ph: false },
+  "TRALIM": { solidos: true, ph: true },
+  "AROANII": { solidos: false, ph: false },
+  // ... applicability matrix
+}
+```
+
+## Branch (Sucursal) Configuration
+
+Branches are defined as constants with acronym mappings:
+
+```typescript
+export const SUCURSALES = [
+  "ACTOPAN", "AMOZOC", "APIZACO", "ATITALAQUIA", "ATLACOMULCO",
+  "CANCUN 1", "CANCUN 2", "CELAYA", "CHOLULA", "PACHUCA 1",
+  // ... 40+ branches
+]
+
+export const SUCURSAL_ACRONYMS: Record<string, string> = {
+  "AMOZOC": "AMO",
+  "APIZACO": "APZ",
+  "PACHUCA 1": "PAC1",
+  // ... acronyms used in lot generation
+}
+```
+
+## Product Categories
+
+Hierarchical product organization:
+
+```typescript
+export const PRODUCT_CATEGORIES = [
+  { id: "aro-amb", name: "Aromatizante Ambiental", image: "..." },
+  { id: "det-trastes", name: "Detergente liquido para trastes", image: "..." },
+  { id: "det-ropa", name: "Detergente líquido para ropa", image: "..." },
+  // ... 19 categories
+]
+
+export const CATEGORY_PRODUCTS: Record<string, string[]> = {
+  "Aromatizante Ambiental": ["AROANII", "AROCAN", "AROCAR", ...],
+  "Detergente liquido para trastes": ["TRABLU", "TRALIM", ...],
+  // ... products grouped by category
+}
+```
+
+## Product Groups
+
+High-level grouping for reporting:
+
+```typescript
+export const PRODUCT_GROUPS = [
+  {
+    title: "Cuidado del Hogar",
+    color: "text-orange-600",
+    icon: "🏠",
+    ids: ["aro-amb", "esp-hogar", "lim-mult", "det-trastes", ...]
+  },
+  {
+    title: "Cuidado Personal",
+    color: "text-emerald-600",
+    icon: "💆",
+    ids: ["crem-corp", "enj-cap", "jab-manos", "shampoo"]
+  },
+  // ... 6 product groups
+]
+```
+
+## Computed Fields
+
+Some data is computed on the client side:
+
+### Average Solids
+
+```typescript
+const avgSolids = 
+  (solidos_medicion_1 + solidos_medicion_2) / 2
+```
+
+### Conformity Status
+
+Calculated based on control chart logic (see [Analysis Utils](/architecture/data-model#conformity-analysis)).
+
+```typescript
+type ConformityLevel = 'conforme' | 'semi-conforme' | 'no-conforme' | 'na'
+
+interface AnalysisResult {
+  isConform: boolean
+  failedParams: string[]
+  phStatus: ConformityLevel
+  solidsStatus: ConformityLevel
+  appearanceStatus: ConformityLevel
+  overallStatus: ConformityLevel
+}
+```
+
+## Conformity Analysis
+
+The conformity analysis logic is implemented in `lib/analysis-utils.ts`:
+
+### Control Chart Logic
+
+```typescript
+// Specification limits (red lines)
+const specMin = PRODUCT_STANDARDS[product].min
+const specMax = PRODUCT_STANDARDS[product].max
+
+// Tolerance limits (yellow lines) - 5% relative error
+const warnMin = specMin * 0.95
+const warnMax = specMax * 1.05
+
+// Classification
+if (avgSolids >= specMin && avgSolids <= specMax) {
+  status = 'conforme'  // Between red lines
+} else if (
+  (avgSolids >= warnMin && avgSolids < specMin) ||
+  (avgSolids > specMax && avgSolids <= warnMax)
+) {
+  status = 'semi-conforme'  // Between red and yellow lines
+} else {
+  status = 'no-conforme'  // Outside yellow lines
+}
+```
+
+### Enriched Record Type
+
+```typescript
+interface EnrichedRecord {
+  id: number
+  lote_producto: string
+  codigo_producto: string
+  sucursal: string
+  familia_producto: string
+  fecha_fabricacion: string
+  nombre_preparador: string
+  ph: number | null
+  solidos_medicion_1: number | null
+  solidos_medicion_2: number | null
+  solidos_promedio: number | null  // Computed
+  apariencia: string
+  analysis: AnalysisResult  // Computed conformity
+  tamano_lote: number
+}
+```
+
+## External Data: Google Sheets
+
+The product catalog is synchronized from Google Sheets via CSV export:
+
+### Raw Materials
+- URL configured in `SHEET_MP_CSV_URL`
+- Fields: code, name, type, supplier, etc.
+
+### Finished Products
+- URL configured in `SHEET_PT_CSV_URL`
+- Fields: code, name, family, category, documentation links
+
+## Data Flow
+
+### Create Production Record
+
+1. User fills form with batch information
+2. Client validates with Zod schema (`lib/validations.ts`)
+3. Conformity analyzed in real-time
+4. Record submitted to Supabase
+5. RLS policies verify user permissions
+6. Record inserted with `user_id`
+7. Success response returned
+
+### Query Production Records
+
+1. Client requests records via Supabase client
+2. RLS policies filter results:
+   - Regular users: only their own records
+   - Admins: all records
+3. Records returned to client
+4. Client enriches with conformity analysis
+5. Data displayed in UI
+
+## Indexes
+
+Recommended indexes for performance:
+
+```sql
+-- User's own records (most common query)
+CREATE INDEX idx_bitacora_user_id ON bitacora_produccion(user_id);
+
+-- Date-based filtering
+CREATE INDEX idx_bitacora_fecha ON bitacora_produccion(fecha_fabricacion DESC);
+
+-- Branch filtering
+CREATE INDEX idx_bitacora_sucursal ON bitacora_produccion(sucursal);
+
+-- Product filtering
+CREATE INDEX idx_bitacora_producto ON bitacora_produccion(codigo_producto);
+
+-- Composite index for common filters
+CREATE INDEX idx_bitacora_composite 
+  ON bitacora_produccion(sucursal, fecha_fabricacion DESC, user_id);
+```
+
+## Data Integrity
+
+### Constraints
+
+- `user_id` must reference valid user in `auth.users`
+- `lote_producto` should be unique (enforced by generation logic)
+- `fecha_fabricacion` cannot be in the future (client validation)
+- `tamano_lote` must be positive
+- `ph` range 0-14 (client validation)
+- `solidos_medicion_*` range 0-55% (client validation)
+
+### Audit Trail
+
+- `created_at` timestamp provides creation audit
+- `user_id` links record to creator
+- Records are never deleted, only soft-deleted in admin operations
+- User deletion preserves historical records
+
+## Next Steps
+
+- [Security & RLS](/architecture/security)
+- [Backend: Supabase Configuration](/architecture/backend/supabase)
+- [Data Validation](/architecture/backend/data-validation)

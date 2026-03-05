@@ -1,0 +1,224 @@
+---
+title: Creating Production Batches
+description: Step-by-step guide to recording production batches in Quality Hub GINEZ
+---
+
+## Overview
+
+The Production Batch Log (Bitácora de Producción) allows you to register quality parameters for finished products. Each batch is automatically assigned a unique lot number based on date, branch, and product.
+
+<Note>
+Only users with roles **Preparador**, **Admin**, **Coordinador**, or **Gerente de Calidad** can access this module. Other roles (Gerente de Sucursal, Mostrador, Cajera, Vendedor, Director de Compras) do not have permission.
+</Note>
+
+## Accessing the Module
+
+1. Log in to Quality Hub GINEZ
+2. Navigate to **Bitácora de Producción** from the main menu
+3. The system will display product category selection
+
+## Step-by-Step Workflow
+
+<Steps>
+
+### Step 1: Select Product Category
+
+The system organizes products into family groups:
+
+- **Cuidado del Hogar** (Home Care)
+- **Cuidado Personal** (Personal Care)
+- **Lavandería** (Laundry)
+- **Línea Automotriz** (Automotive Line)
+- **Línea Antibacterial** (Antibacterial Line)
+- **Productos Intermedios** (Intermediate Products)
+
+Click on a category group to expand and view available product types. Select the specific category that matches your production.
+
+<Note>
+The category selection determines which product codes will be available in the next step.
+</Note>
+
+### Step 2: Fill General Information
+
+Once you select a category, the registration form appears with the following required fields:
+
+#### Sucursal (Branch)
+Select your production branch from the dropdown. This field may be pre-filled based on your user profile.
+
+#### Preparador (Preparer)
+Your full name as the person preparing the batch. This field is automatically filled from your user profile.
+
+#### Fecha de Elaboración (Manufacturing Date)
+Select the production date. Defaults to today's date.
+
+#### Código del Producto (Product Code)
+Select the specific product code from the dropdown. Only products within the selected category are shown.
+
+<Warning>
+Ensure you select the correct product code. This determines which quality parameters apply and the specification limits used for validation.
+</Warning>
+
+#### Tamaño de Lote (Batch Size)
+Choose from standard sizes (20, 50, 100, 200, 1000) or select **"Flexible (Manual)"** to enter a custom value.
+
+- For liquid products: measured in **Liters (L)**
+- For aromatic bases and cleaners: measured in **Pieces (Piezas)**
+
+### Step 3: Record Quality Parameters
+
+The system displays measurement fields based on product applicability. Not all parameters apply to every product.
+
+#### % Sólidos (Brix) - Solids Content
+
+If applicable for your product, record **two measurements**:
+
+- **% Sólidos - M1**: First solids measurement
+- **Temp - M1 (°C)**: Temperature at first measurement
+- **% Sólidos - M2**: Second solids measurement  
+- **Temp - M2 (°C)**: Temperature at second measurement
+
+<Note>
+Use the digital refractometer according to procedure **IO-DOP-OP-002**. The system will calculate the average and compare it against specification limits.
+</Note>
+
+**Conformity Levels:**
+- **CONFORME (Compliant)**: Average falls between specification limits (red lines)
+- **SEMI-CONFORME (Tolerance)**: Average falls between specification and tolerance limits (red and yellow lines, ±5%)
+- **NO CONFORME (Non-Compliant)**: Average falls outside tolerance limits
+
+#### Valor de pH
+
+If applicable, enter the pH value measured using reactive strips:
+
+- Valid range: 0 to 14
+- Enter whole numbers or decimals (e.g., 7, 7.5)
+- Only accepts values from 0-14
+
+<Note>
+Use reactive strips according to procedure **IO-DOP-OP-001**.
+</Note>
+
+#### Apariencia (Appearance)
+
+Select the observed appearance from the dropdown:
+
+- CRISTALINO (Crystalline)
+- OPACO (Opaque)
+- APERLADO (Pearlescent)
+- TURBIO (Turbid)
+- PARTICULAS SUSPENDIDAS (Suspended Particles)
+- SEPARACION DE COMPONENTES (Component Separation)
+
+The system validates this against the expected appearance standard for the product.
+
+#### Color
+
+Select conformity status:
+- **CONFORME**: Color matches specification
+- **NO CONFORME**: Color does not match specification
+
+#### Aroma
+
+Select conformity status:
+- **CONFORME**: Aroma matches specification
+- **NO CONFORME**: Aroma does not match specification
+
+#### Observaciones (Additional Observations)
+
+Optional text field for recording any deviations or relevant notes about the batch.
+
+### Step 4: Submit and Generate Lot Number
+
+Click **"Finalizar y Generar Lote"** (Finish and Generate Batch) to save the record.
+
+**The system will:**
+
+1. Validate all required fields based on product applicability
+2. Generate a unique lot number in format: `YYMMDD-SUC-PROD###-##`
+   - `YYMMDD`: Manufacturing date
+   - `SUC`: Branch acronym
+   - `PROD###`: Product code + batch size
+   - `##`: Sequential number for the day
+3. Evaluate quality status based on measurements
+4. Save the record to the database
+
+**You will receive one of these notifications:**
+
+<Note>
+**✅ Producto Conforme**: All parameters meet specifications. Batch is registered successfully.
+</Note>
+
+<Warning>
+**⚠️ Producto en Tolerancia (Retener)**: Some parameters fall within tolerance limits. Batch is releasable with caution.
+</Warning>
+
+<Warning>
+**⚠️ Producto No Conforme**: One or more parameters fail specifications. Batch requires immediate review. You'll see a link to view details in the Quality Control module.
+</Warning>
+
+</Steps>
+
+## Validation Rules
+
+### Required Field Validation
+
+The system enforces these validation rules:
+
+- **Solids measurements**: If the product requires solids measurement, all four fields (M1, T1, M2, T2) must be filled
+- **pH measurement**: If the product requires pH, this field must be filled
+- **General fields**: Sucursal, Preparador, Fecha de Elaboración, Código del Producto, and Tamaño de Lote are always required
+
+### pH Input Validation
+
+- Only accepts numbers from 0 to 14
+- Allows decimal values (e.g., 7.5)
+- Rejects values outside the valid range
+
+### Product Applicability
+
+Not all quality parameters apply to all products. The system automatically enables/disables fields based on product selection:
+
+- Some products only require pH measurement
+- Some products only require solids measurement  
+- Some products require both
+- Some products may not require either
+
+<Note>
+Disabled fields appear grayed out and cannot be edited. This is normal and indicates the parameter is not applicable for the selected product.
+</Note>
+
+## Common Mistakes to Avoid
+
+<Warning>
+**Incomplete Measurements**: If you fill M1 but forget M2 (or vice versa), the system will reject the submission. Both measurements must be complete.
+</Warning>
+
+<Warning>
+**Wrong Product Code**: Selecting the wrong product code will apply incorrect specification limits, causing false conformity results. Double-check before submitting.
+</Warning>
+
+<Warning>
+**Incorrect Batch Size Units**: Remember that some product families use Pieces instead of Liters. Check the label on the Tamaño de Lote field.
+</Warning>
+
+## After Submission
+
+After successfully creating a batch:
+
+1. The form resets to allow entering a new batch
+2. You remain on the same category for quick consecutive entries
+3. To change categories, click **"Cambiar Categoría"** button
+4. View your submitted batches in **Control de Calidad** > **Historial de Mediciones**
+
+## Tips for Efficient Data Entry
+
+- Your **Sucursal** and **Preparador** fields auto-fill from your profile - verify they're correct
+- Use the **Flexible** batch size option for non-standard production runs
+- Record measurements immediately after production to ensure accuracy
+- If a batch is marked as No Conforme, document the issue in the Observaciones field for traceability
+
+## Next Steps
+
+- [Recording Measurements](/guides/user/recording-measurements) - Detailed measurement procedures
+- [Viewing Reports](/guides/user/viewing-reports) - Analyze production trends
+- [Quality Control Dashboard](/modules/quality-control) - Review historical batches and NCRs

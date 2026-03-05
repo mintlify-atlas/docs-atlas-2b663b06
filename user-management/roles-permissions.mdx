@@ -1,0 +1,340 @@
+---
+title: "Roles and Permissions"
+description: "Comprehensive guide to Quality Hub GINEZ role-based access control system"
+---
+
+## Overview
+
+Quality Hub GINEZ implements a role-based access control (RBAC) system with 8 predefined roles. Each role has specific permissions across 5 main modules, with three access levels: Complete (AC), Partial (AP), and Restricted (AR).
+
+## Available Roles
+
+The system includes 8 predefined roles designed for different organizational functions:
+
+<Accordion title="Administrator (admin)">
+  **Description**: Full system access with all permissions
+  
+  **Use Cases**: System administrators, IT staff, general managers
+  
+  **Module Access**:
+  - **Catalog**: Full access (view, download, create, edit, delete, export)
+  - **Log Book**: Full access with all filters including branch selection
+  - **Quality Control**: Full access with delete permissions
+  - **Reports**: Full access with export capabilities and all tabs
+  - **Configuration**: Full access to all settings including user management
+  
+  **Available Filters**: All filters including branch (sucursal) filter
+  
+  **Visible Tabs**: All tabs including commercial analysis
+</Accordion>
+
+<Accordion title="Preparer (preparador)">
+  **Description**: Access to product catalog and log book for product preparation
+  
+  **Use Cases**: Product preparers, mixing personnel, formulation technicians
+  
+  **Module Access**:
+  - **Catalog**: Full access (view, download) - no modification rights
+  - **Log Book**: Full access (view, create, edit) - can register and edit batches
+  - **Quality Control**: Partial access (view only) - cannot edit quality parameters
+  - **Reports**: Partial access (view only, quality control tab only)
+  - **Configuration**: Partial access (profile settings only)
+  
+  **Key Features**:
+  - Can consult catalog for formulas and specifications
+  - Can register batches in log book
+  - Can edit their own log book entries
+  - Cannot perform quality control tasks
+  - Cannot view commercial analysis reports
+  
+  **Available Filters**: Date, category, product (no branch filter)
+</Accordion>
+
+<Accordion title="Branch Manager (gerente_sucursal)">
+  **Description**: Branch-level management and quality oversight
+  
+  **Use Cases**: Branch managers, regional supervisors
+  
+  **Module Access**:
+  - **Catalog**: Full access (view, download)
+  - **Log Book**: Restricted (no access)
+  - **Quality Control**: Partial access (view only)
+  - **Reports**: Partial access (view only, quality control tab)
+  - **Configuration**: Partial access (profile only)
+  
+  **Available Filters**: Date, status, category, product (no branch filter)
+</Accordion>
+
+<Accordion title="Operations Director (director_operaciones)">
+  **Description**: Operations oversight with quality monitoring capabilities
+  
+  **Use Cases**: Operations directors, production managers
+  
+  **Module Access**:
+  - **Catalog**: Full access (view, download)
+  - **Log Book**: Restricted (no access)
+  - **Quality Control**: Partial access (view only)
+  - **Reports**: Partial access (view only, quality control tab)
+  - **Configuration**: Partial access (profile only)
+  
+  **Available Filters**: Date, status, category, product
+</Accordion>
+
+<Accordion title="Quality Manager (gerente_calidad)">
+  **Description**: Quality and development management with full quality control access
+  
+  **Use Cases**: Quality managers, R&D directors, laboratory managers
+  
+  **Module Access**:
+  - **Catalog**: Full access (view, download)
+  - **Log Book**: Restricted (no access)
+  - **Quality Control**: **Full access** (view, edit, delete) with branch filter
+  - **Reports**: Partial access (view only, quality control tab)
+  - **Configuration**: Partial access (profile only)
+  
+  **Key Features**:
+  - Only non-admin role with edit/delete permissions in Quality Control
+  - Has access to branch filter in Quality Control module
+  - Can manage quality parameters across all branches
+  
+  **Available Filters**: All filters including branch in Quality Control module
+</Accordion>
+
+<Accordion title="Counter Staff (mostrador)">
+  **Description**: Limited access for counter/front desk personnel
+  
+  **Use Cases**: Counter staff, customer service representatives
+  
+  **Module Access**:
+  - **Catalog**: Full access (view, download)
+  - **Log Book**: Restricted (no access)
+  - **Quality Control**: Restricted (no access)
+  - **Reports**: Restricted (no access)
+  - **Configuration**: Partial access (profile only)
+  
+  **Available Filters**: Category, product
+</Accordion>
+
+<Accordion title="Cashier (cajera)">
+  **Description**: Minimal access for cashier functions
+  
+  **Use Cases**: Cashiers, payment processing staff
+  
+  **Module Access**:
+  - **Catalog**: Full access (view, download)
+  - **Log Book**: Restricted (no access)
+  - **Quality Control**: Restricted (no access)
+  - **Reports**: Restricted (no access)
+  - **Configuration**: Partial access (profile only)
+  
+  **Available Filters**: Category, product
+</Accordion>
+
+<Accordion title="Purchasing Director (director_compras)">
+  **Description**: Access to quality data for purchasing decisions
+  
+  **Use Cases**: Purchasing directors, procurement managers
+  
+  **Module Access**:
+  - **Catalog**: Full access (view, download)
+  - **Log Book**: Restricted (no access)
+  - **Quality Control**: Partial access (view only)
+  - **Reports**: Partial access (view only, quality control tab)
+  - **Configuration**: Partial access (profile only)
+  
+  **Available Filters**: Date, status, category, product
+</Accordion>
+
+## Access Levels
+
+The system uses three access levels to control module permissions:
+
+### AC - Complete Access (Acceso Completo)
+- Full viewing permissions
+- Can download, create, edit, and delete records
+- All filters available
+- All tabs/sections visible
+- Export capabilities enabled
+
+### AP - Partial Access (Acceso Parcial)
+- View-only permissions with restrictions
+- Limited filters (no branch filter)
+- Limited tabs (e.g., only "Quality and Control" tab, not "Commercial Analysis")
+- Cannot modify data
+- Export typically disabled
+
+### AR - Restricted Access (Acceso Restringido)
+- No access to the module
+- Module not visible in navigation
+- All operations blocked
+
+## Permission Matrix
+
+### Catalog Module
+
+| Role | Access Level | View | Download | Create | Edit | Delete | Export |
+|------|--------------|------|----------|--------|------|--------|--------|
+| Administrator | AC | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Preparer | AC | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Branch Manager | AC | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Operations Director | AC | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Quality Manager | AC | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Counter Staff | AC | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Cashier | AC | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Purchasing Director | AC | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+
+### Log Book Module
+
+| Role | Access Level | View | Create | Edit | Delete | Export |
+|------|--------------|------|--------|------|--------|--------|
+| Administrator | AC | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Preparer | AC | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Branch Manager | AR | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Operations Director | AR | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Quality Manager | AR | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Counter Staff | AR | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Cashier | AR | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Purchasing Director | AR | ✗ | ✗ | ✗ | ✗ | ✗ |
+
+### Quality Control Module
+
+| Role | Access Level | View | Edit | Delete | Export | Filters |
+|------|--------------|------|------|--------|--------|----------|
+| Administrator | AC | ✓ | ✓ | ✓ | ✓ | All (including branch) |
+| Preparer | AP | ✓ | ✗ | ✗ | ✗ | Date, status, category, product |
+| Branch Manager | AP | ✓ | ✗ | ✗ | ✗ | Date, status, category, product |
+| Operations Director | AP | ✓ | ✗ | ✗ | ✗ | Date, status, category, product |
+| **Quality Manager** | **AC** | ✓ | ✓ | ✓ | ✓ | **All (including branch)** |
+| Counter Staff | AR | ✗ | ✗ | ✗ | ✗ | None |
+| Cashier | AR | ✗ | ✗ | ✗ | ✗ | None |
+| Purchasing Director | AP | ✓ | ✗ | ✗ | ✗ | Date, status, category, product |
+
+### Reports Module
+
+| Role | Access Level | View | Export | Filters | Visible Tabs |
+|------|--------------|------|--------|---------|---------------|
+| Administrator | AC | ✓ | ✓ | All (including branch) | Quality Control, Commercial Analysis |
+| Preparer | AP | ✓ | ✗ | Date, category, product | Quality Control only |
+| Branch Manager | AP | ✓ | ✗ | Date, category, product | Quality Control only |
+| Operations Director | AP | ✓ | ✗ | Date, category, product | Quality Control only |
+| Quality Manager | AP | ✓ | ✗ | Date, category, product | Quality Control only |
+| Counter Staff | AR | ✗ | ✗ | None | None |
+| Cashier | AR | ✗ | ✗ | None | None |
+| Purchasing Director | AP | ✓ | ✗ | Date, category, product | Quality Control only |
+
+### Configuration Module
+
+| Role | Access Level | Visible Tabs | Permissions |
+|------|--------------|--------------|-------------|
+| Administrator | AC | Profile, Users, Audit | Full system configuration |
+| All Other Roles | AP | Profile only | Can only edit own profile |
+
+## Role Comparison
+
+| Feature | Admin | Preparer | Quality Manager | Others |
+|---------|-------|----------|-----------------|--------|
+| View Dashboard | ✓ | ✓ | ✓ | ✓ |
+| View Catalog | ✓ | ✓ | ✓ | ✓ |
+| Register Log Book | ✓ | ✓ | ✗ | ✗ |
+| Edit Log Book | ✓ | ✓ | ✗ | ✗ |
+| Edit Quality Control | ✓ | ✗ | ✓ | ✗ |
+| Delete Quality Records | ✓ | ✗ | ✓ | ✗ |
+| View Reports | ✓ | ✓ | ✓ | Varies |
+| Export Data | ✓ | ✗ | ✓ | ✗ |
+| Commercial Analysis Tab | ✓ | ✗ | ✗ | ✗ |
+| Branch Filter | ✓ | ✗ | ✓ (QC only) | ✗ |
+| User Management | ✓ | ✗ | ✗ | ✗ |
+| System Configuration | ✓ | ✗ | ✗ | ✗ |
+
+## Workflow Example
+
+### Scenario: Batch Preparation and Quality Control
+
+**Step 1: Preparation** (Preparer Role)
+- ✓ Consults catalog for product formula
+- ✓ Prepares batch following specifications
+- ✓ Registers batch in log book with basic data
+- ✗ Cannot perform quality control tests
+
+**Step 2: Quality Control** (Quality Manager Role)
+- ✓ Views batch registered by preparer
+- ✓ Takes samples and performs measurements
+- ✓ Records pH, solids, and other parameters
+- ✓ Marks batch as conforming/non-conforming
+- ✓ Can edit or delete quality records if needed
+
+**Step 3: Supervision** (Operations Director)
+- ✓ Reviews all records in reports
+- ✓ Analyzes trends and control charts
+- ✗ Cannot export data (admin only)
+- ✗ Cannot edit quality parameters
+
+**Step 4: Administration** (Administrator)
+- ✓ Full access to all modules
+- ✓ Manages users and permissions
+- ✓ Exports data for external analysis
+- ✓ Configures system settings
+
+## Best Practices
+
+### Assigning Roles
+
+1. **Principle of Least Privilege**: Assign only the permissions necessary for the job function
+   - Example: A preparer does not need access to reports module
+
+2. **Separation of Duties**: Ensure separation between preparation and quality validation
+   - Who prepares should not be who validates quality
+   - Prevents conflicts of interest
+
+3. **Regular Review**: Review permissions every 3-6 months
+   - Revoke access for inactive users
+   - Update roles based on job changes
+
+4. **Documentation**: Maintain records of permission changes
+   - Document who has what permissions
+   - Log important permission changes
+
+### Security Considerations
+
+- Permission changes take effect immediately
+- Users must refresh their browser to see updated permissions
+- Only Administrators can manage user permissions
+- All permission changes are logged for audit purposes
+- Permissions are securely stored in Supabase
+
+## Managing Permissions
+
+Administrators can manage user roles through the Configuration module:
+
+1. Navigate to **Configuration → Users**
+2. Click **Edit** on the desired user
+3. Select the appropriate role from the dropdown
+4. Assign a branch (sucursal) if applicable
+5. Preview the permissions before saving
+6. Click **Save Changes**
+
+Permissions are automatically applied based on the selected role. No manual permission configuration is required.
+
+## Troubleshooting
+
+### User Cannot Access a Module
+
+1. Verify the user has "View" permission enabled
+2. Ask user to reload the page (F5)
+3. Check in **Configuration → Users → Permissions**
+
+### Changes Not Reflected
+
+1. User must reload the browser page
+2. Verify changes were saved successfully
+3. Check browser console (F12) for errors
+
+### Manage Permissions Button Not Visible
+
+1. Only administrators see this button
+2. Verify you are in the "Users" tab
+3. Verify your user has `is_admin = true`
+
+## API Reference
+
+For developers implementing permission checks, see the [Authentication](/user-management/authentication) page for details on the `usePermissions` hook.

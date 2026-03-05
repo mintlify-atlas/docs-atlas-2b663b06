@@ -1,0 +1,122 @@
+---
+title: "Introduction"
+description: "Welcome to Quality Hub GINEZ - Comprehensive quality management and production control system for GINEZ manufacturing operations"
+---
+
+<img
+  className="block dark:hidden"
+  src="https://media.brand.dev/1f1e4836-c9b0-4d21-a221-1411146261a9.svg"
+  alt="Quality Hub GINEZ Logo"
+/>
+<img
+  className="hidden dark:block"
+  src="https://media.brand.dev/862e10d4-beb2-49d1-91ee-e52387c286bd.png"
+  alt="Quality Hub GINEZ Logo"
+/>
+
+# Quality Hub GINEZ
+
+**Quality Hub GINEZ** is a comprehensive quality management and production control system designed for GINEZ manufacturing operations. Built with Next.js 14 and Supabase, it provides real-time quality monitoring, statistical process control, and multi-location production tracking across 40+ branches.
+
+## What is Quality Hub GINEZ?
+
+Quality Hub GINEZ is an enterprise-grade SaaS platform that streamlines quality control processes for manufacturing operations. It combines statistical process control (SPC) with modern web technologies to deliver:
+
+- **Real-time Quality Monitoring** — Track production quality metrics as they happen
+- **Statistical Process Control** — Control charts with automatic conformity classification
+- **Multi-location Support** — Manage quality across 40+ production locations
+- **Role-based Access Control** — 5 distinct roles with granular permissions
+- **Interactive Analytics** — Rich dashboards for FTQ analysis and commercial reports
+- **Product Catalog Integration** — Google Sheets integration for dynamic product data
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Control Charts & SPC" icon="chart-line" href="/quality/control-charts">
+    Statistical process control with three-level conformity classification (Conforme, Semi-Conforme, No Conforme)
+  </Card>
+  <Card title="Production Logbook" icon="clipboard-list" href="/modules/production-logbook">
+    Guided wizard for batch registration with automatic lot number generation
+  </Card>
+  <Card title="Quality Control Dashboard" icon="microscope" href="/modules/quality-control">
+    Real-time dashboard with KPIs, filters, and NCR management
+  </Card>
+  <Card title="Reports & Analytics" icon="chart-bar" href="/modules/reports-analytics">
+    Interactive reports with FTQ analysis, Pareto charts, and commercial insights
+  </Card>
+</CardGroup>
+
+## Quick Start
+
+Get started with Quality Hub GINEZ in minutes:
+
+<CardGroup cols={2}>
+  <Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+    Set up your first production batch and start tracking quality
+  </Card>
+  <Card title="Installation" icon="download" href="/installation">
+    Install and configure Quality Hub GINEZ for your organization
+  </Card>
+</CardGroup>
+
+## Core Modules
+
+Quality Hub GINEZ is organized into four main modules:
+
+<Steps>
+  <Step title="Production Logbook">
+    Register production batches with guided workflows, automatic validation, and real-time conformity checks.
+  </Step>
+  <Step title="Quality Control">
+    Monitor quality metrics, manage non-conformances, and track historical trends with interactive dashboards.
+  </Step>
+  <Step title="Product Catalog">
+    Access technical documentation, safety data sheets, and product specifications integrated from Google Sheets.
+  </Step>
+  <Step title="Reports & Analytics">
+    Analyze production trends, FTQ metrics, and commercial performance with interactive visualizations.
+  </Step>
+</Steps>
+
+## Architecture Highlights
+
+- **Frontend**: Next.js 14 with App Router, React 18, Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (PostgreSQL) with Row Level Security (RLS)
+- **Authentication**: Supabase Auth with role-based access control
+- **Data Integration**: Google Sheets for product catalog, Google Drive for documentation
+- **Visualization**: Recharts for control charts and analytics dashboards
+
+## Who Uses Quality Hub GINEZ?
+
+Quality Hub GINEZ serves multiple user roles across manufacturing operations:
+
+- **Administrators** — Full system access, user management, and configuration
+- **Supervisors** — Quality oversight, report generation, and data export
+- **Operators** — Production tracking and quality measurement recording
+- **Preparers** — Batch preparation and formula reference
+- **Consultation Users** — Read-only access to reports and catalogs
+
+## Learn More
+
+<CardGroup cols={2}>
+  <Card title="System Architecture" icon="sitemap" href="/architecture/overview">
+    Understand the three-tier architecture and technology stack
+  </Card>
+  <Card title="User Guides" icon="book-open" href="/guides/user/creating-production-batches">
+    Step-by-step guides for common tasks
+  </Card>
+  <Card title="Administrator Guides" icon="shield" href="/guides/admin/managing-users">
+    Configure permissions, manage users, and maintain the system
+  </Card>
+  <Card title="API Reference" icon="code" href="/reference/product-catalog">
+    Explore product standards, data structures, and configuration options
+  </Card>
+</CardGroup>
+
+## Support
+
+Need help? Check out these resources:
+
+<Card title="GitHub Repository" icon="github" href="https://github.com/AlejandroMartinezG/quality-hub">
+  View source code, report issues, and contribute to the project
+</Card>

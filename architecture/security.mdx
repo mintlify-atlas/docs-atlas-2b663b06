@@ -1,0 +1,502 @@
+---
+title: Security Architecture
+description: Authentication, authorization, and security measures in Quality Hub GINEZ
+---
+
+# Security Architecture
+
+Quality Hub GINEZ implements a comprehensive security model with defense-in-depth strategy, combining client-side validation, server-side enforcement, and database-level access control.
+
+## Authentication
+
+### Method: Email + Password
+
+Authentication is handled by **Supabase Auth** with industry-standard security practices:
+
+```typescript
+// lib/supabase.ts
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce',  // PKCE flow for CSRF protection
+  },
+})
+```
+
+### PKCE Flow
+
+**Proof Key for Code Exchange (PKCE)** provides CSRF protection:
+- Auth code is bound to a `code_verifier` only the original client knows
+- Prevents interception attacks
+- No additional CSRF tokens needed
+
+### Session Management
+
+- **Storage**: localStorage (browser default)
+- **Token Type**: JWT with refresh tokens
+- **Auto-refresh**: Tokens automatically refreshed before expiration
+- **Persistence**: Sessions persist across browser sessions
+
+### Authentication Flow
+
+```typescript
+// components/AuthProvider.tsx
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  
+  useEffect(() => {
+    // 1. Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setSession(session)
+        setUser(session.user)
+        fetchProfile(session.user.id)
+      }
+    })
+    
+    // 2. Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session)
+        setUser(session?.user ?? null)
+        if (session) await fetchProfile(session.user.id)
+      }
+    )
+    
+    return () => subscription.unsubscribe()
+  }, [])
+}
+```
+
+### User Approval
+
+New users require approval before accessing the system:
+
+```typescript
+const fetchProfile = async (userId: string) => {
+  const { data: profileData } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single()
+  
+  // Check approval status
+  if (!profileData.approved) {
+    await supabase.auth.signOut()
+    return null
+  }
+  
+  setProfile(profileData)
+}
+```
+
+## Authorization
+
+### Role-Based Access Control (RBAC)
+
+The system implements RBAC with the following roles:
+
+#### User Roles
+
+1. **Admin** (`is_admin: true`)
+   - Full system access
+   - User management
+   - View all records
+   - Edit any record
+   - Delete records
+   - Access audit logs
+
+2. **Regular User** (`is_admin: false`)
+   - View own records only
+   - Create production records
+   - Edit own records
+   - View reports (aggregated data)
+   - Access catalog
+   - Edit own profile
+
+#### Role Definition
+
+```typescript
+interface Profile {
+  id: string
+  full_name: string
+  area: string
+  position: string
+  role: string  // preparador, gerente_calidad, coordinador, etc.
+  is_admin: boolean
+  approved: boolean
+  sucursal?: string
+}
+```
+
+### Permission Matrix
+
+| Module | User | Admin |
+|--------|------|-------|
+| View own records | ✅ | ✅ |
+| View all records | ❌ | ✅ |
+| Create records | ✅ | ✅ |
+| Edit own records | ✅ | ✅ |
+| Edit any record | ❌ | ✅ |
+| Delete records | ❌ | ✅ |
+| View reports | ✅ (aggregated) | ✅ (all) |
+| Manage users | ❌ | ✅ |
+| View audit logs | ❌ | ✅ |
+| Access catalog | ✅ | ✅ |
+
+### Granular Permissions Hook
+
+For advanced permission control:
+
+```typescript
+// lib/usePermissions.ts
+export function usePermissions() {
+  const { user } = useAuth()
+  const [permissions, setPermissions] = useState<UserPermissions>({})
+  
+  // Fetch permissions from database
+  const fetchPermissions = async () => {
+    const { data } = await supabase
+      .rpc('get_user_permissions_v2', { p_user_id: user.id })
+    
+    // Build permissions map
+    const permissionsMap = data.reduce((acc, perm) => {
+      acc[perm.module_key] = {
+        access_level: perm.access_level,  // AC, AP, AR
+        can_view: perm.can_view,
+        can_create: perm.can_create,
+        can_edit: perm.can_edit,
+        can_delete: perm.can_delete,
+        can_export: perm.can_export,
+        available_filters: perm.available_filters,
+        visible_tabs: perm.visible_tabs
+      }
+      return acc
+    }, {})
+    
+    setPermissions(permissionsMap)
+  }
+  
+  return {
+    permissions,
+    canView: (module: string) => permissions[module]?.can_view,
+    canEdit: (module: string) => permissions[module]?.can_edit,
+    canDelete: (module: string) => permissions[module]?.can_delete,
+    // ... other helpers
+  }
+}
+```
+
+## Row Level Security (RLS)
+
+### Database-Level Access Control
+
+RLS policies are enforced at the PostgreSQL level, providing defense even if client code is compromised.
+
+#### Enable RLS
+
+```sql
+ALTER TABLE bitacora_produccion ENABLE ROW LEVEL SECURITY;
+```
+
+#### Policy: Users View Own Records
+
+```sql
+CREATE POLICY "Users can view own records"
+ON bitacora_produccion FOR SELECT
+USING (auth.uid() = user_id);
+```
+
+#### Policy: Admins View All Records
+
+```sql
+CREATE POLICY "Admins can view all records"
+ON bitacora_produccion FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+```
+
+#### Policy: Users Insert Own Records
+
+```sql
+CREATE POLICY "Users can insert own records"
+ON bitacora_produccion FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+```
+
+#### Policy: Users Update Own Records
+
+```sql
+CREATE POLICY "Users can update own records"
+ON bitacora_produccion FOR UPDATE
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+```
+
+#### Policy: Admins Update All Records
+
+```sql
+CREATE POLICY "Admins can update all records"
+ON bitacora_produccion FOR UPDATE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+```
+
+#### Policy: Admins Delete Records
+
+```sql
+CREATE POLICY "Admins can delete records"
+ON bitacora_produccion FOR DELETE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  )
+);
+```
+
+### How RLS Works
+
+1. **Client makes request** to Supabase
+2. **JWT token included** in Authorization header
+3. **Supabase validates token** and extracts `user_id`
+4. **PostgreSQL applies RLS policies** to filter/restrict data
+5. **Only authorized rows returned** to client
+
+### Benefits of RLS
+
+- **Defense in depth**: Protection at database level
+- **Automatic enforcement**: No way to bypass via client code
+- **Performance**: Filtering happens at database level
+- **Consistency**: Same rules apply to all access methods
+
+## Client-Side Validation
+
+### Zod Schemas
+
+Client-side validation prevents malformed data from reaching the server:
+
+```typescript
+// lib/validations.ts
+import { z } from "zod"
+
+export const BitacoraSchema = z.object({
+  sucursal: z
+    .string()
+    .min(1, "La sucursal es obligatoria")
+    .refine(val => SUCURSALES.includes(val), "Sucursal inválida"),
+  
+  codigo_producto: z
+    .string()
+    .min(1, "El código del producto es obligatorio")
+    .max(20, "Código de producto inválido")
+    .regex(/^[A-Z0-9-]+$/, "Solo mayúsculas, números y guiones"),
+  
+  tamano_lote: z
+    .string()
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
+      "Debe ser un número positivo"),
+  
+  ph: z
+    .string()
+    .refine(val => {
+      if (val === "") return true  // Optional
+      const num = parseFloat(val)
+      return !isNaN(num) && num >= 0 && num <= 14
+    }, "El pH debe estar entre 0 y 14"),
+  
+  solidos_medicion_1: z
+    .string()
+    .refine(val => {
+      if (val === "") return true
+      const num = parseFloat(val)
+      return !isNaN(num) && num >= 0 && num <= 55
+    }, "Los sólidos deben estar entre 0 y 55%"),
+  
+  // ... other fields
+})
+```
+
+### Validation Helper
+
+```typescript
+export function validateForm<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown
+): { success: true; data: T } | { success: false; errors: Record<string, string> } {
+  const result = schema.safeParse(data)
+  
+  if (result.success) {
+    return { success: true, data: result.data }
+  }
+  
+  const errors: Record<string, string> = {}
+  for (const issue of result.error.issues) {
+    const path = issue.path.join(".")
+    errors[path] = issue.message
+  }
+  
+  return { success: false, errors }
+}
+```
+
+## Input Sanitization
+
+All user inputs are sanitized to prevent injection attacks:
+
+```typescript
+// lib/sanitize.ts
+export function sanitizeInput(input: string): string {
+  return input
+    .trim()
+    .replace(/[<>"']/g, '')  // Remove potential HTML/SQL injection chars
+    .substring(0, 1000)       // Limit length
+}
+```
+
+## Rate Limiting
+
+Protect against brute force and DoS attacks:
+
+```typescript
+// lib/rate-limit.ts
+export function rateLimit(identifier: string, limit: number, window: number) {
+  // Implementation using in-memory store or Redis
+  // Returns true if within limit, false if exceeded
+}
+```
+
+## Security Headers
+
+Next.js configuration with security headers:
+
+```javascript
+// next.config.js
+module.exports = {
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()'
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Environment Variables
+
+### Secure Configuration
+
+```bash
+# Never commit .env.local to version control
+# Add to .gitignore:
+.env.local
+.env*.local
+```
+
+### Public vs. Private Variables
+
+- `NEXT_PUBLIC_*` variables are exposed to the browser
+- Non-prefixed variables are server-only
+
+```bash
+# Public (safe for browser)
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
+
+# Private (server-only)
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...  # Never expose!
+```
+
+## Audit Logging
+
+Document access tracking:
+
+```typescript
+// lib/audit.ts
+export async function logDocumentAccess(
+  userId: string,
+  documentType: string,
+  documentId: string
+) {
+  await supabase.from('audit_logs').insert({
+    user_id: userId,
+    action: 'document_download',
+    resource_type: documentType,
+    resource_id: documentId,
+    timestamp: new Date().toISOString()
+  })
+}
+```
+
+## Data Privacy
+
+### Personal Data Handling
+
+- **Minimal collection**: Only necessary data collected
+- **User consent**: Email verification for changes
+- **Data retention**: Historical records preserved for traceability
+- **User deletion**: Soft delete preserves audit trail
+
+### GDPR Considerations
+
+- Right to access: Users can view their profile
+- Right to rectification: Users can edit their profile
+- Right to erasure: Admin can deactivate accounts
+- Data portability: Export functionality for user data
+
+## Security Checklist
+
+- [x] Authentication with JWT tokens
+- [x] PKCE flow for CSRF protection
+- [x] Row Level Security policies
+- [x] Role-based access control
+- [x] Client-side validation with Zod
+- [x] Input sanitization
+- [x] Rate limiting
+- [x] Security headers
+- [x] Environment variable protection
+- [x] Audit logging
+- [x] User approval workflow
+- [ ] Two-factor authentication (future)
+- [ ] API rate limiting at edge (future)
+- [ ] Advanced threat detection (future)
+
+## Next Steps
+
+- [Backend: Row Level Security](/architecture/backend/row-level-security)
+- [Data Validation](/architecture/backend/data-validation)
+- [Frontend: State Management](/architecture/frontend/state-management)

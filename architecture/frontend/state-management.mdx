@@ -1,0 +1,596 @@
+---
+title: State Management
+description: State management patterns and data flow in Quality Hub GINEZ
+---
+
+# State Management
+
+Quality Hub GINEZ uses a combination of **React Context**, **local state**, and **server state** for managing application state.
+
+## State Architecture
+
+```
+┌────────────────────────────────────────────┐
+│            APPLICATION STATE                    │
+└────────────────────────────────────────────┘
+              │
+    ┌─────────┼──────────┐
+    │           │           │
+┌───┴───┐   ┌───┴───┐   ┌──┴───┐
+│ Global │   │ Local │   │Server│
+│  State │   │ State │   │ State │
+└────────┘   └───────┘   └───────┘
+  Context       useState    Supabase
+  useAuth       useReducer  Real-time
+  useTheme                  Queries
+```
+
+## Global State (React Context)
+
+### Authentication State
+
+The most critical global state is authentication:
+
+```typescript
+// components/AuthProvider.tsx
+import { createContext, useContext, useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
+import { User, Session } from "@supabase/supabase-js"
+
+interface Profile {
+  id: string
+  full_name: string
+  area: string
+  position: string
+  role: string
+  is_admin: boolean
+  approved: boolean
+  sucursal?: string
+}
+
+interface AuthContextType {
+  user: User | null
+  profile: Profile | null
+  session: Session | null
+  loading: boolean
+  signOut: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  profile: null,
+  session: null,
+  loading: true,
+  signOut: async () => {},
+})
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    // Initialize auth state
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      if (session) fetchProfile(session.user.id)
+      setLoading(false)
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session)
+        setUser(session?.user ?? null)
+        if (session) {
+          await fetchProfile(session.user.id)
+        } else {
+          setProfile(null)
+          router.push('/login')
+        }
+        setLoading(false)
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+
+    if (data) {
+      if (!data.approved) {
+        await supabase.auth.signOut()
+        return
+      }
+      setProfile(data)
+    }
+  }
+
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    setProfile(null)
+    setSession(null)
+    router.push('/login')
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, profile, session, loading, signOut }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export const useAuth = () => useContext(AuthContext)
+```
+
+**Usage:**
+
+```typescript
+function MyComponent() {
+  const { user, profile, loading } = useAuth()
+  
+  if (loading) return <Spinner />
+  if (!user) return <LoginPrompt />
+  
+  return <div>Welcome, {profile?.full_name}</div>
+}
+```
+
+### Theme State
+
+Dark/light mode state:
+
+```typescript
+import { ThemeProvider, useTheme } from 'next-themes'
+
+// In layout
+<ThemeProvider attribute="class" defaultTheme="system">
+  {children}
+</ThemeProvider>
+
+// In component
+const { theme, setTheme } = useTheme()
+
+<button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+  Toggle Theme
+</button>
+```
+
+### Permissions State
+
+Role-based permissions:
+
+```typescript
+// lib/usePermissions.ts
+export function usePermissions() {
+  const { user } = useAuth()
+  const [permissions, setPermissions] = useState<UserPermissions>({})
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!user) {
+      setPermissions({})
+      setLoading(false)
+      return
+    }
+
+    // Fetch permissions from Supabase
+    supabase
+      .rpc('get_user_permissions_v2', { p_user_id: user.id })
+      .then(({ data }) => {
+        const permissionsMap = data.reduce((acc, perm) => {
+          acc[perm.module_key] = {
+            access_level: perm.access_level,
+            can_view: perm.can_view,
+            can_create: perm.can_create,
+            can_edit: perm.can_edit,
+            can_delete: perm.can_delete,
+            // ... other permissions
+          }
+          return acc
+        }, {})
+        setPermissions(permissionsMap)
+      })
+      .finally(() => setLoading(false))
+  }, [user])
+
+  return {
+    permissions,
+    loading,
+    canView: (module: string) => permissions[module]?.can_view,
+    canEdit: (module: string) => permissions[module]?.can_edit,
+    canDelete: (module: string) => permissions[module]?.can_delete,
+  }
+}
+```
+
+**Usage:**
+
+```typescript
+function QualityControl() {
+  const { canEdit, canDelete } = usePermissions()
+  
+  return (
+    <div>
+      {canEdit('calidad') && <EditButton />}
+      {canDelete('calidad') && <DeleteButton />}
+    </div>
+  )
+}
+```
+
+## Local Component State
+
+### Form State with useState
+
+```typescript
+function BitacoraForm() {
+  const [formData, setFormData] = useState({
+    sucursal: '',
+    codigo_producto: '',
+    tamano_lote: '',
+    ph: '',
+    solidos_medicion_1: '',
+    solidos_medicion_2: '',
+  })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }))
+    }
+  }
+
+  const handleSubmit = async () => {
+    setSubmitting(true)
+    
+    // Validate
+    const result = validateForm(BitacoraSchema, formData)
+    if (!result.success) {
+      setErrors(result.errors)
+      setSubmitting(false)
+      return
+    }
+    
+    // Submit
+    const { error } = await supabase
+      .from('bitacora_produccion')
+      .insert(result.data)
+    
+    if (error) {
+      toast.error('Error al guardar')
+    } else {
+      toast.success('Guardado exitosamente')
+      // Reset form
+      setFormData(initialState)
+    }
+    
+    setSubmitting(false)
+  }
+
+  return (
+    <form>
+      <Input
+        value={formData.codigo_producto}
+        onChange={(e) => handleChange('codigo_producto', e.target.value)}
+        error={errors.codigo_producto}
+      />
+      {/* More inputs */}
+      <Button onClick={handleSubmit} disabled={submitting}>
+        {submitting ? 'Guardando...' : 'Guardar'}
+      </Button>
+    </form>
+  )
+}
+```
+
+### UI State (Modals, Dropdowns, etc.)
+
+```typescript
+function QualityControlPage() {
+  const [selectedRecord, setSelectedRecord] = useState<Record | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
+  
+  const handleDelete = (record: Record) => {
+    setSelectedRecord(record)
+    setDeleteDialogOpen(true)
+  }
+  
+  const confirmDelete = async () => {
+    if (!selectedRecord) return
+    
+    await supabase
+      .from('bitacora_produccion')
+      .delete()
+      .eq('id', selectedRecord.id)
+    
+    setDeleteDialogOpen(false)
+    setSelectedRecord(null)
+    refetch()
+  }
+  
+  return (
+    <div>
+      <Button onClick={() => setFilterOpen(true)}>Filtros</Button>
+      
+      <DataTable
+        data={records}
+        onDelete={handleDelete}
+      />
+      
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <p>¿Eliminar registro {selectedRecord?.lote_producto}?</p>
+          <Button onClick={confirmDelete}>Confirmar</Button>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+```
+
+### List State with Filtering/Sorting
+
+```typescript
+function ProductList() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState<'name' | 'code'>('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  
+  // Derived state with useMemo
+  const filteredProducts = useMemo(() => {
+    let result = products
+    
+    // Filter
+    if (search) {
+      result = result.filter(p => 
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.code.toLowerCase().includes(search.toLowerCase())
+      )
+    }
+    
+    // Sort
+    result.sort((a, b) => {
+      const aVal = a[sortBy]
+      const bVal = b[sortBy]
+      const comparison = aVal.localeCompare(bVal)
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+    
+    return result
+  }, [products, search, sortBy, sortOrder])
+  
+  return (
+    <div>
+      <SearchInput value={search} onChange={setSearch} />
+      <SortControls sortBy={sortBy} sortOrder={sortOrder} />
+      <ProductGrid products={filteredProducts} />
+    </div>
+  )
+}
+```
+
+## Server State (Supabase)
+
+### Data Fetching Pattern
+
+```typescript
+function useProductionRecords() {
+  const { user } = useAuth()
+  const [records, setRecords] = useState<ProductionRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+  
+  const fetchRecords = useCallback(async () => {
+    if (!user) return
+    
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const { data, error } = await supabase
+        .from('bitacora_produccion')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      setRecords(data || [])
+    } catch (err) {
+      setError(err as Error)
+    } finally {
+      setLoading(false)
+    }
+  }, [user])
+  
+  useEffect(() => {
+    fetchRecords()
+  }, [fetchRecords])
+  
+  return { records, loading, error, refetch: fetchRecords }
+}
+```
+
+### Real-time Subscriptions
+
+```typescript
+function useRealtimeRecords() {
+  const [records, setRecords] = useState<ProductionRecord[]>([])
+  
+  useEffect(() => {
+    // Initial fetch
+    supabase
+      .from('bitacora_produccion')
+      .select('*')
+      .then(({ data }) => setRecords(data || []))
+    
+    // Subscribe to changes
+    const subscription = supabase
+      .channel('bitacora_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'bitacora_produccion' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setRecords(prev => [payload.new, ...prev])
+          }
+          if (payload.eventType === 'UPDATE') {
+            setRecords(prev => prev.map(r => 
+              r.id === payload.new.id ? payload.new : r
+            ))
+          }
+          if (payload.eventType === 'DELETE') {
+            setRecords(prev => prev.filter(r => r.id !== payload.old.id))
+          }
+        }
+      )
+      .subscribe()
+    
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+  
+  return records
+}
+```
+
+### Optimistic Updates
+
+```typescript
+function useUpdateRecord() {
+  const [records, setRecords] = useState<ProductionRecord[]>([])
+  
+  const updateRecord = async (id: number, updates: Partial<ProductionRecord>) => {
+    // Optimistic update
+    setRecords(prev => prev.map(r => 
+      r.id === id ? { ...r, ...updates } : r
+    ))
+    
+    // Server update
+    const { error } = await supabase
+      .from('bitacora_produccion')
+      .update(updates)
+      .eq('id', id)
+    
+    if (error) {
+      // Revert on error
+      toast.error('Error al actualizar')
+      // Re-fetch to get correct state
+      refetch()
+    } else {
+      toast.success('Actualizado exitosamente')
+    }
+  }
+  
+  return { updateRecord }
+}
+```
+
+## State Management Best Practices
+
+### 1. Keep State Close to Where It's Used
+
+```typescript
+// ❌ Bad: Lifting state unnecessarily
+function ParentComponent() {
+  const [modalOpen, setModalOpen] = useState(false)  // Only used in child
+  return <ChildComponent modalOpen={modalOpen} setModalOpen={setModalOpen} />
+}
+
+// ✅ Good: State in component that uses it
+function ChildComponent() {
+  const [modalOpen, setModalOpen] = useState(false)
+  return <Modal open={modalOpen} onOpenChange={setModalOpen} />
+}
+```
+
+### 2. Use Derived State Instead of Duplicating
+
+```typescript
+// ❌ Bad: Duplicating state
+const [records, setRecords] = useState([])
+const [conformeRecords, setConformeRecords] = useState([])
+
+useEffect(() => {
+  setConformeRecords(records.filter(r => r.status === 'conforme'))
+}, [records])
+
+// ✅ Good: Derived with useMemo
+const [records, setRecords] = useState([])
+const conformeRecords = useMemo(
+  () => records.filter(r => r.status === 'conforme'),
+  [records]
+)
+```
+
+### 3. Use useCallback for Event Handlers
+
+```typescript
+const handleSubmit = useCallback(async () => {
+  await submitData()
+}, [submitData])
+
+<Button onClick={handleSubmit}>Submit</Button>
+```
+
+### 4. Separate Concerns
+
+```typescript
+// UI State
+const [modalOpen, setModalOpen] = useState(false)
+const [selectedTab, setSelectedTab] = useState('quality')
+
+// Data State
+const { records, loading } = useProductionRecords()
+
+// Computed State
+const stats = useMemo(() => calculateStats(records), [records])
+```
+
+### 5. Clean Up Subscriptions
+
+```typescript
+useEffect(() => {
+  const subscription = supabase
+    .channel('changes')
+    .on('postgres_changes', {}, handleChange)
+    .subscribe()
+  
+  return () => subscription.unsubscribe()  // Clean up!
+}, [])
+```
+
+## State Flow Diagram
+
+```
+User Action
+    ↓
+Event Handler
+    ↓
+Local State Update (optimistic)
+    ↓
+Supabase API Call
+    ↓
+    ├─ Success → Toast notification
+    └─ Error → Revert state + Error toast
+```
+
+## Next Steps
+
+- [Component Architecture](/architecture/frontend/components)
+- [App Structure](/architecture/frontend/app-structure)
+- [Backend: Supabase](/architecture/backend/supabase)

@@ -1,0 +1,188 @@
+---
+title: pH Standards
+description: pH standards and acceptable ranges for quality control
+icon: flask
+---
+
+## Overview
+
+pH standards define the acceptable pH range for products that require pH testing. Not all products require pH measurement.
+
+<Warning>
+These standards are extracted from `lib/production-constants.ts:222-242` and represent the source of truth for pH quality control.
+</Warning>
+
+## Validation Range
+
+All pH measurements must be between **0 and 14**.
+
+## Products by pH Range
+
+### pH 7-9 (Neutral to Slightly Alkaline)
+
+#### Detergentes para Trastes
+| Product Code | Min pH | Max pH |
+|---|---|---|
+| TRALIM | 7 | 9 |
+| TRAMAN | 7 | 9 |
+| TRANAR | 7 | 9 |
+| TRATOR | 7 | 9 |
+| TRABLU | 7 | 9 |
+| XPUMAX | 7 | 9 |
+
+#### Especialidades Hogar
+| Product Code | Min pH | Max pH |
+|---|---|---|
+| CLOGEL | 7 | 9 |
+| QUIPAS | 7 | 9 |
+| DETAMO | 7 | 9 |
+| DESBRA | 7 | 9 |
+
+#### Detergentes para Ropa
+| Product Code | Min pH | Max pH |
+|---|---|---|
+| COLGIN | 7 | 9 |
+| COLBLA | 7 | 9 |
+| COLNEG | 7 | 9 |
+| GIRIEL | 7 | 9 |
+| GIRIEL2 | 7 | 9 |
+| GIRDOW | 7 | 9 |
+| PERGIN | 7 | 9 |
+| VIVGIN | 7 | 9 |
+| GIRIELOXI | 7 | 9 |
+| SUNSET | 7 | 9 |
+| SHAGIN | 7 | 9 |
+| ZOTROS | 7 | 9 |
+| ZOTBLA | 7 | 9 |
+| ZOTAZU | 7 | 9 |
+| AQUA | 7 | 9 |
+| DETDON | 7 | 9 |
+| PERLA | 7 | 9 |
+| ENCANTO | 7 | 9 |
+| VELGIN | 7 | 9 |
+| DETPIN | 7 | 9 |
+| TRAGRA | 7 | 9 |
+
+### pH 7-8 (Neutral)
+
+| Product Code | Min pH | Max pH |
+|---|---|---|
+| DETNEU | 7 | 8 |
+| TEFESP | 7 | 8 |
+| SHAMAS | 7 | 8 |
+
+### pH 8-10 (Alkaline)
+
+| Product Code | Min pH | Max pH |
+|---|---|---|
+| DESMUG | 8 | 10 |
+
+### pH 6-7 (Slightly Acidic to Neutral)
+
+#### Automotriz
+| Product Code | Min pH | Max pH |
+|---|---|---|
+| SHACER | 6 | 7 |
+| SHACLA | 6 | 7 |
+| BRIGEL | 6 | 7 |
+| GINESP | 6 | 7 |
+
+#### Antibacteriales
+| Product Code | Min pH | Max pH |
+|---|---|---|
+| GELANT | 6 | 7 |
+| JABMAK | 6 | 7 |
+
+#### Shampoos
+| Product Code | Min pH | Max pH |
+|---|---|---|
+| SHAPAN | 6 | 7 |
+| SHAHEA | 6 | 7 |
+| SHADUR | 6 | 7 |
+| SHAPLU | 6 | 7 |
+| SHAHIE | 6 | 7 |
+
+#### Cremas Corporales
+| Product Code | Min pH | Max pH |
+|---|---|---|
+| CREDEL | 6 | 7 |
+| CREBAB | 6 | 7 |
+| CRELIM | 6 | 7 |
+| CREMIE | 6 | 7 |
+| CREROS | 6 | 7 |
+| CRESAB | 6 | 7 |
+| CREWHI | 6 | 7 |
+
+### pH 5-6 (Acidic)
+
+#### Jabón para Manos
+| Product Code | Min pH | Max pH |
+|---|---|---|
+| JABPM | 5 | 6 |
+| JABNEU | 5 | 6 |
+| JABCER | 5 | 6 |
+| JABUVA | 5 | 6 |
+| JABHIE | 5 | 6 |
+| JABCOC | 5 | 6 |
+| JABDUR | 5 | 6 |
+
+### pH 3-4 (Highly Acidic)
+
+| Product Code | Min pH | Max pH |
+|---|---|---|
+| GINESH | 3 | 4 |
+
+### pH 9-11 (Highly Alkaline)
+
+| Product Code | Min pH | Max pH |
+|---|---|---|
+| DETALC | 9 | 11 |
+
+## Products WITHOUT pH Requirements
+
+The following product categories do **not** require pH measurement:
+
+- **Aromatizantes Ambientales** (all ARO* products)
+- **Bases Aromatizantes** (all BARO* products)
+- **Limpiadores Multiusos** (most LIM* products)
+- **Suavizantes de Telas** (all SUA* products)
+- **Reforzadores de Aroma** (all REFARO-* products)
+- **Some intermediate products** (CLO, INS, LIMVID, etc.)
+
+See the [Parameter Applicability](/reference/parameter-applicability) reference for the complete matrix.
+
+## pH by Product Category
+
+### Personal Care Products (pH 5-7)
+Personal care products like hand soaps, shampoos, and creams typically have acidic to neutral pH to match skin pH.
+
+### Laundry Detergents (pH 7-9)
+Laundry detergents are slightly alkaline to help break down oils and stains.
+
+### Dish Detergents (pH 7-9)
+Dish washing detergents are neutral to slightly alkaline for effective grease cutting.
+
+### Automotive Products (pH 6-7)
+Automotive products maintain neutral pH to avoid damage to vehicle surfaces.
+
+## Conformity Analysis
+
+Unlike solids measurements, pH conformity is typically binary:
+
+```typescript
+if (ph >= phStandard.min && ph <= phStandard.max) {
+  return 'CONFORME'
+} else {
+  return 'NO CONFORME'
+}
+```
+
+<Info>
+pH measurements do not use the ±5% tolerance zone that applies to solids measurements.
+</Info>
+
+## Source Code Reference
+
+**File**: `lib/production-constants.ts:222-242`
+
+The `PH_STANDARDS` constant contains all pH specifications.

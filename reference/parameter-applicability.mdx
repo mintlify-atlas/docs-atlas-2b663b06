@@ -1,0 +1,250 @@
+---
+title: Parameter Applicability
+description: Matrix showing which quality parameters apply to each product
+icon: table
+---
+
+## Overview
+
+Not all products require the same quality control parameters. The `PARAMETER_APPLICABILITY` constant defines which measurements are required for each product.
+
+<Info>
+This matrix is defined in `lib/production-constants.ts:485-503` and controls form field visibility in the bitácora module.
+</Info>
+
+## Parameters
+
+Two main parameters are tracked:
+
+1. **solidos** - Solids percentage measurement (% Sólidos)
+2. **ph** - pH measurement
+
+## Applicability Matrix
+
+### Products Requiring BOTH Solids and pH
+
+#### Detergentes para Trastes
+| Product | Solids | pH |
+|---|---|---|
+| TRALIM | ✅ | ✅ |
+| TRAMAN | ✅ | ✅ |
+| TRANAR | ✅ | ✅ |
+| TRATOR | ✅ | ✅ |
+| TRABLU | ✅ | ✅ |
+| XPUMAX | ✅ | ✅ |
+
+#### Especialidades Hogar (Selected)
+| Product | Solids | pH |
+|---|---|---|
+| CLOGEL | ✅ | ✅ |
+| DETNEU | ✅ | ✅ |
+| DETER | ✅ | ✅ |
+| DETAMO | ✅ | ✅ |
+| TEFESP | ✅ | ✅ |
+| SHAMAS | ✅ | ✅ |
+| DESBRA | ✅ | ✅ |
+
+#### Detergentes para Ropa (All)
+- COLGIN, COLBLA, COLNEG, GIRIEL, GIRIEL2, GIRDOW, PERGIN, VIVGIN, GIRIELOXI, SUNSET, SHAGIN, ZOTROS, ZOTBLA, ZOTAZU, AQUA, DETDON, PERLA, ENCANTO, VELGIN
+
+#### Especialidades Lavandería (Selected)
+| Product | Solids | pH |
+|---|---|---|
+| DESMUG | ✅ | ✅ |
+| DETPIN | ✅ | ✅ |
+| GINESH | ✅ | ✅ |
+
+#### Automotriz (Selected)
+| Product | Solids | pH |
+|---|---|---|
+| SHACER | ✅ | ✅ |
+| SHACLA | ✅ | ✅ |
+| BRIGEL | ✅ | ✅ |
+| GINESP | ✅ | ✅ |
+
+#### Antibacteriales (Selected)
+| Product | Solids | pH |
+|---|---|---|
+| GELANT | ✅ | ✅ |
+| JABMAK | ✅ | ✅ |
+| TRAGRA | ✅ | ✅ |
+
+#### Jabón para Manos (All)
+- JABPM, JABNEU, JABCER, JABUVA, JABHIE, JABCOC, JABDUR
+
+#### Shampoos (All)
+- SHAPAN, SHAHEA, SHADUR, SHAPLU, SHAHIE
+
+#### Cremas Corporales (All)
+- CREDEL, CREBAB, CRELIM, CREMIE, CREROS, CRESAB, CREWHI
+
+#### Productos Intermedios (Selected)
+| Product | Solids | pH |
+|---|---|---|
+| DETALC | ✅ | ✅ |
+
+### Products Requiring ONLY Solids
+
+#### Limpiadores Multiusos (Most)
+- LIMLIM, LIMVIO, LIMMAR, LIMCAS, LIMBRI, LIMCAN, LIMCHI, LIMBOS, LIMLAV, LIMPERM, LIMMEN, LIMSTE, LIMFRU, LIMPOET, LIMMANC, LIMLIS, LIMALA, PINO
+
+#### Suavizantes (All)
+- SUASUE, SUALIB, SUAMAG, SUAINT, SUANAT, SUALUN, SUABLU, SUAPAS, SUASEN, SUAPRI, SUABAB, SUADEL, SUANEU
+
+#### Enjuagues Capilares (All)
+- ENJROS, ENJDUR, ENJHIE
+
+#### Especialidades Hogar (Selected)
+- CLO, INS, LIMVID, LIMREP
+
+#### Automotriz (Selected)
+- ALTBRI, BRILIQ, GINLIQ, DESMOT, CERLIQ, CREMEC, DESIND
+
+#### Antibacteriales (Selected)
+- SANBAK, LIMSAK
+
+#### Disoluciones Intermedias (All)
+- CITGIN, NAOH10, ESPSNT25
+
+### Products Requiring NEITHER
+
+#### Aromatizantes Ambientales (All 14)
+- AROANII, AROCAN, AROCAR, AROCHIC, AROCHIF, ARODRA, AROEST, AROETE, AROFER, AROGAR, AROHUG, AROLUX, ARONOR, AROPOL
+
+#### Bases Aromatizantes (All 15)
+- BAROANII, BAROCAN, BAROCAR, BAROCHIC, BAROCHIF, BARODRA, BAROEST, BAROETE, BAROFER, BAROGAR, BAROHUG, BAROLUX, BARONOR, BAROPOL, BAROMANC
+
+#### Bases Limpiadores (All 41)
+- BLIMALA, BLIMANI, BLIMBAB, BLIMBOS, BLIMBRI, BLIMCAN, BLIMCAR, BLIMCAS, BLIMCER, BLIMCHI, BLIMCHIC, BLIMCOC, BLIMDRAG, BLIMEST, BLIMETE, BLIMFER, BLIMFLO, BLIMFRU, BLIMGAR, BLIMGPO, BLIMHUG, BLIMLAV, BLIMLIM, BLIMLIS, BLIMLUX, BLIMMAN, BLIMMAND, BLIMMANC, BLIMMAR-1, BLIMMAR-2, BLIMMEN, BLIMNAR, BLIMNOR, BLIMPER, BLIMPOL, BLIMPRI, BLIMSTE, BLIMVIO, BPINBLA, BPINCRI, BPINVER
+
+#### Limpiadores (Selected)
+- PINBLA, PINVER
+
+#### Reforzadores de Aroma (All 13)
+- REFARO-SUE, REFARO-LIB, REFARO-MAG, REFARO-INT, REFARO-NAT, REFARO-LUN, REFARO-BLUE, REFARO-EDE, REFARO-PAS, REFARO-SEN, REFARO-PRI, REFARO-BAB, REFARO-DEL
+
+#### Especialidades (Selected)
+- QUIPAS, ACEROJ, MOP, QUILIQ, QUISAR, SARRIGEL, PLAFAC, PLAPLUS
+
+#### Productos Intermedios (Selected)
+- EMU, FFLO, BSUA
+
+## Statistics
+
+| Requirement | Count | Percentage |
+|---|---|---|
+| Both Solids and pH | 70 | 35% |
+| Only Solids | 55 | 27% |
+| Neither | 78 | 38% |
+| **Total Products** | **203** | **100%** |
+
+## Implementation Logic
+
+### Form Field Visibility
+
+```typescript
+import { PARAMETER_APPLICABILITY } from '@/lib/production-constants'
+
+const productCode = "LIMLIM"
+const applicability = PARAMETER_APPLICABILITY[productCode]
+
+if (applicability.solidos) {
+  // Show solids measurement fields
+  // solidos_medicion_1, solidos_medicion_2, temp_med1, temp_med2
+}
+
+if (applicability.ph) {
+  // Show pH measurement field
+}
+```
+
+### Validation
+
+```typescript
+if (PARAMETER_APPLICABILITY[productCode].solidos) {
+  if (!solidos_medicion_1) {
+    errors.solidos_medicion_1 = "Este producto requiere medición de sólidos"
+  }
+}
+
+if (PARAMETER_APPLICABILITY[productCode].ph) {
+  if (!ph) {
+    errors.ph = "Este producto requiere medición de pH"
+  }
+}
+```
+
+### Conformity Analysis
+
+```typescript
+let conformityStatus = 'CONFORME'
+
+if (PARAMETER_APPLICABILITY[productCode].solidos) {
+  const solidsStatus = analyzeSolidsConformity(solidos, productCode)
+  if (solidsStatus !== 'CONFORME') {
+    conformityStatus = solidsStatus
+  }
+}
+
+if (PARAMETER_APPLICABILITY[productCode].ph) {
+  const phStatus = analyzePhConformity(ph, productCode)
+  if (phStatus !== 'CONFORME') {
+    conformityStatus = 'NO CONFORME'
+  }
+}
+```
+
+## Data Structure
+
+```typescript
+export const PARAMETER_APPLICABILITY: Record<string, {
+  solidos: boolean
+  ph: boolean
+}> = {
+  "AROANII": { solidos: false, ph: false },
+  "LIMLIM": { solidos: true, ph: false },
+  "TRALIM": { solidos: true, ph: true },
+  // ... 203 total entries
+}
+```
+
+**Source**: `lib/production-constants.ts:485-503`
+
+## Quick Reference Table
+
+### By Category
+
+| Category | Typical Requirements |
+|---|---|
+| Aromatizantes | Neither |
+| Bases (all types) | Neither |
+| Limpiadores Multiusos | Solids only |
+| Detergentes Trastes | Both |
+| Detergentes Ropa | Both |
+| Suavizantes | Solids only |
+| Reforzadores Aroma | Neither |
+| Especialidades Hogar | Mixed |
+| Especialidades Lavandería | Mixed |
+| Automotriz | Mixed |
+| Antibacteriales | Mixed |
+| Jabón Manos | Both |
+| Shampoos | Both |
+| Enjuagues | Solids only |
+| Cremas | Both |
+| Intermedios | Mixed |
+
+## Notes
+
+<Warning>
+Always check the `PARAMETER_APPLICABILITY` constant for the definitive answer on which parameters apply to a specific product. The patterns above are generalizations.
+</Warning>
+
+<Info>
+Products that don't require solids or pH measurements still require organoleptic testing (color, appearance, aroma) and microbiological contamination checks.
+</Info>
+
+## Source Code Reference
+
+**File**: `lib/production-constants.ts:485-503`
+
+The complete parameter applicability matrix is defined in this constant.
